@@ -1,0 +1,25 @@
+# Build output
+bin/
+obj/
+
+# Local packages and build artifacts
+artifacts/
+
+# IDE/editor files
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+.DS_Store
+
+# DevMemory local/generated files
+devmemory.json
+devmemory.json.bak
+memory.json
+
+# Logs
+*.log
+
+# OS files
+Thumbs.db

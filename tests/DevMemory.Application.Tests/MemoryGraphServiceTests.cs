@@ -92,6 +92,59 @@ public sealed class MemoryGraphServiceTests
         Assert.Contains(htmlExporter.ExportedGraph.Nodes, node => node.Id == "project:devmemory");
     }
 
+    [Fact]
+    public void ExportGraph_WhenMemoryContainsGeneratedFiles_ExcludesGeneratedFilesFromGraph()
+    {
+        // Arrange
+        var repository = new InMemoryRepository
+        {
+            Memories =
+            [
+                new TaskMemory
+                {
+                    Id = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc"),
+                    Title = "Package CLI tool",
+                    Project = "DevMemory",
+                    Area = "Packaging",
+                    FilesTouched =
+                    [
+                        "src/DevMemory.Cli/Program.cs",
+                        "src/DevMemory.Cli/bin/Release/net10.0/DevMemory.Cli.dll",
+                        "src/DevMemory.Cli/obj/project.assets.json",
+                        "artifacts/packages/DevMemory.Cli.0.1.0.nupkg"
+                    ]
+                }
+            ]
+        };
+    
+        var exporter = new InMemoryGraphExporter();
+    
+        var service = new MemoryGraphService(
+            repository,
+            exporter,
+            new InMemoryGraphHtmlExporter());
+    
+        // Act
+        service.ExportGraph();
+    
+        // Assert
+        Assert.NotNull(exporter.ExportedGraph);
+    
+        Assert.Contains(exporter.ExportedGraph.Nodes, node => node.Id == "file:src/devmemory.cli/program.cs");
+    
+        Assert.DoesNotContain(exporter.ExportedGraph.Nodes, node =>
+            node.Label.Contains("/bin/", StringComparison.OrdinalIgnoreCase));
+    
+        Assert.DoesNotContain(exporter.ExportedGraph.Nodes, node =>
+            node.Label.Contains("/obj/", StringComparison.OrdinalIgnoreCase));
+    
+        Assert.DoesNotContain(exporter.ExportedGraph.Nodes, node =>
+            node.Label.Contains("artifacts", StringComparison.OrdinalIgnoreCase));
+    
+        Assert.DoesNotContain(exporter.ExportedGraph.Nodes, node =>
+            node.Label.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase));
+    }
+
     private sealed class InMemoryRepository : IMemoryRepository
     {
         public List<TaskMemory> Memories { get; init; } = [];

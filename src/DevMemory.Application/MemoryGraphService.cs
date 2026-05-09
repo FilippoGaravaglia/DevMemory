@@ -1,6 +1,7 @@
 using DevMemory.Application.Abstractions;
 using DevMemory.Application.Models.Graph;
 using DevMemory.Core;
+using DevMemory.Application.Filtering;
 
 namespace DevMemory.Application;
 
@@ -79,7 +80,7 @@ public sealed class MemoryGraphService
                 AddEdge(edgeKeys, graphEdges, memoryNodeId, tagNodeId, "has_tag");
             }
 
-            foreach (var file in memory.FilesTouched.Where(value => !string.IsNullOrWhiteSpace(value)))
+            foreach (var file in MemoryFileFilter.Filter(memory.FilesTouched))
             {
                 var fileNodeId = BuildTypedNodeId("file", file);
                 AddNode(nodes, fileNodeId, file, "file");
