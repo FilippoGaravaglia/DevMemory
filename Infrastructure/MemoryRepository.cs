@@ -25,10 +25,7 @@ public sealed class MemoryRepository
 
     public List<TaskMemory> Load()
     {
-        if (!File.Exists(_options.StorageFilePath))
-        {
-            return [];
-        }
+        EnsureStorageExists();
 
         var json = File.ReadAllText(_options.StorageFilePath);
 
@@ -37,7 +34,16 @@ public sealed class MemoryRepository
             return [];
         }
 
-        return JsonSerializer.Deserialize<List<TaskMemory>>(json, JsonOptions) ?? [];
+        try
+        {
+            return JsonSerializer.Deserialize<List<TaskMemory>>(json, JsonOptions) ?? [];
+        }
+        catch (JsonException ex)
+        {
+            throw new InvalidOperationException(
+                $"The DevMemory storage file is corrupted or invalid: {_options.StorageFilePath}",
+                ex);
+        }
     }
 
     public void Save(List<TaskMemory> memories)
@@ -45,7 +51,18 @@ public sealed class MemoryRepository
         EnsureStorageExists();
 
         var json = JsonSerializer.Serialize(memories, JsonOptions);
-        File.WriteAllText(_options.StorageFilePath, json);
+
+        var tempFilePath = $"{_options.StorageFilePath}.tmp";
+        var backupFilePath = $"{_options.StorageFilePath}.bak";
+
+        File.WriteAllText(tempFilePath, json);
+
+        if (File.Exists(_options.StorageFilePath))
+        {
+            File.Copy(_options.StorageFilePath, backupFilePath, overwrite: true);
+        }
+
+        File.Move(tempFilePath, _options.StorageFilePath, overwrite: true);
     }
 
     public string GetStorageFilePath()
