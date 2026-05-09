@@ -1,0 +1,14 @@
+/Users/filippogaravaglia/Downloads/Ai project/bin/Debug/net10.0/Ai project
+/Users/filippogaravaglia/Downloads/Ai project/bin/Debug/net10.0/Ai project.deps.json
+/Users/filippogaravaglia/Downloads/Ai project/bin/Debug/net10.0/Ai project.runtimeconfig.json
+/Users/filippogaravaglia/Downloads/Ai project/bin/Debug/net10.0/Ai project.dll
+/Users/filippogaravaglia/Downloads/Ai project/bin/Debug/net10.0/Ai project.pdb
+/Users/filippogaravaglia/Downloads/Ai project/obj/Debug/net10.0/Ai project.GeneratedMSBuildEditorConfig.editorconfig
+/Users/filippogaravaglia/Downloads/Ai project/obj/Debug/net10.0/Ai project.AssemblyInfoInputs.cache
+/Users/filippogaravaglia/Downloads/Ai project/obj/Debug/net10.0/Ai project.AssemblyInfo.cs
+/Users/filippogaravaglia/Downloads/Ai project/obj/Debug/net10.0/Ai project.csproj.CoreCompileInputs.cache
+/Users/filippogaravaglia/Downloads/Ai project/obj/Debug/net10.0/Ai project.dll
+/Users/filippogaravaglia/Downloads/Ai project/obj/Debug/net10.0/refint/Ai project.dll
+/Users/filippogaravaglia/Downloads/Ai project/obj/Debug/net10.0/Ai project.pdb
+/Users/filippogaravaglia/Downloads/Ai project/obj/Debug/net10.0/Ai project.genruntimeconfig.cache
+/Users/filippogaravaglia/Downloads/Ai project/obj/Debug/net10.0/ref/Ai project.dll
