@@ -1,10 +1,22 @@
+<div align="center">
+
 # DevMemory
 
-**DevMemory** is a local-first developer memory CLI designed to help software engineers store, search, export, and visualize technical knowledge produced during day-by-day development tasks.
+### Local-first developer memory for .NET engineers
 
-The goal is simple: avoid losing context between tasks, branches, commits, and AI/chat sessions.
+DevMemory is a local CLI tool that helps developers capture, search, export and visualize technical knowledge produced during day-to-day software engineering work.
 
-DevMemory lets you save structured task memories containing:
+It is designed to avoid losing context across tasks, branches, commits, code reviews and AI/chat sessions.
+
+</div>
+
+---
+
+## Overview
+
+DevMemory is a **local-first developer memory CLI** built with .NET.
+
+It allows developers to save structured engineering memories containing:
 
 - project
 - area
@@ -19,55 +31,64 @@ DevMemory lets you save structured task memories containing:
 
 Those memories can then be searched, exported to Markdown, enriched from Git context, and visualized as a knowledge graph.
 
+The project is currently under active development and is intended both as a practical daily developer tool and as a portfolio project focused on clean .NET architecture, CLI tooling, Git integration and local knowledge management.
+
 ---
 
-## Current Status
+## Why DevMemory?
 
-DevMemory is currently in an early but functional version.
+When working on multiple tasks, branches, repositories and AI-assisted development sessions, useful technical context is often lost.
 
-It is already usable as a local CLI tool and can be installed as a .NET global tool.
+DevMemory helps answer questions such as:
 
-Current version: `0.1.x`
+- What did I change last time in this area?
+- Which files are usually involved in this feature?
+- What decisions did I make during that refactor?
+- Which previous tasks touched this component?
+- What lessons did I learn from a bug fix?
+- Which memories are related to this project, tag or file?
 
 ---
 
 ## Features
 
-### Structured Task Memory
+### Structured task memories
 
-Create local task memories with relevant engineering context:
+Create a new memory from the terminal:
 
 ```bash
 devmemory add
 ```
 
-Each memory contains structured fields such as:
+Each memory stores technical context in a structured format:
 
-- title
-- project
-- area
-- branch
-- tags
-- problem
-- solution
-- decisions
-- files touched
-- tests
-- lessons learned
+```text
+Title
+Project
+Area
+Branch
+Tags
+Problem
+Solution
+Decisions
+Files touched
+Tests
+Lessons learned
+```
 
 ---
 
-### Local-First Storage
+### Local-first storage
 
-All data is stored locally by default in:
+By default, DevMemory stores all data locally:
 
 ```text
 ~/.devmemory/devmemory.json
 ```
 
-No external services, cloud storage, or LLM APIs are required.
+No cloud sync, no external services and no LLM API are required.
 
-The storage directory can be customized with:
+You can customize the storage directory with:
 
 ```bash
 DEVMEMORY_HOME=~/devmemory-work devmemory storage
@@ -75,29 +96,27 @@ DEVMEMORY_HOME=~/devmemory-work devmemory storage
 
 ---
 
-### Resilient JSON Storage
+### Resilient JSON persistence
 
-DevMemory stores memories in a local JSON file and writes data defensively:
+DevMemory currently uses JSON storage with defensive writes:
 
 - writes to a temporary file
 - creates a backup file
-- replaces the main storage file after successful write
+- replaces the main storage file only after a successful write
 
 This reduces the risk of corrupting the local memory store.
 
 ---
 
-### Markdown Export
+### Markdown export
 
-Every saved memory is automatically exported as a Markdown file:
+Every saved memory is automatically exported to Markdown:
 
 ```text
 ~/.devmemory/markdown/
 ```
 
-This makes memories easy to read, copy, reuse, or paste into tools like GitHub Copilot, ChatGPT, or documentation.
-
-Each generated Markdown memory includes:
+The generated Markdown includes:
 
 - metadata
 - problem
@@ -108,9 +127,11 @@ Each generated Markdown memory includes:
 - lessons learned
 - continuation prompt
 
+This makes memories easy to reuse in documentation, GitHub Copilot, ChatGPT or future AI-assisted workflows.
+
 ---
 
-### Search With Ranking and Filters
+### Ranked search with filters
 
 Search memories by free text:
 
@@ -140,9 +161,9 @@ Search results include a relevance score.
 
 ---
 
-### Git Inspection
+### Git inspection
 
-Inspect the current Git repository context:
+Inspect the current Git repository:
 
 ```bash
 devmemory git-status
@@ -162,22 +183,16 @@ DevMemory reads:
 - last commit message
 - changed files
 
-Generated files are filtered out automatically.
+Generated files are automatically excluded.
 
 ---
 
-### Learn From Git
+### Learn from Git
 
 Create a new memory starting from the current Git context:
 
 ```bash
 devmemory learn-from-git
-```
-
-Or from a specific repository path:
-
-```bash
-devmemory learn-from-git --path ~/work/LogicalCommon
 ```
 
 This pre-fills:
@@ -198,9 +213,9 @@ You then complete the memory manually with:
 
 ---
 
-### Knowledge Graph Export
+### Knowledge graph export
 
-Export the stored memories as a graph JSON:
+Export all stored memories as a graph JSON:
 
 ```bash
 devmemory graph-export
@@ -223,7 +238,7 @@ Memory -> File
 
 ---
 
-### HTML Knowledge Graph View
+### HTML knowledge graph view
 
 Generate a local HTML visualization of the knowledge graph:
 
@@ -243,7 +258,7 @@ Open it in the browser:
 open ~/.devmemory/graph/devmemory-graph.html
 ```
 
-The graph currently includes:
+The graph currently visualizes:
 
 - memory nodes
 - project nodes
@@ -253,9 +268,9 @@ The graph currently includes:
 
 ---
 
-### Generated File Filtering
+### Generated file filtering
 
-DevMemory automatically excludes noisy/generated files from Git inspection and graph generation, including:
+DevMemory automatically excludes noisy/generated files from Git inspection and graph generation:
 
 ```text
 bin/
@@ -277,7 +292,7 @@ coverage/
 *.runtimeconfig.json
 ```
 
-This keeps the memory graph clean and focused on meaningful source files.
+This keeps the generated knowledge graph focused on meaningful source files.
 
 ---
 
@@ -307,13 +322,13 @@ Example:
 TaskMemory
 ```
 
-This project does not depend on infrastructure, file system, CLI, or Git implementation details.
+This project does not depend on infrastructure, CLI, file system or Git implementation details.
 
 ---
 
 ### DevMemory.Application
 
-Contains application services, abstractions, validation, normalization, filtering, search logic, graph generation, and Git memory draft creation.
+Contains application services, abstractions, validation, normalization, filtering, search logic, graph generation and Git memory draft creation.
 
 Examples:
 
@@ -329,7 +344,7 @@ IMemoryGraphExporter
 IMemoryGraphHtmlExporter
 ```
 
-The application layer defines contracts and business/application behavior.
+The application layer defines contracts and application behavior.
 
 ---
 
@@ -363,7 +378,7 @@ This layer handles:
 
 Contains the terminal interface and command dispatching.
 
-Current commands include:
+Current commands:
 
 ```text
 add
@@ -380,15 +395,15 @@ graph-view
 
 ---
 
-## Installation as a .NET Global Tool
+## Installation
 
-Package the CLI:
+### Package the CLI
 
 ```bash
 dotnet pack src/DevMemory.Cli/DevMemory.Cli.csproj -c Release -o artifacts/packages
 ```
 
-Install locally as a global tool:
+### Install as a .NET global tool
 
 ```bash
 dotnet tool install --global DevMemory.Cli --add-source ./artifacts/packages
@@ -406,7 +421,7 @@ Make sure .NET global tools are available in your `PATH`:
 export PATH="$PATH:$HOME/.dotnet/tools"
 ```
 
-Then use:
+Then run:
 
 ```bash
 devmemory help
@@ -416,23 +431,19 @@ devmemory help
 
 ## Usage
 
-### Add a Memory
+### Add a memory
 
 ```bash
 devmemory add
 ```
 
----
-
-### List Memories
+### List memories
 
 ```bash
 devmemory list
 ```
 
----
-
-### Search Memories
+### Search memories
 
 ```bash
 devmemory search revision
@@ -446,133 +457,81 @@ devmemory search revision --area Estimate
 devmemory search revision --tag dotnet
 ```
 
----
-
-### Show a Memory
+### Show a memory
 
 ```bash
 devmemory show <memory-id>
 ```
 
----
-
-### Show Storage Path
+### Show storage path
 
 ```bash
 devmemory storage
 ```
 
----
-
-### Show Markdown Directory
+### Show Markdown directory
 
 ```bash
 devmemory markdown
 ```
 
----
-
-### Inspect Git Status
+### Inspect Git status
 
 ```bash
 devmemory git-status
 ```
 
-With explicit path:
-
-```bash
-devmemory git-status --path ~/work/LogicalCommon
-```
-
----
-
-### Create Memory From Git Context
+### Create memory from Git context
 
 ```bash
 devmemory learn-from-git
 ```
 
-With explicit path:
-
-```bash
-devmemory learn-from-git --path ~/work/LogicalCommon
-```
-
----
-
-### Export Graph JSON
+### Export graph JSON
 
 ```bash
 devmemory graph-export
 ```
 
-With explicit output:
-
-```bash
-devmemory graph-export --output ~/devmemory-graph.json
-```
-
----
-
-### Generate HTML Graph View
+### Generate HTML graph view
 
 ```bash
 devmemory graph-view
-```
-
-With explicit output:
-
-```bash
-devmemory graph-view --output ~/devmemory-graph.html
-```
-
-Open default graph view:
-
-```bash
-open ~/.devmemory/graph/devmemory-graph.html
 ```
 
 ---
 
 ## Configuration
 
-### Default Storage
-
-By default, DevMemory stores data under:
+### Default storage
 
 ```text
 ~/.devmemory
 ```
 
-The main storage file is:
+Main storage file:
 
 ```text
 ~/.devmemory/devmemory.json
 ```
 
-Generated Markdown files are stored under:
+Markdown exports:
 
 ```text
 ~/.devmemory/markdown/
 ```
 
-Generated graph files are stored under:
+Graph exports:
 
 ```text
 ~/.devmemory/graph/
 ```
 
----
-
-### Custom Storage Directory
-
-Use the `DEVMEMORY_HOME` environment variable:
+### Custom storage directory
 
 ```bash
 DEVMEMORY_HOME=~/devmemory-work devmemory storage
 ```
-
-This allows you to keep separate memory stores for different environments or machines.
 
 ---
 
@@ -592,14 +551,14 @@ The current test suite covers:
 - storage repository
 - Markdown export
 - Git memory draft creation
-- file filtering
+- generated file filtering
 - graph generation
 - JSON graph export
 - HTML graph export
 
 ---
 
-## Development Commands
+## Development commands
 
 Build the solution:
 
@@ -619,7 +578,7 @@ Run the CLI from source:
 dotnet run --project src/DevMemory.Cli -- help
 ```
 
-Package the CLI as a local .NET tool:
+Package the CLI:
 
 ```bash
 dotnet pack src/DevMemory.Cli/DevMemory.Cli.csproj -c Release -o artifacts/packages
@@ -633,7 +592,7 @@ dotnet tool update --global DevMemory.Cli --add-source ./artifacts/packages
 
 ---
 
-## Current Limitations
+## Current limitations
 
 DevMemory is still under active development.
 
@@ -659,12 +618,12 @@ Planned improvements:
 - Add better command parsing with `System.CommandLine` or `Spectre.Console`.
 - Improve CLI output with tables and colors.
 - Add tests for CLI command parsing.
-- Add `learn-from-git` support for Git diff summaries.
+- Add Git diff summaries for `learn-from-git`.
 - Add optional SQLite storage.
 - Add optional AI provider integration.
 - Improve HTML graph layout and filtering.
-- Add README screenshots.
-- Add release script and version bump workflow.
+- Add screenshots to the README.
+- Add release scripts and version bump workflow.
 - Publish as a public or private NuGet tool package.
 - Add CI pipeline for build and tests.
 
@@ -695,22 +654,11 @@ DEVMEMORY_HOME
 
 ---
 
-## Why DevMemory?
+## Project goal
 
-Software engineers often work across many tasks, branches, repositories, meetings, code reviews, and AI/chat sessions.
+DevMemory aims to become a personal engineering knowledge base for developers who want to preserve context across tasks, branches, code reviews and AI-assisted development sessions.
 
-Useful context is easily lost.
-
-DevMemory aims to become a personal engineering knowledge base that can answer questions like:
-
-- What did I change last time in this area?
-- Which files are usually involved in this feature?
-- What decisions did I make during that refactor?
-- Which tasks touched this component?
-- What lessons did I learn from a previous bug fix?
-- Which memories are related to this project, tag, or file?
-
-The long-term goal is to provide a local, searchable, extensible memory layer for everyday software engineering work.
+The long-term goal is to provide a local, searchable and extensible memory layer for everyday software engineering work.
 
 ---
 
