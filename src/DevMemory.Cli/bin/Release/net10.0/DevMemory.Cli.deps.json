@@ -6,7 +6,7 @@
   "compilationOptions": {},
   "targets": {
     ".NETCoreApp,Version=v10.0": {
-      "DevMemory.Cli/0.1.1": {
+      "DevMemory.Cli/0.1.2": {
         "dependencies": {
           "DevMemory.Application": "1.0.0",
           "DevMemory.Core": "1.0.0",
@@ -50,7 +50,7 @@
     }
   },
   "libraries": {
-    "DevMemory.Cli/0.1.1": {
+    "DevMemory.Cli/0.1.2": {
       "type": "project",
       "serviceable": false,
       "sha512": ""

@@ -9,7 +9,7 @@
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>devmemory</ToolCommandName>
     <PackageId>DevMemory.Cli</PackageId>
-    <Version>0.1.1</Version>
+    <Version>0.1.2</Version>
     <Authors>Filippo Garavaglia</Authors>
     <Description>Local-first developer memory CLI for storing, searching and exporting engineering task knowledge.</Description>
     <PackageTags>developer-tools;memory;cli;knowledge-base</PackageTags>

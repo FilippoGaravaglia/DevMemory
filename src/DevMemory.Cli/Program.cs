@@ -8,6 +8,7 @@ var repository = new MemoryRepository();
 var markdownExporter = new MarkdownMemoryExporter();
 var service = new MemoryService(repository, markdownExporter);
 var gitInspector = new GitRepositoryInspector();
+var gitMemoryDraftService = new GitMemoryDraftService(gitInspector);
 
 if (args.Length == 0)
 {
@@ -28,6 +29,7 @@ try
         "storage" => ShowStoragePath(service),
         "markdown" => ShowMarkdownDirectory(service),
         "git-status" => ShowGitStatus(gitInspector, args),
+        "learn-from-git" => LearnFromGit(service, gitMemoryDraftService, args),
         "help" or "--help" or "-h" => PrintHelpAndReturnSuccess(),
         _ => HandleUnknownCommand(command)
     };
@@ -408,6 +410,134 @@ static string FormatLastCommit(DevMemory.Application.Models.GitRepositorySnapsho
     return $"{snapshot.LastCommitHash} - {snapshot.LastCommitMessage}";
 }
 
+static int LearnFromGit(
+    MemoryService memoryService,
+    GitMemoryDraftService gitMemoryDraftService,
+    string[] args)
+{
+    var repositoryPath = ReadPathOption(args) ?? Directory.GetCurrentDirectory();
+
+    var draft = gitMemoryDraftService.CreateDraft(repositoryPath);
+    var snapshot = draft.Snapshot;
+
+    Console.WriteLine("Git context detected");
+    Console.WriteLine("--------------------");
+    Console.WriteLine($"Repository: {snapshot.RepositoryPath}");
+    Console.WriteLine($"Branch: {snapshot.BranchName}");
+    Console.WriteLine($"Last commit: {FormatLastCommit(snapshot)}");
+    Console.WriteLine();
+
+    Console.WriteLine("Changed files:");
+
+    if (!snapshot.ChangedFiles.Any())
+    {
+        Console.WriteLine("-");
+    }
+    else
+    {
+        foreach (var file in snapshot.ChangedFiles)
+        {
+            Console.WriteLine($"- {file}");
+        }
+    }
+
+    Console.WriteLine();
+    Console.WriteLine("Create task memory from Git context");
+    Console.WriteLine("-----------------------------------");
+
+    var memory = draft.Memory;
+
+    memory.Title = AskRequiredWithDefault("Title", memory.Title);
+    memory.Project = AskRequiredWithDefault("Project", memory.Project);
+    memory.Area = AskRequired("Area");
+    memory.Branch = AskOptionalWithDefault("Branch", memory.Branch);
+    memory.Tags = AskList("Tags comma separated");
+    memory.Problem = AskRequired("Problem");
+    memory.Solution = AskRequired("Solution");
+    memory.Decisions = AskMultilineList("Decisions");
+    memory.FilesTouched = AskMultilineListWithDefaults("Files touched", memory.FilesTouched);
+    memory.Tests = AskMultilineList("Tests added/updated");
+    memory.LessonsLearned = AskOptional("Lessons learned");
+
+    var result = memoryService.Add(memory);
+
+    Console.WriteLine();
+
+    if (!result.Success)
+    {
+        Console.Error.WriteLine("Memory was not saved because validation failed.");
+
+        foreach (var error in result.Errors)
+        {
+            Console.Error.WriteLine($"- {error}");
+        }
+
+        return 1;
+    }
+
+    Console.WriteLine("Memory saved successfully.");
+    Console.WriteLine($"Id: {memory.Id}");
+    Console.WriteLine($"Markdown: {result.MarkdownFilePath}");
+
+    return 0;
+}
+
+static string AskRequiredWithDefault(string label, string defaultValue)
+{
+    while (true)
+    {
+        Console.Write($"{label} [{defaultValue}]: ");
+        var value = Console.ReadLine();
+
+        if (!string.IsNullOrWhiteSpace(value))
+        {
+            return value.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(defaultValue))
+        {
+            return defaultValue.Trim();
+        }
+
+        Console.WriteLine($"{label} is required.");
+    }
+}
+
+static string AskOptionalWithDefault(string label, string defaultValue)
+{
+    Console.Write($"{label} [{defaultValue}]: ");
+    var value = Console.ReadLine();
+
+    return string.IsNullOrWhiteSpace(value)
+        ? defaultValue.Trim()
+        : value.Trim();
+}
+
+static List<string> AskMultilineListWithDefaults(string label, IReadOnlyCollection<string> defaultValues)
+{
+    if (defaultValues.Any())
+    {
+        Console.WriteLine($"{label} detected from Git:");
+
+        foreach (var value in defaultValues)
+        {
+            Console.WriteLine($"- {value}");
+        }
+
+        Console.Write("Use detected values? [Y/n]: ");
+        var answer = Console.ReadLine();
+
+        if (string.IsNullOrWhiteSpace(answer) ||
+            answer.Equals("y", StringComparison.OrdinalIgnoreCase) ||
+            answer.Equals("yes", StringComparison.OrdinalIgnoreCase))
+        {
+            return defaultValues.ToList();
+        }
+    }
+
+    return AskMultilineList(label);
+}
+
 static void PrintHelp()
 {
     Console.WriteLine("DevMemory - Local Developer Memory");
@@ -421,6 +551,7 @@ static void PrintHelp()
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- storage");
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- markdown");
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- git-status [--path <repository-path>]");
+    Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- learn-from-git [--path <repository-path>]");
     Console.WriteLine();
     Console.WriteLine("Installed tool usage:");
     Console.WriteLine("  devmemory add");
@@ -430,6 +561,7 @@ static void PrintHelp()
     Console.WriteLine("  devmemory storage");
     Console.WriteLine("  devmemory markdown");
     Console.WriteLine("  devmemory git-status [--path <repository-path>]");
+    Console.WriteLine("  devmemory learn-from-git [--path <repository-path>]");
     Console.WriteLine();
     Console.WriteLine("Examples:");
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search revision");
@@ -438,11 +570,15 @@ static void PrintHelp()
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search revision --tag dotnet");
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- git-status");
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- git-status --path ~/work/LogicalCommon");
+    Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- learn-from-git");
+    Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- learn-from-git --path ~/work/LogicalCommon");
     Console.WriteLine();
     Console.WriteLine("Installed tool examples:");
     Console.WriteLine("  devmemory search revision");
     Console.WriteLine("  devmemory git-status");
     Console.WriteLine("  devmemory git-status --path ~/work/LogicalCommon");
+    Console.WriteLine("  devmemory learn-from-git");
+    Console.WriteLine("  devmemory learn-from-git --path ~/work/LogicalCommon");
     Console.WriteLine();
     Console.WriteLine("Environment variables:");
     Console.WriteLine("  DEVMEMORY_HOME  Custom DevMemory storage directory");
