@@ -63,6 +63,11 @@ public sealed class MemoryService
             .ToList();
     }
 
+    public string GetStorageFilePath()
+    {
+        return _repository.GetStorageFilePath();
+    }
+
     private static bool Contains(string value, string query)
     {
         return value.Contains(query, StringComparison.OrdinalIgnoreCase);

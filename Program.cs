@@ -29,6 +29,10 @@ switch (command)
         ShowMemory(service, args);
         break;
 
+    case "storage":
+        ShowStoragePath(service);
+        break;
+
     case "help":
     case "--help":
     case "-h":
@@ -245,6 +249,11 @@ static void PrintList(string title, IReadOnlyCollection<string> values)
     Console.WriteLine();
 }
 
+static void ShowStoragePath(MemoryService service)
+{
+    Console.WriteLine(service.GetStorageFilePath());
+}
+
 static void PrintHelp()
 {
     Console.WriteLine("DevMemory - Local Developer Memory");
@@ -255,10 +264,12 @@ static void PrintHelp()
     Console.WriteLine("  dotnet run -- list");
     Console.WriteLine("  dotnet run -- search <query>");
     Console.WriteLine("  dotnet run -- show <memory-id>");
+    Console.WriteLine("  dotnet run -- storage");
     Console.WriteLine();
     Console.WriteLine("Examples:");
     Console.WriteLine("  dotnet run -- add");
     Console.WriteLine("  dotnet run -- list");
     Console.WriteLine("  dotnet run -- search revision");
     Console.WriteLine("  dotnet run -- show bde69543-a200-47b8-b61b-9d334511baa9");
+    Console.WriteLine("  dotnet run -- storage");
 }
