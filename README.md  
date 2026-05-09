@@ -1,0 +1,719 @@
+# DevMemory
+
+**DevMemory** is a local-first developer memory CLI designed to help software engineers store, search, export, and visualize technical knowledge produced during day-by-day development tasks.
+
+The goal is simple: avoid losing context between tasks, branches, commits, and AI/chat sessions.
+
+DevMemory lets you save structured task memories containing:
+
+- project
+- area
+- branch
+- tags
+- problem
+- solution
+- decisions
+- files touched
+- tests
+- lessons learned
+
+Those memories can then be searched, exported to Markdown, enriched from Git context, and visualized as a knowledge graph.
+
+---
+
+## Current Status
+
+DevMemory is currently in an early but functional version.
+
+It is already usable as a local CLI tool and can be installed as a .NET global tool.
+
+Current version: `0.1.x`
+
+---
+
+## Features
+
+### Structured Task Memory
+
+Create local task memories with relevant engineering context:
+
+```bash
+devmemory add
+```
+
+Each memory contains structured fields such as:
+
+- title
+- project
+- area
+- branch
+- tags
+- problem
+- solution
+- decisions
+- files touched
+- tests
+- lessons learned
+
+---
+
+### Local-First Storage
+
+All data is stored locally by default in:
+
+```text
+~/.devmemory/devmemory.json
+```
+
+No external services, cloud storage, or LLM APIs are required.
+
+The storage directory can be customized with:
+
+```bash
+DEVMEMORY_HOME=~/devmemory-work devmemory storage
+```
+
+---
+
+### Resilient JSON Storage
+
+DevMemory stores memories in a local JSON file and writes data defensively:
+
+- writes to a temporary file
+- creates a backup file
+- replaces the main storage file after successful write
+
+This reduces the risk of corrupting the local memory store.
+
+---
+
+### Markdown Export
+
+Every saved memory is automatically exported as a Markdown file:
+
+```text
+~/.devmemory/markdown/
+```
+
+This makes memories easy to read, copy, reuse, or paste into tools like GitHub Copilot, ChatGPT, or documentation.
+
+Each generated Markdown memory includes:
+
+- metadata
+- problem
+- solution
+- decisions
+- files touched
+- tests
+- lessons learned
+- continuation prompt
+
+---
+
+### Search With Ranking and Filters
+
+Search memories by free text:
+
+```bash
+devmemory search revision
+```
+
+Filter by project:
+
+```bash
+devmemory search revision --project LogicalCommon
+```
+
+Filter by area:
+
+```bash
+devmemory search revision --area Estimate
+```
+
+Filter by tag:
+
+```bash
+devmemory search revision --tag dotnet
+```
+
+Search results include a relevance score.
+
+---
+
+### Git Inspection
+
+Inspect the current Git repository context:
+
+```bash
+devmemory git-status
+```
+
+Or inspect a specific repository:
+
+```bash
+devmemory git-status --path ~/work/LogicalCommon
+```
+
+DevMemory reads:
+
+- repository path
+- current branch
+- last commit hash
+- last commit message
+- changed files
+
+Generated files are filtered out automatically.
+
+---
+
+### Learn From Git
+
+Create a new memory starting from the current Git context:
+
+```bash
+devmemory learn-from-git
+```
+
+Or from a specific repository path:
+
+```bash
+devmemory learn-from-git --path ~/work/LogicalCommon
+```
+
+This pre-fills:
+
+- project
+- branch
+- files touched
+
+You then complete the memory manually with:
+
+- area
+- tags
+- problem
+- solution
+- decisions
+- tests
+- lessons learned
+
+---
+
+### Knowledge Graph Export
+
+Export the stored memories as a graph JSON:
+
+```bash
+devmemory graph-export
+```
+
+Default output:
+
+```text
+~/.devmemory/graph/devmemory-graph.json
+```
+
+The graph contains relationships such as:
+
+```text
+Memory -> Project
+Memory -> Area
+Memory -> Tag
+Memory -> File
+```
+
+---
+
+### HTML Knowledge Graph View
+
+Generate a local HTML visualization of the knowledge graph:
+
+```bash
+devmemory graph-view
+```
+
+Default output:
+
+```text
+~/.devmemory/graph/devmemory-graph.html
+```
+
+Open it in the browser:
+
+```bash
+open ~/.devmemory/graph/devmemory-graph.html
+```
+
+The graph currently includes:
+
+- memory nodes
+- project nodes
+- area nodes
+- tag nodes
+- file nodes
+
+---
+
+### Generated File Filtering
+
+DevMemory automatically excludes noisy/generated files from Git inspection and graph generation, including:
+
+```text
+bin/
+obj/
+artifacts/
+.git/
+.vs/
+.idea/
+node_modules/
+dist/
+build/
+coverage/
+*.dll
+*.exe
+*.pdb
+*.nupkg
+*.snupkg
+*.deps.json
+*.runtimeconfig.json
+```
+
+This keeps the memory graph clean and focused on meaningful source files.
+
+---
+
+## Architecture
+
+DevMemory is structured as a layered .NET solution.
+
+```text
+DevMemory.slnx
+├── src
+│   ├── DevMemory.Core
+│   ├── DevMemory.Application
+│   ├── DevMemory.Infrastructure
+│   └── DevMemory.Cli
+└── tests
+    ├── DevMemory.Application.Tests
+    └── DevMemory.Infrastructure.Tests
+```
+
+### DevMemory.Core
+
+Contains the core domain models.
+
+Example:
+
+```text
+TaskMemory
+```
+
+This project does not depend on infrastructure, file system, CLI, or Git implementation details.
+
+---
+
+### DevMemory.Application
+
+Contains application services, abstractions, validation, normalization, filtering, search logic, graph generation, and Git memory draft creation.
+
+Examples:
+
+```text
+MemoryService
+GitMemoryDraftService
+MemoryGraphService
+MemoryFileFilter
+IMemoryRepository
+IMemoryExporter
+IGitRepositoryInspector
+IMemoryGraphExporter
+IMemoryGraphHtmlExporter
+```
+
+The application layer defines contracts and business/application behavior.
+
+---
+
+### DevMemory.Infrastructure
+
+Contains technical implementations.
+
+Examples:
+
+```text
+MemoryRepository
+MarkdownMemoryExporter
+GitRepositoryInspector
+JsonMemoryGraphExporter
+HtmlMemoryGraphExporter
+DevMemoryStorageOptions
+```
+
+This layer handles:
+
+- JSON storage
+- Markdown export
+- Git command execution
+- graph JSON export
+- graph HTML export
+- environment-based storage configuration
+
+---
+
+### DevMemory.Cli
+
+Contains the terminal interface and command dispatching.
+
+Current commands include:
+
+```text
+add
+list
+search
+show
+storage
+markdown
+git-status
+learn-from-git
+graph-export
+graph-view
+```
+
+---
+
+## Installation as a .NET Global Tool
+
+Package the CLI:
+
+```bash
+dotnet pack src/DevMemory.Cli/DevMemory.Cli.csproj -c Release -o artifacts/packages
+```
+
+Install locally as a global tool:
+
+```bash
+dotnet tool install --global DevMemory.Cli --add-source ./artifacts/packages
+```
+
+If already installed:
+
+```bash
+dotnet tool update --global DevMemory.Cli --add-source ./artifacts/packages
+```
+
+Make sure .NET global tools are available in your `PATH`:
+
+```bash
+export PATH="$PATH:$HOME/.dotnet/tools"
+```
+
+Then use:
+
+```bash
+devmemory help
+```
+
+---
+
+## Usage
+
+### Add a Memory
+
+```bash
+devmemory add
+```
+
+---
+
+### List Memories
+
+```bash
+devmemory list
+```
+
+---
+
+### Search Memories
+
+```bash
+devmemory search revision
+```
+
+With filters:
+
+```bash
+devmemory search revision --project LogicalCommon
+devmemory search revision --area Estimate
+devmemory search revision --tag dotnet
+```
+
+---
+
+### Show a Memory
+
+```bash
+devmemory show <memory-id>
+```
+
+---
+
+### Show Storage Path
+
+```bash
+devmemory storage
+```
+
+---
+
+### Show Markdown Directory
+
+```bash
+devmemory markdown
+```
+
+---
+
+### Inspect Git Status
+
+```bash
+devmemory git-status
+```
+
+With explicit path:
+
+```bash
+devmemory git-status --path ~/work/LogicalCommon
+```
+
+---
+
+### Create Memory From Git Context
+
+```bash
+devmemory learn-from-git
+```
+
+With explicit path:
+
+```bash
+devmemory learn-from-git --path ~/work/LogicalCommon
+```
+
+---
+
+### Export Graph JSON
+
+```bash
+devmemory graph-export
+```
+
+With explicit output:
+
+```bash
+devmemory graph-export --output ~/devmemory-graph.json
+```
+
+---
+
+### Generate HTML Graph View
+
+```bash
+devmemory graph-view
+```
+
+With explicit output:
+
+```bash
+devmemory graph-view --output ~/devmemory-graph.html
+```
+
+Open default graph view:
+
+```bash
+open ~/.devmemory/graph/devmemory-graph.html
+```
+
+---
+
+## Configuration
+
+### Default Storage
+
+By default, DevMemory stores data under:
+
+```text
+~/.devmemory
+```
+
+The main storage file is:
+
+```text
+~/.devmemory/devmemory.json
+```
+
+Generated Markdown files are stored under:
+
+```text
+~/.devmemory/markdown/
+```
+
+Generated graph files are stored under:
+
+```text
+~/.devmemory/graph/
+```
+
+---
+
+### Custom Storage Directory
+
+Use the `DEVMEMORY_HOME` environment variable:
+
+```bash
+DEVMEMORY_HOME=~/devmemory-work devmemory storage
+```
+
+This allows you to keep separate memory stores for different environments or machines.
+
+---
+
+## Testing
+
+Run all tests:
+
+```bash
+dotnet test DevMemory.slnx
+```
+
+The current test suite covers:
+
+- memory service behavior
+- validation and normalization
+- ranked search
+- storage repository
+- Markdown export
+- Git memory draft creation
+- file filtering
+- graph generation
+- JSON graph export
+- HTML graph export
+
+---
+
+## Development Commands
+
+Build the solution:
+
+```bash
+dotnet build DevMemory.slnx
+```
+
+Run tests:
+
+```bash
+dotnet test DevMemory.slnx
+```
+
+Run the CLI from source:
+
+```bash
+dotnet run --project src/DevMemory.Cli -- help
+```
+
+Package the CLI as a local .NET tool:
+
+```bash
+dotnet pack src/DevMemory.Cli/DevMemory.Cli.csproj -c Release -o artifacts/packages
+```
+
+Update the locally installed global tool:
+
+```bash
+dotnet tool update --global DevMemory.Cli --add-source ./artifacts/packages
+```
+
+---
+
+## Current Limitations
+
+DevMemory is still under active development.
+
+Current limitations:
+
+- CLI parsing is currently implemented manually.
+- CLI command handlers are still inside `Program.cs`.
+- Storage is JSON-based.
+- No SQLite storage yet.
+- No LLM integration yet.
+- No automatic semantic summary of Git diffs yet.
+- HTML graph layout is simple and static.
+- No published public NuGet package yet.
+- No CI/CD pipeline yet.
+
+---
+
+## Roadmap
+
+Planned improvements:
+
+- Refactor CLI into dedicated command handlers.
+- Add better command parsing with `System.CommandLine` or `Spectre.Console`.
+- Improve CLI output with tables and colors.
+- Add tests for CLI command parsing.
+- Add `learn-from-git` support for Git diff summaries.
+- Add optional SQLite storage.
+- Add optional AI provider integration.
+- Improve HTML graph layout and filtering.
+- Add README screenshots.
+- Add release script and version bump workflow.
+- Publish as a public or private NuGet tool package.
+- Add CI pipeline for build and tests.
+
+---
+
+## Privacy
+
+DevMemory is local-first.
+
+By default:
+
+- no cloud sync
+- no external API calls
+- no LLM provider required
+- no data leaves the machine
+
+All memories are stored locally under:
+
+```text
+~/.devmemory
+```
+
+or under the directory configured with:
+
+```bash
+DEVMEMORY_HOME
+```
+
+---
+
+## Why DevMemory?
+
+Software engineers often work across many tasks, branches, repositories, meetings, code reviews, and AI/chat sessions.
+
+Useful context is easily lost.
+
+DevMemory aims to become a personal engineering knowledge base that can answer questions like:
+
+- What did I change last time in this area?
+- Which files are usually involved in this feature?
+- What decisions did I make during that refactor?
+- Which tasks touched this component?
+- What lessons did I learn from a previous bug fix?
+- Which memories are related to this project, tag, or file?
+
+The long-term goal is to provide a local, searchable, extensible memory layer for everyday software engineering work.
+
+---
+
+## License
+
+License not defined yet.
