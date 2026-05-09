@@ -3,47 +3,50 @@ using AiAgent.Core;
 
 var service = new MemoryService();
 
-Console.WriteLine("DevMemory - Local Developer Memory");
-Console.WriteLine("----------------------------------");
-Console.WriteLine("Commands:");
-Console.WriteLine("1. add");
-Console.WriteLine("2. list");
-Console.WriteLine("3. search");
-Console.WriteLine("4. show");
-Console.WriteLine();
+if (args.Length == 0)
+{
+    PrintHelp();
+    return;
+}
 
-Console.Write("Command: ");
-var command = Console.ReadLine()?.Trim().ToLowerInvariant();
+var command = args[0].Trim().ToLowerInvariant();
 
 switch (command)
 {
     case "add":
-    case "1":
         AddMemory(service);
         break;
 
     case "list":
-    case "2":
         ListMemories(service);
         break;
 
     case "search":
-    case "3":
-        SearchMemories(service);
+        SearchMemories(service, args);
         break;
 
     case "show":
-    case "4":
-        ShowMemory(service);
+        ShowMemory(service, args);
+        break;
+
+    case "help":
+    case "--help":
+    case "-h":
+        PrintHelp();
         break;
 
     default:
-        Console.WriteLine("Unknown command.");
+        Console.WriteLine($"Unknown command: {command}");
+        Console.WriteLine();
+        PrintHelp();
         break;
 }
 
 static void AddMemory(MemoryService service)
 {
+    Console.WriteLine("Add new task memory");
+    Console.WriteLine("-------------------");
+
     var memory = new TaskMemory
     {
         Title = AskRequired("Title"),
@@ -62,7 +65,7 @@ static void AddMemory(MemoryService service)
     service.Add(memory);
 
     Console.WriteLine();
-    Console.WriteLine("Memory saved.");
+    Console.WriteLine("Memory saved successfully.");
     Console.WriteLine($"Id: {memory.Id}");
 }
 
@@ -82,9 +85,17 @@ static void ListMemories(MemoryService service)
     }
 }
 
-static void SearchMemories(MemoryService service)
+static void SearchMemories(MemoryService service, string[] args)
 {
-    var query = AskRequired("Search query");
+    if (args.Length < 2)
+    {
+        Console.WriteLine("Search query is required.");
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  dotnet run -- search <query>");
+        return;
+    }
+
+    var query = string.Join(' ', args.Skip(1));
     var results = service.Search(query);
 
     if (!results.Any())
@@ -99,13 +110,19 @@ static void SearchMemories(MemoryService service)
     }
 }
 
-static void ShowMemory(MemoryService service)
+static void ShowMemory(MemoryService service, string[] args)
 {
-    var idText = AskRequired("Memory id");
-
-    if (!Guid.TryParse(idText, out var id))
+    if (args.Length < 2)
     {
-        Console.WriteLine("Invalid id.");
+        Console.WriteLine("Memory id is required.");
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  dotnet run -- show <memory-id>");
+        return;
+    }
+
+    if (!Guid.TryParse(args[1], out var id))
+    {
+        Console.WriteLine("Invalid memory id.");
         return;
     }
 
@@ -117,9 +134,15 @@ static void ShowMemory(MemoryService service)
         return;
     }
 
+    PrintMemoryDetails(memory);
+}
+
+static void PrintMemoryDetails(TaskMemory memory)
+{
     Console.WriteLine();
     Console.WriteLine($"# {memory.Title}");
     Console.WriteLine();
+
     Console.WriteLine($"Id: {memory.Id}");
     Console.WriteLine($"Project: {memory.Project}");
     Console.WriteLine($"Area: {memory.Area}");
@@ -141,7 +164,7 @@ static void ShowMemory(MemoryService service)
     PrintList("## Tests", memory.Tests);
 
     Console.WriteLine("## Lessons learned");
-    Console.WriteLine(memory.LessonsLearned);
+    Console.WriteLine(string.IsNullOrWhiteSpace(memory.LessonsLearned) ? "-" : memory.LessonsLearned);
 }
 
 static string AskRequired(string label)
@@ -220,4 +243,22 @@ static void PrintList(string title, IReadOnlyCollection<string> values)
     }
 
     Console.WriteLine();
+}
+
+static void PrintHelp()
+{
+    Console.WriteLine("DevMemory - Local Developer Memory");
+    Console.WriteLine("----------------------------------");
+    Console.WriteLine();
+    Console.WriteLine("Usage:");
+    Console.WriteLine("  dotnet run -- add");
+    Console.WriteLine("  dotnet run -- list");
+    Console.WriteLine("  dotnet run -- search <query>");
+    Console.WriteLine("  dotnet run -- show <memory-id>");
+    Console.WriteLine();
+    Console.WriteLine("Examples:");
+    Console.WriteLine("  dotnet run -- add");
+    Console.WriteLine("  dotnet run -- list");
+    Console.WriteLine("  dotnet run -- search revision");
+    Console.WriteLine("  dotnet run -- show bde69543-a200-47b8-b61b-9d334511baa9");
 }
