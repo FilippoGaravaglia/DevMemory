@@ -1,7 +1,7 @@
 ﻿using DevMemory.Application;
+using DevMemory.Application.Models;
 using DevMemory.Core;
 using DevMemory.Infrastructure;
-using DevMemory.Application.Models;
 
 var repository = new MemoryRepository();
 var markdownExporter = new MarkdownMemoryExporter();
@@ -10,51 +10,33 @@ var service = new MemoryService(repository, markdownExporter);
 if (args.Length == 0)
 {
     PrintHelp();
-    return;
+    return 2;
 }
 
 var command = args[0].Trim().ToLowerInvariant();
 
-switch (command)
+try
 {
-    case "add":
-        AddMemory(service);
-        break;
-
-    case "list":
-        ListMemories(service);
-        break;
-
-    case "search":
-        SearchMemories(service, args);
-        break;
-
-    case "show":
-        ShowMemory(service, args);
-        break;
-
-    case "storage":
-        ShowStoragePath(service);
-        break;
-
-    case "markdown":
-        ShowMarkdownDirectory(service);
-        break;
-
-    case "help":
-    case "--help":
-    case "-h":
-        PrintHelp();
-        break;
-
-    default:
-        Console.WriteLine($"Unknown command: {command}");
-        Console.WriteLine();
-        PrintHelp();
-        break;
+    return command switch
+    {
+        "add" => AddMemory(service),
+        "list" => ListMemories(service),
+        "search" => SearchMemories(service, args),
+        "show" => ShowMemory(service, args),
+        "storage" => ShowStoragePath(service),
+        "markdown" => ShowMarkdownDirectory(service),
+        "help" or "--help" or "-h" => PrintHelpAndReturnSuccess(),
+        _ => HandleUnknownCommand(command)
+    };
+}
+catch (Exception ex)
+{
+    Console.Error.WriteLine("Unexpected error.");
+    Console.Error.WriteLine(ex.Message);
+    return 1;
 }
 
-static void AddMemory(MemoryService service)
+static int AddMemory(MemoryService service)
 {
     Console.WriteLine("Add new task memory");
     Console.WriteLine("-------------------");
@@ -80,54 +62,65 @@ static void AddMemory(MemoryService service)
 
     if (!result.Success)
     {
-        Console.WriteLine("Memory was not saved because validation failed.");
+        Console.Error.WriteLine("Memory was not saved because validation failed.");
 
         foreach (var error in result.Errors)
         {
-            Console.WriteLine($"- {error}");
+            Console.Error.WriteLine($"- {error}");
         }
 
-        return;
+        return 1;
     }
 
-Console.WriteLine("Memory saved successfully.");
-Console.WriteLine($"Id: {memory.Id}");
-Console.WriteLine($"Markdown: {result.MarkdownFilePath}");
+    Console.WriteLine("Memory saved successfully.");
+    Console.WriteLine($"Id: {memory.Id}");
+    Console.WriteLine($"Markdown: {result.MarkdownFilePath}");
+
+    return 0;
 }
 
-static void ListMemories(MemoryService service)
+static int ListMemories(MemoryService service)
 {
     var memories = service.List();
 
     if (!memories.Any())
     {
         Console.WriteLine("No memories found.");
-        return;
+        return 0;
     }
 
     foreach (var memory in memories)
     {
         Console.WriteLine($"{memory.Id} | {memory.CreatedAt:u} | {memory.Project} | {memory.Area} | {memory.Title}");
     }
+
+    return 0;
 }
 
-static void SearchMemories(MemoryService service, string[] args)
+static int SearchMemories(MemoryService service, string[] args)
 {
     if (args.Length < 2)
     {
-        Console.WriteLine("Search query is required.");
-        Console.WriteLine("Usage:");
-        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search <query> [--project <project>] [--area <area>] [--tag <tag>]");
-        return;
+        Console.Error.WriteLine("Search query is required.");
+        Console.Error.WriteLine("Usage:");
+        Console.Error.WriteLine("  dotnet run --project src/DevMemory.Cli -- search <query> [--project <project>] [--area <area>] [--tag <tag>]");
+        return 2;
     }
 
     var options = BuildSearchOptions(args);
+
+    if (string.IsNullOrWhiteSpace(options.Query))
+    {
+        Console.Error.WriteLine("Search query is required.");
+        return 2;
+    }
+
     var results = service.Search(options);
 
     if (!results.Any())
     {
         Console.WriteLine("No matching memories found.");
-        return;
+        return 0;
     }
 
     foreach (var result in results)
@@ -135,6 +128,62 @@ static void SearchMemories(MemoryService service, string[] args)
         var memory = result.Memory;
         Console.WriteLine($"{memory.Id} | score:{result.Score} | {memory.Project} | {memory.Area} | {memory.Title}");
     }
+
+    return 0;
+}
+
+static int ShowMemory(MemoryService service, string[] args)
+{
+    if (args.Length < 2)
+    {
+        Console.Error.WriteLine("Memory id is required.");
+        Console.Error.WriteLine("Usage:");
+        Console.Error.WriteLine("  dotnet run --project src/DevMemory.Cli -- show <memory-id>");
+        return 2;
+    }
+
+    if (!Guid.TryParse(args[1], out var id))
+    {
+        Console.Error.WriteLine("Invalid memory id.");
+        return 2;
+    }
+
+    var memory = service.GetById(id);
+
+    if (memory is null)
+    {
+        Console.Error.WriteLine("Memory not found.");
+        return 1;
+    }
+
+    PrintMemoryDetails(memory);
+    return 0;
+}
+
+static int ShowStoragePath(MemoryService service)
+{
+    Console.WriteLine(service.GetStorageFilePath());
+    return 0;
+}
+
+static int ShowMarkdownDirectory(MemoryService service)
+{
+    Console.WriteLine(service.GetMarkdownDirectoryPath());
+    return 0;
+}
+
+static int HandleUnknownCommand(string command)
+{
+    Console.Error.WriteLine($"Unknown command: {command}");
+    Console.Error.WriteLine();
+    PrintHelp();
+    return 2;
+}
+
+static int PrintHelpAndReturnSuccess()
+{
+    PrintHelp();
+    return 0;
 }
 
 static MemorySearchOptions BuildSearchOptions(string[] args)
@@ -148,21 +197,21 @@ static MemorySearchOptions BuildSearchOptions(string[] args)
     {
         var value = args[index];
 
-        if (value.Equals("--project", StringComparison.OrdinalIgnoreCase) && index + 1 < args.Length)
+        if (value.Equals("--project", StringComparison.OrdinalIgnoreCase))
         {
-            project = args[++index];
+            project = ReadOptionValue(args, ref index, "--project");
             continue;
         }
 
-        if (value.Equals("--area", StringComparison.OrdinalIgnoreCase) && index + 1 < args.Length)
+        if (value.Equals("--area", StringComparison.OrdinalIgnoreCase))
         {
-            area = args[++index];
+            area = ReadOptionValue(args, ref index, "--area");
             continue;
         }
 
-        if (value.Equals("--tag", StringComparison.OrdinalIgnoreCase) && index + 1 < args.Length)
+        if (value.Equals("--tag", StringComparison.OrdinalIgnoreCase))
         {
-            tag = args[++index];
+            tag = ReadOptionValue(args, ref index, "--tag");
             continue;
         }
 
@@ -178,31 +227,21 @@ static MemorySearchOptions BuildSearchOptions(string[] args)
     };
 }
 
-static void ShowMemory(MemoryService service, string[] args)
+static string? ReadOptionValue(string[] args, ref int index, string optionName)
 {
-    if (args.Length < 2)
+    if (index + 1 >= args.Length)
     {
-        Console.WriteLine("Memory id is required.");
-        Console.WriteLine("Usage:");
-        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- show <memory-id>");
-        return;
+        throw new ArgumentException($"Option {optionName} requires a value.");
     }
 
-    if (!Guid.TryParse(args[1], out var id))
+    var value = args[++index];
+
+    if (value.StartsWith("--", StringComparison.Ordinal))
     {
-        Console.WriteLine("Invalid memory id.");
-        return;
+        throw new ArgumentException($"Option {optionName} requires a value.");
     }
 
-    var memory = service.GetById(id);
-
-    if (memory is null)
-    {
-        Console.WriteLine("Memory not found.");
-        return;
-    }
-
-    PrintMemoryDetails(memory);
+    return value;
 }
 
 static void PrintMemoryDetails(TaskMemory memory)
@@ -311,16 +350,6 @@ static void PrintList(string title, IReadOnlyCollection<string> values)
     }
 
     Console.WriteLine();
-}
-
-static void ShowStoragePath(MemoryService service)
-{
-    Console.WriteLine(service.GetStorageFilePath());
-}
-
-static void ShowMarkdownDirectory(MemoryService service)
-{
-    Console.WriteLine(service.GetMarkdownDirectoryPath());
 }
 
 static void PrintHelp()
