@@ -1,6 +1,7 @@
 ﻿using DevMemory.Application;
 using DevMemory.Core;
 using DevMemory.Infrastructure;
+using DevMemory.Application.Models;
 
 var repository = new MemoryRepository();
 var markdownExporter = new MarkdownMemoryExporter();
@@ -116,12 +117,12 @@ static void SearchMemories(MemoryService service, string[] args)
     {
         Console.WriteLine("Search query is required.");
         Console.WriteLine("Usage:");
-        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search <query>");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search <query> [--project <project>] [--area <area>] [--tag <tag>]");
         return;
     }
 
-    var query = string.Join(' ', args.Skip(1));
-    var results = service.Search(query);
+    var options = BuildSearchOptions(args);
+    var results = service.Search(options);
 
     if (!results.Any())
     {
@@ -129,10 +130,52 @@ static void SearchMemories(MemoryService service, string[] args)
         return;
     }
 
-    foreach (var memory in results)
+    foreach (var result in results)
     {
-        Console.WriteLine($"{memory.Id} | {memory.Project} | {memory.Area} | {memory.Title}");
+        var memory = result.Memory;
+        Console.WriteLine($"{memory.Id} | score:{result.Score} | {memory.Project} | {memory.Area} | {memory.Title}");
     }
+}
+
+static MemorySearchOptions BuildSearchOptions(string[] args)
+{
+    var queryParts = new List<string>();
+    string? project = null;
+    string? area = null;
+    string? tag = null;
+
+    for (var index = 1; index < args.Length; index++)
+    {
+        var value = args[index];
+
+        if (value.Equals("--project", StringComparison.OrdinalIgnoreCase) && index + 1 < args.Length)
+        {
+            project = args[++index];
+            continue;
+        }
+
+        if (value.Equals("--area", StringComparison.OrdinalIgnoreCase) && index + 1 < args.Length)
+        {
+            area = args[++index];
+            continue;
+        }
+
+        if (value.Equals("--tag", StringComparison.OrdinalIgnoreCase) && index + 1 < args.Length)
+        {
+            tag = args[++index];
+            continue;
+        }
+
+        queryParts.Add(value);
+    }
+
+    return new MemorySearchOptions
+    {
+        Query = string.Join(' ', queryParts),
+        Project = project,
+        Area = area,
+        Tag = tag
+    };
 }
 
 static void ShowMemory(MemoryService service, string[] args)
@@ -288,8 +331,14 @@ static void PrintHelp()
     Console.WriteLine("Usage:");
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- add");
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- list");
-    Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search <query>");
+    Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search <query> [--project <project>] [--area <area>] [--tag <tag>]");
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- show <memory-id>");
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- storage");
     Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- markdown");
+    Console.WriteLine();
+    Console.WriteLine("Examples:");
+    Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search revision");
+    Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search revision --project LogicalCommon");
+    Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search revision --area Estimate");
+    Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search revision --tag dotnet");
 }

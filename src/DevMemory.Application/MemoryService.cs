@@ -56,31 +56,63 @@ public sealed class MemoryService
             .FirstOrDefault(memory => memory.Id == id);
     }
 
-    public IReadOnlyCollection<TaskMemory> Search(string query)
+    public IReadOnlyCollection<MemorySearchResult> Search(MemorySearchOptions options)
     {
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            return [];
-        }
-
-        var normalizedQuery = query.Trim();
+        var query = options.Query.Trim();
 
         return _repository
             .Load()
-            .Where(memory =>
-                Contains(memory.Title, normalizedQuery) ||
-                Contains(memory.Project, normalizedQuery) ||
-                Contains(memory.Area, normalizedQuery) ||
-                Contains(memory.Branch, normalizedQuery) ||
-                Contains(memory.Problem, normalizedQuery) ||
-                Contains(memory.Solution, normalizedQuery) ||
-                Contains(memory.LessonsLearned, normalizedQuery) ||
-                memory.Tags.Any(tag => Contains(tag, normalizedQuery)) ||
-                memory.Decisions.Any(decision => Contains(decision, normalizedQuery)) ||
-                memory.FilesTouched.Any(file => Contains(file, normalizedQuery)) ||
-                memory.Tests.Any(test => Contains(test, normalizedQuery)))
-            .OrderByDescending(memory => memory.CreatedAt)
+            .Where(memory => MatchesFilter(memory.Project, options.Project))
+            .Where(memory => MatchesFilter(memory.Area, options.Area))
+            .Where(memory => string.IsNullOrWhiteSpace(options.Tag) ||
+                             memory.Tags.Any(tag => tag.Equals(options.Tag.Trim(), StringComparison.OrdinalIgnoreCase)))
+            .Select(memory => new MemorySearchResult
+            {
+                Memory = memory,
+                Score = CalculateScore(memory, query)
+            })
+            .Where(result => string.IsNullOrWhiteSpace(query) || result.Score > 0)
+            .OrderByDescending(result => result.Score)
+            .ThenByDescending(result => result.Memory.CreatedAt)
             .ToList();
+    }
+
+    private static int CalculateScore(TaskMemory memory, string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return 1;
+        }
+
+        var score = 0;
+
+        score += Score(memory.Title, query, 10);
+        score += Score(memory.Project, query, 6);
+        score += Score(memory.Area, query, 6);
+        score += Score(memory.Branch, query, 4);
+        score += Score(memory.Problem, query, 5);
+        score += Score(memory.Solution, query, 5);
+        score += Score(memory.LessonsLearned, query, 3);
+
+        score += memory.Tags.Sum(tag => Score(tag, query, 8));
+        score += memory.Decisions.Sum(decision => Score(decision, query, 4));
+        score += memory.FilesTouched.Sum(file => Score(file, query, 4));
+        score += memory.Tests.Sum(test => Score(test, query, 3));
+
+        return score;
+    }
+
+    private static int Score(string value, string query, int weight)
+    {
+        return value.Contains(query, StringComparison.OrdinalIgnoreCase)
+            ? weight
+            : 0;
+    }
+
+    private static bool MatchesFilter(string value, string? filter)
+    {
+        return string.IsNullOrWhiteSpace(filter) ||
+               value.Equals(filter.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 
     public string GetStorageFilePath()

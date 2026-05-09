@@ -1,6 +1,7 @@
 using DevMemory.Application;
 using DevMemory.Application.Abstractions;
 using DevMemory.Core;
+using DevMemory.Application.Models;
 
 namespace DevMemory.Application.Tests;
 
@@ -64,11 +65,15 @@ public sealed class MemoryServiceTests
         var service = new MemoryService(repository, new InMemoryExporter());
 
         // Act
-        var results = service.Search("revision");
+        var results = service.Search(new MemorySearchOptions
+        {
+            Query = "revision"
+        });
 
         // Assert
         var result = Assert.Single(results);
-        Assert.Equal("Fix revision bug", result.Title);
+        Assert.Equal("Fix revision bug", result.Memory.Title);
+        Assert.True(result.Score > 0);
     }
 
     [Fact]
@@ -154,6 +159,45 @@ public sealed class MemoryServiceTests
         Assert.Equal("DevMemory", savedMemory.Project);
         Assert.Equal("Application", savedMemory.Area);
         Assert.Equal(["dotnet", "cli"], savedMemory.Tags);
+    }
+
+    [Fact]
+    public void Search_WhenProjectFilterIsProvided_ReturnsOnlyMatchingProject()
+    {
+        // Arrange
+        var repository = new InMemoryRepository
+        {
+            Memories =
+            [
+                new TaskMemory
+                {
+                    Title = "Fix revision bug",
+                    Project = "LogicalCommon",
+                    Area = "Estimate",
+                    Tags = ["revision"]
+                },
+                new TaskMemory
+                {
+                    Title = "Fix revision bug in demo",
+                    Project = "DemoProject",
+                    Area = "Estimate",
+                    Tags = ["revision"]
+                }
+            ]
+        };
+    
+        var service = new MemoryService(repository, new InMemoryExporter());
+    
+        // Act
+        var results = service.Search(new MemorySearchOptions
+        {
+            Query = "revision",
+            Project = "LogicalCommon"
+        });
+    
+        // Assert
+        var result = Assert.Single(results);
+        Assert.Equal("LogicalCommon", result.Memory.Project);
     }
 
     private sealed class InMemoryRepository : IMemoryRepository
