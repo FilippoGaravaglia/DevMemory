@@ -216,7 +216,7 @@ public sealed class CommandDispatcherTests
 
         public bool WasExecuted { get; private set; }
 
-        public string[]? LastArgs { get; private set; }
+        public string[] LastArgs { get; private set; } = [];
 
         public int Execute(string[] args)
         {

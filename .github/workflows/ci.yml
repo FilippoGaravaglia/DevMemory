@@ -37,6 +37,9 @@ jobs:
       - name: Restore solution
         run: dotnet restore DevMemory.slnx
 
+      - name: Verify formatting
+        run: dotnet format DevMemory.slnx --verify-no-changes --verbosity diagnostic --no-restore
+
       - name: Build solution
         run: dotnet build DevMemory.slnx --configuration $BUILD_CONFIGURATION --no-restore
 
