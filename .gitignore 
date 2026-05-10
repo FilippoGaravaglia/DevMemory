@@ -1,25 +1,102 @@
-# Build output
-bin/
-obj/
+# =========================================================
+# .NET build output
+# =========================================================
 
-# Local packages and build artifacts
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# Publish output
+publish/
+Publish/
+app.publish/
+
+# =========================================================
+# NuGet / packages / artifacts
+# =========================================================
+
 artifacts/
+packages/
+*.nupkg
+*.snupkg
 
+# NuGet restore cache / generated files
+project.assets.json
+project.nuget.cache
+*.nuget.g.props
+*.nuget.g.targets
+
+# =========================================================
+# .NET generated binaries
+# =========================================================
+
+*.dll
+*.exe
+*.pdb
+*.mdb
+*.deps.json
+*.runtimeconfig.json
+*.staticwebassets.runtime.json
+
+# =========================================================
+# Test results / coverage
+# =========================================================
+
+TestResults/
+test-results/
+coverage/
+coverage-results/
+*.trx
+*.coverage
+*.coveragexml
+coverage.cobertura.xml
+
+# =========================================================
 # IDE/editor files
+# =========================================================
+
 .vs/
 .vscode/
 .idea/
 *.user
+*.rsuser
 *.suo
-.DS_Store
+*.userosscache
+*.sln.docstates
 
+# =========================================================
+# OS files
+# =========================================================
+
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =========================================================
+# Logs / temporary files
+# =========================================================
+
+*.log
+*.tmp
+*.temp
+*.cache
+
+# =========================================================
 # DevMemory local/generated files
+# =========================================================
+
 devmemory.json
 devmemory.json.bak
+devmemory.json.tmp
 memory.json
 
-# Logs
-*.log
-
-# OS files
-Thumbs.db
+# Local DevMemory generated folders, in case they are created inside the repo
+.devmemory/
+markdown/
+graph/
