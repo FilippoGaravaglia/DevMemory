@@ -12,10 +12,10 @@ using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("Filippo Garavaglia")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
-[assembly: System.Reflection.AssemblyDescriptionAttribute(("Local-first developer memory CLI for storing, searching and exporting engineering" +
-    " task knowledge."))]
+[assembly: System.Reflection.AssemblyDescriptionAttribute(("Local-first developer memory CLI for capturing, searching, exporting and visualiz" +
+    "ing technical knowledge."))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.1.3.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.1.3+68bce039cf776d7526039fd4ef455dab0b10945b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.1.3+7aa3e1e9ce8ec1aae31b22cef837de4949188cd2")]
 [assembly: System.Reflection.AssemblyProductAttribute("DevMemory.Cli")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DevMemory.Cli")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.1.3.0")]
