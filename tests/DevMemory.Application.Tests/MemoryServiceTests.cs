@@ -1,7 +1,7 @@
 using DevMemory.Application;
 using DevMemory.Application.Abstractions;
-using DevMemory.Core;
 using DevMemory.Application.Models;
+using DevMemory.Core;
 
 namespace DevMemory.Application.Tests;
 
@@ -113,30 +113,30 @@ public sealed class MemoryServiceTests
         // Arrange
         var repository = new InMemoryRepository();
         var exporter = new InMemoryExporter();
-    
+
         var service = new MemoryService(repository, exporter);
-    
+
         var memory = new TaskMemory();
-    
+
         // Act
         var result = service.Add(memory);
-    
+
         // Assert
         Assert.False(result.Success);
         Assert.NotEmpty(result.Errors);
         Assert.Empty(repository.SavedMemories);
         Assert.Null(exporter.ExportedMemoryId);
     }
-    
+
     [Fact]
     public void Add_WhenMemoryHasDuplicatedAndUntrimmedTags_NormalizesTags()
     {
         // Arrange
         var repository = new InMemoryRepository();
         var exporter = new InMemoryExporter();
-    
+
         var service = new MemoryService(repository, exporter);
-    
+
         var memory = new TaskMemory
         {
             Title = "  Test memory  ",
@@ -146,15 +146,15 @@ public sealed class MemoryServiceTests
             Problem = " Problem ",
             Solution = " Solution "
         };
-    
+
         // Act
         var result = service.Add(memory);
-    
+
         // Assert
         Assert.True(result.Success);
-    
+
         var savedMemory = Assert.Single(repository.SavedMemories);
-    
+
         Assert.Equal("Test memory", savedMemory.Title);
         Assert.Equal("DevMemory", savedMemory.Project);
         Assert.Equal("Application", savedMemory.Area);
@@ -185,16 +185,16 @@ public sealed class MemoryServiceTests
                 }
             ]
         };
-    
+
         var service = new MemoryService(repository, new InMemoryExporter());
-    
+
         // Act
         var results = service.Search(new MemorySearchOptions
         {
             Query = "revision",
             Project = "LogicalCommon"
         });
-    
+
         // Assert
         var result = Assert.Single(results);
         Assert.Equal("LogicalCommon", result.Memory.Project);

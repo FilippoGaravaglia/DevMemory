@@ -81,7 +81,7 @@ public sealed class MemoryRepository : IMemoryRepository
         Directory.CreateDirectory(_options.StorageDirectory);
         Directory.CreateDirectory(_options.MarkdownDirectoryPath);
         Directory.CreateDirectory(_options.GraphDirectoryPath);
-    
+
         if (!File.Exists(_options.StorageFilePath))
         {
             File.WriteAllText(_options.StorageFilePath, "[]");

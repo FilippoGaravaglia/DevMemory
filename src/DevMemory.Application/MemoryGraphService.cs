@@ -1,7 +1,7 @@
 using DevMemory.Application.Abstractions;
+using DevMemory.Application.Filtering;
 using DevMemory.Application.Models.Graph;
 using DevMemory.Core;
-using DevMemory.Application.Filtering;
 
 namespace DevMemory.Application;
 

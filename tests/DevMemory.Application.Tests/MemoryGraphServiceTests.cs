@@ -116,31 +116,31 @@ public sealed class MemoryGraphServiceTests
                 }
             ]
         };
-    
+
         var exporter = new InMemoryGraphExporter();
-    
+
         var service = new MemoryGraphService(
             repository,
             exporter,
             new InMemoryGraphHtmlExporter());
-    
+
         // Act
         service.ExportGraph();
-    
+
         // Assert
         Assert.NotNull(exporter.ExportedGraph);
-    
+
         Assert.Contains(exporter.ExportedGraph.Nodes, node => node.Id == "file:src/devmemory.cli/program.cs");
-    
+
         Assert.DoesNotContain(exporter.ExportedGraph.Nodes, node =>
             node.Label.Contains("/bin/", StringComparison.OrdinalIgnoreCase));
-    
+
         Assert.DoesNotContain(exporter.ExportedGraph.Nodes, node =>
             node.Label.Contains("/obj/", StringComparison.OrdinalIgnoreCase));
-    
+
         Assert.DoesNotContain(exporter.ExportedGraph.Nodes, node =>
             node.Label.Contains("artifacts", StringComparison.OrdinalIgnoreCase));
-    
+
         Assert.DoesNotContain(exporter.ExportedGraph.Nodes, node =>
             node.Label.EndsWith(".nupkg", StringComparison.OrdinalIgnoreCase));
     }

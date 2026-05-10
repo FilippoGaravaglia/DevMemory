@@ -1,4 +1,4 @@
-﻿using DevMemory.Application;
+using DevMemory.Application;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Cli.Commands;
 using DevMemory.Infrastructure;

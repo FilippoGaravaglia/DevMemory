@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using DevMemory.Application.Abstractions;
-using DevMemory.Application.Models;
 using DevMemory.Application.Filtering;
+using DevMemory.Application.Models;
 
 namespace DevMemory.Infrastructure.Git;
 
@@ -91,12 +91,12 @@ public sealed class GitRepositoryInspector : IGitRepositoryInspector
         {
             return [];
         }
-    
+
         var changedFiles = statusOutput
             .Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
             .Select(ParseStatusLine)
             .Where(file => !string.IsNullOrWhiteSpace(file));
-    
+
         return MemoryFileFilter.Filter(changedFiles);
     }
 
