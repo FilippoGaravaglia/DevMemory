@@ -6,6 +6,44 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 
 ---
 
+## [0.1.3] - 2026-05-10
+
+### Added
+
+- Added GitHub Actions CI pipeline for build, test and package validation.
+- Added formatting verification with `dotnet format`.
+- Added repository code quality baseline with `.editorconfig`, `.gitattributes` and `Directory.Build.props`.
+- Added local release packaging script.
+- Added CLI `version` command.
+- Added global CLI aliases:
+  - `devmemory --version`
+  - `devmemory -v`
+  - `devmemory --help`
+  - `devmemory -h`
+- Added end-to-end smoke test script for the installed global tool.
+- Added README sections for demo, quality practices and release status.
+- Added improved local development workflow documentation.
+
+### Changed
+
+- Improved CLI output formatting for `list`, `search` and `show`.
+- Improved README presentation for portfolio release.
+- Updated local build script to verify formatting before build and tests.
+- Cleaned up CLI analyzer warnings.
+- Cleaned up Markdown exporter analyzer warnings.
+- Improved command dispatching behavior for help and version aliases.
+- Improved release packaging metadata for the CLI package.
+
+### Notes
+
+- This is the first portfolio-ready local release candidate.
+- DevMemory can be packaged and installed locally as a .NET global tool.
+- The package is not published to NuGet yet.
+- Storage is currently JSON-based.
+- CLI parsing is currently implemented manually.
+
+---
+
 ## [0.1.0] - 2026-05-10
 
 ### Added
@@ -34,7 +72,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 
 ### Notes
 
-- This is the first portfolio-ready development version.
-- The package is not published publicly yet.
-- Storage is currently JSON-based.
-- CLI parsing is currently implemented manually.
+- This was the first structured development version of DevMemory.
+- The package was not published publicly.
+- Storage was JSON-based.
+- CLI parsing was implemented manually.
