@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute(("Local-first developer memory CLI for storing, searching and exporting engineering" +
     " task knowledge."))]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("0.1.3.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.1.3+0d37a5633359791c2bcd55afc09e4f77de611cc9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("0.1.3+f0a750ae25c5370496560dbf09c943ff66527665")]
 [assembly: System.Reflection.AssemblyProductAttribute("DevMemory.Cli")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DevMemory.Cli")]
 [assembly: System.Reflection.AssemblyVersionAttribute("0.1.3.0")]
