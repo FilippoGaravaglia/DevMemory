@@ -50,6 +50,51 @@ DevMemory helps answer questions such as:
 
 ---
 
+## Demo
+
+DevMemory is designed to be used directly from the terminal.
+
+Example workflow:
+
+```bash
+devmemory add
+devmemory list
+devmemory search revision
+devmemory show <memory-id>
+devmemory git-status
+devmemory learn-from-git
+devmemory graph-export
+devmemory graph-view
+```
+
+Example use cases:
+
+- save technical context after completing a task;
+- preserve decisions made during a bug fix or refactor;
+- search previous work by project, area or tag;
+- export memories to Markdown for documentation or AI-assisted continuation;
+- inspect the current Git repository and create a prefilled memory draft;
+- visualize relationships between memories, projects, tags and files.
+
+### Screenshots
+
+Screenshots will be added as the project reaches the first stable portfolio release.
+
+Planned screenshots:
+
+- CLI help output;
+- memory list output;
+- ranked search output;
+- HTML knowledge graph view.
+
+<!--
+![DevMemory help](docs/assets/devmemory-help.png)
+![DevMemory search](docs/assets/devmemory-search.png)
+![DevMemory graph](docs/assets/devmemory-graph.png)
+-->
+
+---
+
 ## Features
 
 ### Structured task memories
@@ -100,9 +145,9 @@ DEVMEMORY_HOME=~/devmemory-work devmemory storage
 
 DevMemory currently uses JSON storage with defensive writes:
 
-- writes to a temporary file
-- creates a backup file
-- replaces the main storage file only after a successful write
+- writes to a temporary file;
+- creates a backup file;
+- replaces the main storage file only after a successful write.
 
 This reduces the risk of corrupting the local memory store.
 
@@ -118,14 +163,14 @@ Every saved memory is automatically exported to Markdown:
 
 The generated Markdown includes:
 
-- metadata
-- problem
-- solution
-- decisions
-- files touched
-- tests
-- lessons learned
-- continuation prompt
+- metadata;
+- problem;
+- solution;
+- decisions;
+- files touched;
+- tests;
+- lessons learned;
+- continuation prompt.
 
 This makes memories easy to reuse in documentation, GitHub Copilot, ChatGPT or future AI-assisted workflows.
 
@@ -177,11 +222,11 @@ devmemory git-status --path ~/work/LogicalCommon
 
 DevMemory reads:
 
-- repository path
-- current branch
-- last commit hash
-- last commit message
-- changed files
+- repository path;
+- current branch;
+- last commit hash;
+- last commit message;
+- changed files.
 
 Generated files are automatically excluded.
 
@@ -197,19 +242,19 @@ devmemory learn-from-git
 
 This pre-fills:
 
-- project
-- branch
-- files touched
+- project;
+- branch;
+- files touched.
 
 You then complete the memory manually with:
 
-- area
-- tags
-- problem
-- solution
-- decisions
-- tests
-- lessons learned
+- area;
+- tags;
+- problem;
+- solution;
+- decisions;
+- tests;
+- lessons learned.
 
 ---
 
@@ -260,11 +305,11 @@ open ~/.devmemory/graph/devmemory-graph.html
 
 The graph currently visualizes:
 
-- memory nodes
-- project nodes
-- area nodes
-- tag nodes
-- file nodes
+- memory nodes;
+- project nodes;
+- area nodes;
+- tag nodes;
+- file nodes.
 
 ---
 
@@ -367,12 +412,12 @@ DevMemoryStorageOptions
 
 This layer handles:
 
-- JSON storage
-- Markdown export
-- Git command execution
-- graph JSON export
-- graph HTML export
-- environment-based storage configuration
+- JSON storage;
+- Markdown export;
+- Git command execution;
+- graph JSON export;
+- graph HTML export;
+- environment-based storage configuration.
 
 ---
 
@@ -393,6 +438,7 @@ git-status
 learn-from-git
 graph-export
 graph-view
+version
 help
 ```
 
@@ -411,6 +457,7 @@ GitStatusCommandHandler
 LearnFromGitCommandHandler
 GraphExportCommandHandler
 GraphViewCommandHandler
+VersionCommandHandler
 HelpCommandHandler
 ```
 
@@ -423,6 +470,30 @@ CliPrompt
 CliExitCodes
 MemoryConsolePrinter
 ```
+
+---
+
+## Quality and engineering practices
+
+DevMemory is developed as a production-oriented portfolio project, with attention to maintainability, testability and release readiness.
+
+Current quality practices include:
+
+- layered architecture;
+- separation between domain, application, infrastructure and CLI concerns;
+- local-first storage abstraction;
+- unit tests for application, infrastructure and CLI behavior;
+- GitHub Actions CI pipeline;
+- build, test and package validation on CI;
+- formatting verification with `dotnet format`;
+- repository-wide `.editorconfig`;
+- repository line-ending normalization with `.gitattributes`;
+- shared build configuration through `Directory.Build.props`;
+- local development scripts for repeatable build, test, packaging and cleanup;
+- NuGet global tool packaging;
+- changelog and semantic versioning baseline.
+
+The CI pipeline verifies that the solution can be restored, formatted, built, tested and packaged successfully.
 
 ---
 
@@ -530,6 +601,32 @@ devmemory graph-export
 devmemory graph-view
 ```
 
+### Show version
+
+```bash
+devmemory version
+```
+
+Short aliases:
+
+```bash
+devmemory --version
+devmemory -v
+```
+
+### Show help
+
+```bash
+devmemory help
+```
+
+Short aliases:
+
+```bash
+devmemory --help
+devmemory -h
+```
+
 ---
 
 ## Configuration
@@ -580,9 +677,10 @@ Run the full build and test pipeline:
 
 This script:
 
+- verifies code formatting;
 - builds the solution;
 - runs the full test suite;
-- fails fast if build or tests fail.
+- fails fast if formatting, build or tests fail.
 
 ---
 
@@ -616,6 +714,29 @@ devmemory
 
 ---
 
+### Create a release package
+
+Create a versioned release package:
+
+```bash
+./scripts/pack-release.sh 0.1.3
+```
+
+This script:
+
+- cleans the local package output directory;
+- builds the solution in Release mode;
+- runs all tests;
+- creates a versioned NuGet package under `artifacts/packages`.
+
+The generated package can then be installed locally with:
+
+```bash
+dotnet tool install --global DevMemory.Cli --add-source ./artifacts/packages
+```
+
+---
+
 ### Clean generated files
 
 Remove local generated files and build artifacts:
@@ -626,10 +747,10 @@ Remove local generated files and build artifacts:
 
 This script removes:
 
-- `bin/`
-- `obj/`
-- `artifacts/`
-- local `devmemory.json` files generated during development
+- `bin/`;
+- `obj/`;
+- `artifacts/`;
+- local `devmemory.json` files generated during development.
 
 It does not remove the real user storage under:
 
@@ -671,18 +792,19 @@ dotnet test DevMemory.slnx
 
 The current test suite covers:
 
-- memory service behavior
-- validation and normalization
-- ranked search
-- storage repository
-- Markdown export
-- Git memory draft creation
-- generated file filtering
-- graph generation
-- JSON graph export
-- HTML graph export
-- CLI command option parsing
-- CLI command dispatching
+- memory service behavior;
+- validation and normalization;
+- ranked search;
+- storage repository;
+- Markdown export;
+- Git memory draft creation;
+- generated file filtering;
+- graph generation;
+- JSON graph export;
+- HTML graph export;
+- CLI command option parsing;
+- CLI command dispatching;
+- CLI version command behavior.
 
 ---
 
@@ -698,6 +820,12 @@ Run tests:
 
 ```bash
 dotnet test DevMemory.slnx
+```
+
+Verify formatting:
+
+```bash
+dotnet format DevMemory.slnx --verify-no-changes
 ```
 
 Run the CLI from source:
@@ -722,6 +850,38 @@ For the recommended local workflow, prefer using the scripts under `scripts/`.
 
 ---
 
+## Release status
+
+Current development version:
+
+```text
+0.1.3
+```
+
+DevMemory can currently be packaged and installed locally as a .NET global tool.
+
+The project is not published to NuGet yet. For now, releases are created locally through:
+
+```bash
+./scripts/pack-release.sh 0.1.3
+```
+
+The generated package is available under:
+
+```text
+artifacts/packages/
+```
+
+Local installation can be tested with:
+
+```bash
+./scripts/install-local-tool.sh
+```
+
+A public GitHub release can be created once the README, screenshots and final smoke tests are completed.
+
+---
+
 ## Current limitations
 
 DevMemory is still under active development.
@@ -735,26 +895,23 @@ Current limitations:
 - No automatic semantic summary of Git diffs yet.
 - HTML graph layout is simple and static.
 - No published public NuGet package yet.
-- No CI/CD pipeline yet.
-- No automated release workflow yet.
+- GitHub releases are not automated yet.
 
 ---
 
 ## Roadmap
 
-Planned improvements:
+Planned improvements after the first portfolio-ready release:
 
-- Improve CLI output with tables and cleaner formatting.
-- Add better command parsing with `System.CommandLine` or `Spectre.Console`.
+- Add screenshots and visual examples to the README.
+- Improve CLI output further with optional colors and tables.
+- Evaluate `System.CommandLine` or `Spectre.Console` for more robust CLI parsing and rendering.
 - Add Git diff summaries for `learn-from-git`.
 - Add optional SQLite storage.
 - Add optional AI provider integration.
 - Improve HTML graph layout and filtering.
-- Add screenshots to the README.
-- Add release scripts and version bump workflow.
-- Add `CHANGELOG.md`.
+- Add automated release workflow.
 - Publish as a public or private NuGet tool package.
-- Add CI pipeline for build and tests.
 
 ---
 
@@ -764,10 +921,10 @@ DevMemory is local-first.
 
 By default:
 
-- no cloud sync
-- no external API calls
-- no LLM provider required
-- no data leaves the machine
+- no cloud sync;
+- no external API calls;
+- no LLM provider required;
+- no data leaves the machine.
 
 All memories are stored locally under:
 
