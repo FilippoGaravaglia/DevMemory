@@ -1,5 +1,6 @@
 using DevMemory.Application;
 using DevMemory.Cli.CommandLine;
+using DevMemory.Cli.Presentation;
 
 namespace DevMemory.Cli.Commands;
 
@@ -16,35 +17,23 @@ public sealed class SearchCommandHandler : ICommandHandler
 
     public int Execute(string[] args)
     {
-        if (args.Length < 2)
-        {
-            Console.Error.WriteLine("Search query is required.");
-            Console.Error.WriteLine("Usage:");
-            Console.Error.WriteLine("  dotnet run --project src/DevMemory.Cli -- search <query> [--project <project>] [--area <area>] [--tag <tag>]");
-            return CliExitCodes.InvalidCommand;
-        }
-
         var options = CommandOptions.BuildSearchOptions(args);
 
-        if (string.IsNullOrWhiteSpace(options.Query))
+        if (string.IsNullOrWhiteSpace(options.Query) &&
+            string.IsNullOrWhiteSpace(options.Project) &&
+            string.IsNullOrWhiteSpace(options.Area) &&
+            string.IsNullOrWhiteSpace(options.Tag))
         {
-            Console.Error.WriteLine("Search query is required.");
+            Console.Error.WriteLine("Search requires a query or at least one filter.");
+            Console.Error.WriteLine("Example:");
+            Console.Error.WriteLine("  devmemory search revision --project LogicalCommon");
+
             return CliExitCodes.InvalidCommand;
         }
 
         var results = _memoryService.Search(options);
 
-        if (results.Count == 0)
-        {
-            Console.WriteLine("No matching memories found.");
-            return CliExitCodes.Success;
-        }
-
-        foreach (var result in results)
-        {
-            var memory = result.Memory;
-            Console.WriteLine($"{memory.Id} | score:{result.Score} | {memory.Project} | {memory.Area} | {memory.Title}");
-        }
+        MemoryConsolePrinter.PrintSearchResults(results);
 
         return CliExitCodes.Success;
     }

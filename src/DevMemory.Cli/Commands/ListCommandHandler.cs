@@ -1,5 +1,6 @@
 using DevMemory.Application;
 using DevMemory.Cli.CommandLine;
+using DevMemory.Cli.Presentation;
 
 namespace DevMemory.Cli.Commands;
 
@@ -18,16 +19,7 @@ public sealed class ListCommandHandler : ICommandHandler
     {
         var memories = _memoryService.List();
 
-        if (memories.Count == 0)
-        {
-            Console.WriteLine("No memories found.");
-            return CliExitCodes.Success;
-        }
-
-        foreach (var memory in memories)
-        {
-            Console.WriteLine($"{memory.Id} | {memory.CreatedAt:u} | {memory.Project} | {memory.Area} | {memory.Title}");
-        }
+        MemoryConsolePrinter.PrintMemoryList(memories);
 
         return CliExitCodes.Success;
     }

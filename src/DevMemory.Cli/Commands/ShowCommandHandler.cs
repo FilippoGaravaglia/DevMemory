@@ -20,22 +20,26 @@ public sealed class ShowCommandHandler : ICommandHandler
         if (args.Length < 2)
         {
             Console.Error.WriteLine("Memory id is required.");
-            Console.Error.WriteLine("Usage:");
-            Console.Error.WriteLine("  dotnet run --project src/DevMemory.Cli -- show <memory-id>");
+            Console.Error.WriteLine("Example:");
+            Console.Error.WriteLine("  devmemory show <memory-id>");
+
             return CliExitCodes.InvalidCommand;
         }
 
-        if (!Guid.TryParse(args[1], out var id))
+        if (!Guid.TryParse(args[1], out var memoryId))
         {
             Console.Error.WriteLine("Invalid memory id.");
+            Console.Error.WriteLine("The memory id must be a valid GUID.");
+
             return CliExitCodes.InvalidCommand;
         }
 
-        var memory = _memoryService.GetById(id);
+        var memory = _memoryService.GetById(memoryId);
 
         if (memory is null)
         {
-            Console.Error.WriteLine("Memory not found.");
+            Console.Error.WriteLine($"Memory not found: {memoryId}");
+
             return CliExitCodes.Failure;
         }
 
