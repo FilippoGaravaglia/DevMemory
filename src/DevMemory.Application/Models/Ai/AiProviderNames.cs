@@ -1,3 +1,5 @@
+namespace DevMemory.Application.Models.Ai;
+
 /// <summary>
 /// Defines supported AI provider names.
 /// </summary>
