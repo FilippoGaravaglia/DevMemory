@@ -1,0 +1,30 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>DevMemory.Cli</id>
+    <version>0.1.3</version>
+    <authors>Filippo Garavaglia</authors>
+    <readme>README.md</readme>
+    <description>Local-first developer memory CLI for capturing, searching, exporting and visualizing technical knowledge.</description>
+    <tags>dotnet cli developer-tools knowledge-management git local-first</tags>
+    <packageTypes>
+      <packageType name="DotnetTool" />
+    </packageTypes>
+    <repository type="git" commit="dd4a3929b2272e0c06d002a332d7cb134575b116" />
+  </metadata>
+  <files>
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/obj/Release/net10.0/DotnetToolSettings.xml" target="tools/net10.0/any/DotnetToolSettings.xml" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/bin/Release/net10.0/publish/DevMemory.Application.dll" target="tools/net10.0/any/DevMemory.Application.dll" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/bin/Release/net10.0/publish/DevMemory.Application.pdb" target="tools/net10.0/any/DevMemory.Application.pdb" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/bin/Release/net10.0/publish/DevMemory.Cli.deps.json" target="tools/net10.0/any/DevMemory.Cli.deps.json" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/bin/Release/net10.0/publish/DevMemory.Cli.dll" target="tools/net10.0/any/DevMemory.Cli.dll" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/bin/Release/net10.0/publish/DevMemory.Cli.pdb" target="tools/net10.0/any/DevMemory.Cli.pdb" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/bin/Release/net10.0/publish/DevMemory.Cli.runtimeconfig.json" target="tools/net10.0/any/DevMemory.Cli.runtimeconfig.json" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/bin/Release/net10.0/publish/DevMemory.Core.dll" target="tools/net10.0/any/DevMemory.Core.dll" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/bin/Release/net10.0/publish/DevMemory.Core.pdb" target="tools/net10.0/any/DevMemory.Core.pdb" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/bin/Release/net10.0/publish/DevMemory.Infrastructure.dll" target="tools/net10.0/any/DevMemory.Infrastructure.dll" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Cli/bin/Release/net10.0/publish/DevMemory.Infrastructure.pdb" target="tools/net10.0/any/DevMemory.Infrastructure.pdb" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/README.md" target="/README.md" />
+    <file src="/Users/filippogaravaglia/Downloads/Ai project/CHANGELOG.md" target="/CHANGELOG.md" />
+  </files>
+</package>

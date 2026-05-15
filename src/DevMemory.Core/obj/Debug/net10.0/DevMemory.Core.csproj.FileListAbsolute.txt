@@ -1,0 +1,12 @@
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/bin/Debug/net10.0/DevMemory.Core.deps.json
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/bin/Debug/net10.0/DevMemory.Core.dll
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/bin/Debug/net10.0/DevMemory.Core.pdb
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/obj/Debug/net10.0/DevMemory.Core.GeneratedMSBuildEditorConfig.editorconfig
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/obj/Debug/net10.0/DevMemory.Core.AssemblyInfoInputs.cache
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/obj/Debug/net10.0/DevMemory.Core.AssemblyInfo.cs
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/obj/Debug/net10.0/DevMemory.Core.csproj.CoreCompileInputs.cache
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/obj/Debug/net10.0/DevMemory.Core.sourcelink.json
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/obj/Debug/net10.0/DevMemory.Core.dll
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/obj/Debug/net10.0/refint/DevMemory.Core.dll
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/obj/Debug/net10.0/DevMemory.Core.pdb
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Core/obj/Debug/net10.0/ref/DevMemory.Core.dll

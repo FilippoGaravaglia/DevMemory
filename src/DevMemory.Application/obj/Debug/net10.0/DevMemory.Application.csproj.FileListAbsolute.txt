@@ -1,0 +1,16 @@
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/bin/Debug/net10.0/DevMemory.Application.deps.json
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/bin/Debug/net10.0/DevMemory.Application.dll
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/bin/Debug/net10.0/DevMemory.Application.pdb
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/bin/Debug/net10.0/DevMemory.Core.dll
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/bin/Debug/net10.0/DevMemory.Core.pdb
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/DevMemory.Application.csproj.AssemblyReference.cache
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/DevMemory.Application.GeneratedMSBuildEditorConfig.editorconfig
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/DevMemory.Application.AssemblyInfoInputs.cache
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/DevMemory.Application.AssemblyInfo.cs
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/DevMemory.Application.csproj.CoreCompileInputs.cache
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/DevMemory.Application.sourcelink.json
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/DevMemor.3CA8F6A8.Up2Date
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/DevMemory.Application.dll
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/refint/DevMemory.Application.dll
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/DevMemory.Application.pdb
+/Users/filippogaravaglia/Downloads/Ai project/src/DevMemory.Application/obj/Debug/net10.0/ref/DevMemory.Application.dll
