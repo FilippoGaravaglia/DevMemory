@@ -1,7 +1,113 @@
+# =========================================================
+# .NET build output
+# =========================================================
 
-# Build/package artifacts
+bin/
+obj/
+[Bb]in/
+[Oo]bj/
+**/bin/
+**/obj/
+**/[Bb]in/
+**/[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+
+# Publish output
+publish/
+Publish/
+app.publish/
+
+# =========================================================
+# NuGet / packages / artifacts
+# =========================================================
+
 artifacts/
+packages/
+*.nupkg
+*.snupkg
 
-# macOS Finder metadata
+# NuGet restore cache / generated files
+project.assets.json
+project.nuget.cache
+*.nuget.g.props
+*.nuget.g.targets
+*.nuget.dgspec.json
+
+# =========================================================
+# .NET generated binaries
+# =========================================================
+
+*.dll
+*.exe
+*.pdb
+*.mdb
+*.deps.json
+*.runtimeconfig.json
+*.staticwebassets.runtime.json
+*.sourcelink.json
+*.AssemblyAttributes.cs
+*.AssemblyInfo.cs
+
+# =========================================================
+# Test results / coverage
+# =========================================================
+
+TestResults/
+test-results/
+coverage/
+coverage-results/
+*.trx
+*.coverage
+*.coveragexml
+coverage.cobertura.xml
+
+# =========================================================
+# IDE/editor files
+# =========================================================
+
+.vs/
+.vscode/
+.idea/
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# =========================================================
+# OS files
+# =========================================================
+
 .DS_Store
 **/.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =========================================================
+# Logs / temporary files
+# =========================================================
+
+*.log
+*.tmp
+*.temp
+*.cache
+
+# =========================================================
+# DevMemory local/generated files
+# =========================================================
+
+devmemory.json
+devmemory.json.bak
+devmemory.json.tmp
+memory.json
+
+# Local DevMemory generated folders, in case they are created inside the repo
+.devmemory/
+markdown/
+graph/
