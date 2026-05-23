@@ -25,6 +25,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- graph-view [--output <file-path>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ai-status");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask <question>");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask --rag <question> [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- index");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- semantic-search <query> [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- version");
@@ -44,6 +45,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory graph-view [--output <file-path>]");
         Console.WriteLine("  devmemory ai-status");
         Console.WriteLine("  devmemory ask <question>");
+        Console.WriteLine("  devmemory ask --rag <question> [--limit <number>]");
         Console.WriteLine("  devmemory index");
         Console.WriteLine("  devmemory semantic-search <query> [--limit <number>]");
         Console.WriteLine("  devmemory version");
@@ -86,6 +88,8 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory graph-view");
         Console.WriteLine("  devmemory ai-status");
         Console.WriteLine("  devmemory ask \"What did I change last time in this area?\"");
+        Console.WriteLine("  devmemory ask --rag \"How did we handle estimate revision cloning?\"");
+        Console.WriteLine("  devmemory ask --rag \"What did I change in MongoDB mapping?\" --limit 3");
         Console.WriteLine("  devmemory index");
         Console.WriteLine("  devmemory semantic-search \"estimate revision cloning\"");
         Console.WriteLine("  devmemory semantic-search \"mongodb mapping issue\" --limit 3");
@@ -109,6 +113,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  DEVMEMORY_HOME=~/devmemory-work devmemory storage");
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama devmemory ai-status");
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama devmemory ask \"What did I change last time?\"");
+        Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory ask --rag \"How did we handle estimate revisions?\"");
         Console.WriteLine("  DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory index");
         Console.WriteLine("  DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory semantic-search \"estimate revision\"");
 

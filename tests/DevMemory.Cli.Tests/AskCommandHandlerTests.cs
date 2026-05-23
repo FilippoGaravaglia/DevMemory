@@ -20,7 +20,9 @@ public sealed class AskCommandHandlerTests
         var exception = Assert.Throws<ArgumentException>(() => handler.Execute(["ask"]));
 
         // Assert
-        Assert.Equal("Usage: devmemory ask <question>", exception.Message);
+        Assert.Equal(
+            "Usage: devmemory ask [--rag] [--limit <number>] <question>",
+            exception.Message);
     }
 
     [Fact]
