@@ -1,4 +1,6 @@
+using DevMemory.Application;
 using DevMemory.Application.Abstractions.Ai;
+using DevMemory.Application.Ai;
 using DevMemory.Application.Models.Ai;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Infrastructure;
@@ -11,25 +13,36 @@ public sealed class IndexCommandHandler : ICommandHandler
     private readonly Func<AiRuntimeOptions> _optionsFactory;
     private readonly Func<AiRuntimeOptions, IEmbeddingService?> _embeddingServiceFactory;
     private readonly Func<AiRuntimeOptions, IVectorMemoryStore?> _vectorMemoryStoreFactory;
+    private readonly Func<IReadOnlyCollection<VectorMemoryDocument>> _documentsFactory;
+    private readonly Func<IEmbeddingService, IVectorMemoryStore, MemoryVectorIndexingService> _indexingServiceFactory;
 
-    public IndexCommandHandler()
+    public IndexCommandHandler(MemoryService memoryService)
         : this(
             AiRuntimeOptionsProvider.GetOptions,
             EmbeddingServiceFactory.Create,
-            VectorMemoryStoreFactory.Create)
+            VectorMemoryStoreFactory.Create,
+            () => VectorMemoryDocumentBuilder.BuildFromMemories(memoryService.List()),
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore))
     {
+        ArgumentNullException.ThrowIfNull(memoryService);
     }
 
     public IndexCommandHandler(
         Func<AiRuntimeOptions> optionsFactory,
         Func<AiRuntimeOptions, IEmbeddingService?> embeddingServiceFactory,
-        Func<AiRuntimeOptions, IVectorMemoryStore?> vectorMemoryStoreFactory)
+        Func<AiRuntimeOptions, IVectorMemoryStore?> vectorMemoryStoreFactory,
+        Func<IReadOnlyCollection<VectorMemoryDocument>> documentsFactory,
+        Func<IEmbeddingService, IVectorMemoryStore, MemoryVectorIndexingService> indexingServiceFactory)
     {
         _optionsFactory = optionsFactory ?? throw new ArgumentNullException(nameof(optionsFactory));
         _embeddingServiceFactory = embeddingServiceFactory
             ?? throw new ArgumentNullException(nameof(embeddingServiceFactory));
         _vectorMemoryStoreFactory = vectorMemoryStoreFactory
             ?? throw new ArgumentNullException(nameof(vectorMemoryStoreFactory));
+        _documentsFactory = documentsFactory ?? throw new ArgumentNullException(nameof(documentsFactory));
+        _indexingServiceFactory = indexingServiceFactory
+            ?? throw new ArgumentNullException(nameof(indexingServiceFactory));
     }
 
     public string Name => "index";
@@ -66,24 +79,67 @@ public sealed class IndexCommandHandler : ICommandHandler
 
         try
         {
-            Console.WriteLine("DevMemory vector index");
-            Console.WriteLine("----------------------");
-            Console.WriteLine();
-            Console.WriteLine($"Embedding provider: {options.Embedding.Provider}");
-            Console.WriteLine($"Embedding model: {ResolveEmbeddingModel(options.Embedding)}");
-            Console.WriteLine($"Vector store: {options.VectorStore.Provider}");
-            Console.WriteLine($"Qdrant endpoint: {FormatOptional(options.VectorStore.QdrantEndpoint)}");
-            Console.WriteLine($"Qdrant collection: {FormatOptional(options.VectorStore.QdrantCollection)}");
-            Console.WriteLine();
-            Console.WriteLine("Vector indexing pipeline is configured.");
-            Console.WriteLine("Memory indexing execution will be added in the next step.");
+            var documents = _documentsFactory();
+            var embeddingModel = ResolveEmbeddingModel(options.Embedding);
 
-            return CliExitCodes.Success;
+            var indexingService = _indexingServiceFactory(embeddingService, vectorMemoryStore);
+
+            var result = indexingService
+                .IndexAsync(documents, embeddingModel, CancellationToken.None)
+                .GetAwaiter()
+                .GetResult();
+
+            PrintIndexingResult(options, result);
+
+            return result.FailedDocuments == 0
+                ? CliExitCodes.Success
+                : CliExitCodes.Failure;
+        }
+        catch (Exception ex) when (ex is not ArgumentException)
+        {
+            Console.Error.WriteLine("Memory vector indexing failed.");
+            Console.Error.WriteLine(ex.Message);
+
+            return CliExitCodes.Failure;
         }
         finally
         {
             DisposeIfRequired(embeddingService);
             DisposeIfRequired(vectorMemoryStore);
+        }
+    }
+
+    /// <summary>
+    /// Prints the memory vector indexing result.
+    /// </summary>
+    private static void PrintIndexingResult(
+        AiRuntimeOptions options,
+        MemoryVectorIndexingResult result)
+    {
+        Console.WriteLine("DevMemory vector index");
+        Console.WriteLine("----------------------");
+        Console.WriteLine();
+        Console.WriteLine($"Embedding provider: {options.Embedding.Provider}");
+        Console.WriteLine($"Embedding model: {ResolveEmbeddingModel(options.Embedding)}");
+        Console.WriteLine($"Vector store: {options.VectorStore.Provider}");
+        Console.WriteLine($"Qdrant endpoint: {FormatOptional(options.VectorStore.QdrantEndpoint)}");
+        Console.WriteLine($"Qdrant collection: {FormatOptional(options.VectorStore.QdrantCollection)}");
+        Console.WriteLine();
+        Console.WriteLine($"Total documents: {result.TotalDocuments}");
+        Console.WriteLine($"Indexed documents: {result.IndexedDocuments}");
+        Console.WriteLine($"Failed documents: {result.FailedDocuments}");
+
+        if (result.Errors.Count == 0)
+        {
+            return;
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Errors:");
+
+        foreach (var error in result.Errors)
+        {
+            Console.WriteLine($"- {error}");
         }
     }
 

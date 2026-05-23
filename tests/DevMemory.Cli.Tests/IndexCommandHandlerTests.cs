@@ -1,5 +1,6 @@
 using System.Globalization;
 using DevMemory.Application.Abstractions.Ai;
+using DevMemory.Application.Ai;
 using DevMemory.Application.Models.Ai;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Cli.Commands;
@@ -17,7 +18,10 @@ public sealed class IndexCommandHandlerTests
         var handler = new IndexCommandHandler(
             () => new AiRuntimeOptions(),
             _ => new FakeEmbeddingService(),
-            _ => new FakeVectorMemoryStore());
+            _ => new FakeVectorMemoryStore(),
+            () => [],
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore));
 
         // Act
         var result = ExecuteAndCaptureOutput(handler, ["index"]);
@@ -39,7 +43,10 @@ public sealed class IndexCommandHandlerTests
         var handler = new IndexCommandHandler(
             CreateSemanticSearchOptions,
             _ => null,
-            _ => new FakeVectorMemoryStore());
+            _ => new FakeVectorMemoryStore(),
+            () => [],
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore));
 
         // Act
         var result = ExecuteAndCaptureOutput(handler, ["index"]);
@@ -61,7 +68,10 @@ public sealed class IndexCommandHandlerTests
         var handler = new IndexCommandHandler(
             CreateSemanticSearchOptions,
             _ => new FakeEmbeddingService(),
-            _ => null);
+            _ => null,
+            () => [],
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore));
 
         // Act
         var result = ExecuteAndCaptureOutput(handler, ["index"]);
@@ -77,13 +87,28 @@ public sealed class IndexCommandHandlerTests
     }
 
     [Fact]
-    public void Execute_WhenSemanticSearchPipelineIsConfigured_ReturnsSuccessAndPrintsStatus()
+    public void Execute_WhenDocumentsAreIndexed_ReturnsSuccessAndPrintsResult()
     {
         // Arrange
+        var documents = new[]
+        {
+            new VectorMemoryDocument
+            {
+                MemoryId = Guid.NewGuid(),
+                Title = "Estimate revision cloning",
+                Project = "DevMemory",
+                Area = "AI",
+                Text = "Implemented estimate revision cloning."
+            }
+        };
+
         var handler = new IndexCommandHandler(
             CreateSemanticSearchOptions,
             _ => new FakeEmbeddingService(),
-            _ => new FakeVectorMemoryStore());
+            _ => new FakeVectorMemoryStore(),
+            () => documents,
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore));
 
         // Act
         var result = ExecuteAndCaptureOutput(handler, ["index"]);
@@ -95,9 +120,43 @@ public sealed class IndexCommandHandlerTests
         Assert.Contains("Embedding provider: ollama", result.Output, StringComparison.Ordinal);
         Assert.Contains("Embedding model: nomic-embed-text", result.Output, StringComparison.Ordinal);
         Assert.Contains("Vector store: qdrant", result.Output, StringComparison.Ordinal);
-        Assert.Contains("Qdrant endpoint: http://localhost:6333", result.Output, StringComparison.Ordinal);
-        Assert.Contains("Qdrant collection: devmemory_memories", result.Output, StringComparison.Ordinal);
-        Assert.Contains("Vector indexing pipeline is configured.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Total documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Indexed documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Failed documents: 0", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenIndexingHasFailures_ReturnsFailureAndPrintsErrors()
+    {
+        // Arrange
+        var documents = new[]
+        {
+            new VectorMemoryDocument
+            {
+                MemoryId = Guid.Empty,
+                Text = "Invalid document."
+            }
+        };
+
+        var handler = new IndexCommandHandler(
+            CreateSemanticSearchOptions,
+            _ => new FakeEmbeddingService(),
+            _ => new FakeVectorMemoryStore(),
+            () => documents,
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore));
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["index"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Failure, result.ExitCode);
+        Assert.Empty(result.Error);
+        Assert.Contains("Total documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Indexed documents: 0", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Failed documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Errors:", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Vector document memory id cannot be empty.", result.Output, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -157,17 +216,26 @@ public sealed class IndexCommandHandlerTests
             EmbeddingRequest request,
             CancellationToken cancellationToken)
         {
-            throw new NotSupportedException();
+            return Task.FromResult(new EmbeddingResponse
+            {
+                Provider = AiProviderNames.Ollama,
+                Model = request.Model,
+                Vector = [0.1f, 0.2f, 0.3f]
+            });
         }
     }
 
     private sealed class FakeVectorMemoryStore : IVectorMemoryStore
     {
+        public List<VectorMemoryDocument> Documents { get; } = [];
+
         public Task UpsertAsync(
             VectorMemoryDocument document,
             CancellationToken cancellationToken)
         {
-            throw new NotSupportedException();
+            Documents.Add(document);
+
+            return Task.CompletedTask;
         }
 
         public Task<IReadOnlyCollection<VectorMemorySearchResult>> SearchAsync(
