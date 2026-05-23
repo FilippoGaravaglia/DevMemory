@@ -1,4 +1,5 @@
 using System.Globalization;
+using DevMemory.Application.Abstractions.Ai;
 using DevMemory.Application.Models.Ai;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Cli.Commands;
@@ -40,28 +41,60 @@ public sealed class AskCommandHandlerTests
     }
 
     [Fact]
-    public void Execute_WhenOllamaChatProviderIsConfigured_PrintsProviderDetailsAndReturnsFailureUntilImplemented()
+    public void Execute_WhenChatProviderHasNoAdapter_ReturnsFailureAndPrintsGuidance()
     {
         // Arrange
-        var handler = new AskCommandHandler(() => new AiRuntimeOptions
-        {
-            Chat = new ChatProviderOptions
+        var handler = new AskCommandHandler(
+            () => new AiRuntimeOptions
             {
-                Provider = AiProviderNames.Ollama,
-                OllamaChatModel = "llama3.2"
-            }
-        });
+                Chat = new ChatProviderOptions
+                {
+                    Provider = AiProviderNames.OpenAi,
+                    OpenAiChatModel = "gpt-test"
+                }
+            },
+            _ => null);
 
         // Act
         var result = ExecuteAndCaptureOutput(handler, ["ask", "What", "did", "I", "change?"]);
 
         // Assert
         Assert.Equal(CliExitCodes.Failure, result.ExitCode);
-        Assert.Contains("DevMemory AI ask", result.Output, StringComparison.Ordinal);
+        Assert.Empty(result.Output);
+        Assert.Contains(
+            "AI chat provider 'openai' is configured, but no adapter is available yet.",
+            result.Error,
+            StringComparison.Ordinal);
+        Assert.Contains("Currently implemented chat providers: ollama", result.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenChatProviderIsConfigured_ReturnsAnswerFromChatService()
+    {
+        // Arrange
+        var handler = new AskCommandHandler(
+            () => new AiRuntimeOptions
+            {
+                Chat = new ChatProviderOptions
+                {
+                    Provider = AiProviderNames.Ollama,
+                    OllamaChatModel = "llama3.2"
+                }
+            },
+            _ => new FakeChatCompletionService("This is the AI answer."));
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["ask", "What", "did", "I", "change?"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+        Assert.Contains("DevMemory AI answer", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Provider: ollama", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Model: llama3.2", result.Output, StringComparison.Ordinal);
         Assert.Contains("Question: What did I change?", result.Output, StringComparison.Ordinal);
-        Assert.Contains("Chat provider: ollama", result.Output, StringComparison.Ordinal);
-        Assert.Contains("Chat model: llama3.2", result.Output, StringComparison.Ordinal);
-        Assert.Contains("AI chat execution is not implemented yet.", result.Error, StringComparison.Ordinal);
+        Assert.Contains("Answer:", result.Output, StringComparison.Ordinal);
+        Assert.Contains("This is the AI answer.", result.Output, StringComparison.Ordinal);
     }
 
     /// <summary>
@@ -90,6 +123,28 @@ public sealed class AskCommandHandlerTests
         {
             Console.SetOut(originalOutput);
             Console.SetError(originalError);
+        }
+    }
+
+    private sealed class FakeChatCompletionService : IChatCompletionService
+    {
+        private readonly string _content;
+
+        public FakeChatCompletionService(string content)
+        {
+            _content = content;
+        }
+
+        public Task<ChatCompletionResponse> CompleteAsync(
+            ChatCompletionRequest request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new ChatCompletionResponse
+            {
+                Content = _content,
+                Provider = AiProviderNames.Ollama,
+                Model = request.Model
+            });
         }
     }
 }
