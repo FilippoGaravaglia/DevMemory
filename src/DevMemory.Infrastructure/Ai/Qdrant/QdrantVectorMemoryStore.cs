@@ -213,6 +213,7 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
             Title = ReadStringPayload(payload, "title"),
             Project = ReadStringPayload(payload, "project"),
             Area = ReadStringPayload(payload, "area"),
+            Text = ReadStringPayload(payload, "text"),
             Score = Convert.ToDecimal(point.Score)
         };
     }

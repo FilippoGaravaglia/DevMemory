@@ -227,6 +227,7 @@ public sealed class SemanticSearchCommandHandlerTests
                     Title = "Estimate revision cloning",
                     Project = "DevMemory",
                     Area = "AI",
+                    Text = "Implemented estimate revision cloning.",
                     Score = 0.91m
                 }
             ];

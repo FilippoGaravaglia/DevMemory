@@ -110,6 +110,7 @@ public sealed class QdrantVectorMemoryStoreTests
         Assert.Equal("Estimate revision cloning", result.Title);
         Assert.Equal("DevMemory", result.Project);
         Assert.Equal("AI", result.Area);
+        Assert.Equal("Implemented estimate revision cloning.", result.Text);
         Assert.Equal(0.91m, result.Score);
         Assert.Equal(HttpMethod.Post, handler.LastRequestMethod);
         Assert.Equal(

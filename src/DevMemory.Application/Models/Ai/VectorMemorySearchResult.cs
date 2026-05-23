@@ -13,5 +13,7 @@ public sealed record VectorMemorySearchResult
 
     public string Area { get; init; } = string.Empty;
 
+    public string Text { get; init; } = string.Empty;
+
     public decimal Score { get; init; }
 }
