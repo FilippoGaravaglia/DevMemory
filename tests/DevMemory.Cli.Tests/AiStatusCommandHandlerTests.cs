@@ -2,9 +2,11 @@ using System.Globalization;
 using DevMemory.Application.Models.Ai;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Cli.Commands;
+using DevMemory.Cli.Tests.TestSupport;
 
 namespace DevMemory.Cli.Tests;
 
+[Collection(CliTestCollections.ConsoleOutput)]
 public sealed class AiStatusCommandHandlerTests
 {
     [Fact]

@@ -24,6 +24,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- graph-export [--output <file-path>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- graph-view [--output <file-path>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ai-status");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask <question>");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- version");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- --version");
         Console.WriteLine();
@@ -40,6 +41,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory graph-export [--output <file-path>]");
         Console.WriteLine("  devmemory graph-view [--output <file-path>]");
         Console.WriteLine("  devmemory ai-status");
+        Console.WriteLine("  devmemory ask <question>");
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
         Console.WriteLine("  devmemory -v");
@@ -57,6 +59,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  graph-export     Export the memory graph as JSON.");
         Console.WriteLine("  graph-view       Generate the local HTML graph view.");
         Console.WriteLine("  ai-status        Show the current AI/RAG runtime configuration status.");
+        Console.WriteLine("  ask              Ask a question using the configured AI chat provider.");
         Console.WriteLine("  version          Show the current DevMemory version.");
         Console.WriteLine("  help             Show this help message.");
         Console.WriteLine();
@@ -76,6 +79,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory graph-export");
         Console.WriteLine("  devmemory graph-view");
         Console.WriteLine("  devmemory ai-status");
+        Console.WriteLine("  devmemory ask \"What did I change last time in this area?\"");
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
         Console.WriteLine();
@@ -93,6 +97,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("Environment examples:");
         Console.WriteLine("  DEVMEMORY_HOME=~/devmemory-work devmemory storage");
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama devmemory ai-status");
+        Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama devmemory ask \"What did I change last time?\"");
 
         return CliExitCodes.Success;
     }

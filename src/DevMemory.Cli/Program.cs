@@ -30,6 +30,7 @@ var commandHandlers = new ICommandHandler[]
     new GraphExportCommandHandler(memoryGraphService),
     new GraphViewCommandHandler(memoryGraphService),
     new AiStatusCommandHandler(),
+    new AskCommandHandler(),
     new VersionCommandHandler(),
     new HelpCommandHandler()
 };
