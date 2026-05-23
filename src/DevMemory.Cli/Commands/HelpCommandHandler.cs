@@ -26,6 +26,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ai-status");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask <question>");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- index");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- semantic-search <query> [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- version");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- --version");
         Console.WriteLine();
@@ -44,6 +45,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory ai-status");
         Console.WriteLine("  devmemory ask <question>");
         Console.WriteLine("  devmemory index");
+        Console.WriteLine("  devmemory semantic-search <query> [--limit <number>]");
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
         Console.WriteLine("  devmemory -v");
@@ -62,7 +64,8 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  graph-view       Generate the local HTML graph view.");
         Console.WriteLine("  ai-status        Show the current AI/RAG runtime configuration status.");
         Console.WriteLine("  ask              Ask a question using the configured AI chat provider.");
-        Console.WriteLine("  index            Validate and prepare the semantic indexing pipeline.");
+        Console.WriteLine("  index            Index local memories into the configured vector store.");
+        Console.WriteLine("  semantic-search  Search indexed memories using semantic similarity.");
         Console.WriteLine("  version          Show the current DevMemory version.");
         Console.WriteLine("  help             Show this help message.");
         Console.WriteLine();
@@ -84,6 +87,8 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory ai-status");
         Console.WriteLine("  devmemory ask \"What did I change last time in this area?\"");
         Console.WriteLine("  devmemory index");
+        Console.WriteLine("  devmemory semantic-search \"estimate revision cloning\"");
+        Console.WriteLine("  devmemory semantic-search \"mongodb mapping issue\" --limit 3");
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
         Console.WriteLine();
@@ -94,6 +99,8 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  DEVMEMORY_EMBEDDING_PROVIDER         Embedding provider: none, ollama, openai, gemini");
         Console.WriteLine("  DEVMEMORY_VECTOR_STORE               Vector store: none, qdrant");
         Console.WriteLine("  DEVMEMORY_OLLAMA_ENDPOINT            Ollama endpoint");
+        Console.WriteLine("  DEVMEMORY_OLLAMA_EMBEDDING_MODEL     Ollama embedding model");
+        Console.WriteLine("  DEVMEMORY_OLLAMA_CHAT_MODEL          Ollama chat model");
         Console.WriteLine("  DEVMEMORY_QDRANT_ENDPOINT            Qdrant endpoint");
         Console.WriteLine("  DEVMEMORY_QDRANT_COLLECTION          Qdrant collection name");
         Console.WriteLine();
@@ -103,6 +110,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama devmemory ai-status");
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama devmemory ask \"What did I change last time?\"");
         Console.WriteLine("  DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory index");
+        Console.WriteLine("  DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory semantic-search \"estimate revision\"");
 
         return CliExitCodes.Success;
     }
