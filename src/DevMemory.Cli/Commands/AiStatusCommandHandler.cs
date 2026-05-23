@@ -55,27 +55,33 @@ public sealed class AiStatusCommandHandler : ICommandHandler
         {
             Console.WriteLine($"Chat endpoint: {FormatOptional(options.OllamaEndpoint)}");
             Console.WriteLine($"Chat model: {FormatOptional(options.OllamaChatModel)}");
+
             return;
         }
 
         if (options.IsOpenAi)
         {
             Console.WriteLine($"Chat model: {FormatOptional(options.OpenAiChatModel)}");
-            Console.WriteLine($"OpenAI API key configured: {FormatBoolean(!string.IsNullOrWhiteSpace(options.OpenAiApiKey))}");
+            Console.WriteLine(
+                $"OpenAI API key configured: {FormatBoolean(!string.IsNullOrWhiteSpace(options.OpenAiApiKey))}");
+
             return;
         }
 
         if (options.IsGemini)
         {
             Console.WriteLine($"Chat model: {FormatOptional(options.GeminiChatModel)}");
-            Console.WriteLine($"Gemini API key configured: {FormatBoolean(!string.IsNullOrWhiteSpace(options.GeminiApiKey))}");
+            Console.WriteLine(
+                $"Gemini API key configured: {FormatBoolean(!string.IsNullOrWhiteSpace(options.GeminiApiKey))}");
+
             return;
         }
 
         if (options.IsAnthropic)
         {
             Console.WriteLine($"Chat model: {FormatOptional(options.AnthropicChatModel)}");
-            Console.WriteLine($"Anthropic API key configured: {FormatBoolean(!string.IsNullOrWhiteSpace(options.AnthropicApiKey))}");
+            Console.WriteLine(
+                $"Anthropic API key configured: {FormatBoolean(!string.IsNullOrWhiteSpace(options.AnthropicApiKey))}");
         }
     }
 
@@ -90,20 +96,24 @@ public sealed class AiStatusCommandHandler : ICommandHandler
         {
             Console.WriteLine($"Embedding endpoint: {FormatOptional(options.OllamaEndpoint)}");
             Console.WriteLine($"Embedding model: {FormatOptional(options.OllamaEmbeddingModel)}");
+
             return;
         }
 
         if (options.IsOpenAi)
         {
             Console.WriteLine($"Embedding model: {FormatOptional(options.OpenAiEmbeddingModel)}");
-            Console.WriteLine($"OpenAI API key configured: {FormatBoolean(!string.IsNullOrWhiteSpace(options.OpenAiApiKey))}");
+            Console.WriteLine(
+                $"OpenAI API key configured: {FormatBoolean(!string.IsNullOrWhiteSpace(options.OpenAiApiKey))}");
+
             return;
         }
 
         if (options.IsGemini)
         {
             Console.WriteLine($"Embedding model: {FormatOptional(options.GeminiEmbeddingModel)}");
-            Console.WriteLine($"Gemini API key configured: {FormatBoolean(!string.IsNullOrWhiteSpace(options.GeminiApiKey))}");
+            Console.WriteLine(
+                $"Gemini API key configured: {FormatBoolean(!string.IsNullOrWhiteSpace(options.GeminiApiKey))}");
         }
     }
 

@@ -100,7 +100,7 @@ public sealed class AiStatusCommandHandlerTests
     /// <summary>
     /// Executes the handler and captures standard output.
     /// </summary>
-    private static (int ExitCode, string Output) ExecuteAndCaptureOutput(ICommandHandler handler)
+    private static (int ExitCode, string Output) ExecuteAndCaptureOutput(AiStatusCommandHandler handler)
     {
         var originalOutput = Console.Out;
 

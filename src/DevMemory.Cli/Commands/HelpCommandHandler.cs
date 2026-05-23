@@ -23,6 +23,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- learn-from-git [--path <repository-path>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- graph-export [--output <file-path>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- graph-view [--output <file-path>]");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ai-status");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- version");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- --version");
         Console.WriteLine();
@@ -38,7 +39,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory learn-from-git [--path <repository-path>]");
         Console.WriteLine("  devmemory graph-export [--output <file-path>]");
         Console.WriteLine("  devmemory graph-view [--output <file-path>]");
-        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ai-status");
+        Console.WriteLine("  devmemory ai-status");
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
         Console.WriteLine("  devmemory -v");
@@ -88,7 +89,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  DEVMEMORY_QDRANT_ENDPOINT            Qdrant endpoint");
         Console.WriteLine("  DEVMEMORY_QDRANT_COLLECTION          Qdrant collection name");
         Console.WriteLine();
-        
+
         Console.WriteLine("Environment examples:");
         Console.WriteLine("  DEVMEMORY_HOME=~/devmemory-work devmemory storage");
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama devmemory ai-status");
