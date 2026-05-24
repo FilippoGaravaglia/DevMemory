@@ -93,6 +93,7 @@ public sealed class AskCommandHandlerRagTests
         Assert.Contains("Context items: 1", result.Output, StringComparison.Ordinal);
         Assert.Contains("Answer:", result.Output, StringComparison.Ordinal);
         Assert.Contains("Use the revision cloning memory.", result.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Context:", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -108,6 +109,43 @@ public sealed class AskCommandHandlerRagTests
         // Assert
         Assert.Equal("Option --limit must be a positive integer.", exception.Message);
     }
+
+    [Fact]
+    public void Execute_WhenShowContextIsProvided_PrintsRagAnswerWithContext()
+    {
+        // Arrange
+        var handler = CreateHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(
+            handler,
+            ["ask", "--rag", "--show-context", "How", "did", "we", "handle", "revisions?"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory RAG answer", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Provider: ollama", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Model: llama3.2", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Question: How did we handle revisions?", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Context items: 1", result.Output, StringComparison.Ordinal);
+
+        Assert.Contains("Answer:", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Use the revision cloning memory.", result.Output, StringComparison.Ordinal);
+
+        Assert.Contains("Context:", result.Output, StringComparison.Ordinal);
+        Assert.Contains("1. Estimate revision cloning", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Project: LogicalCommon", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Area: Estimate", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Score: 0.91", result.Output, StringComparison.Ordinal);
+        Assert.Contains(
+            "Preview: Revision cloning was handled by normalizing null collections.",
+            result.Output,
+            StringComparison.Ordinal);
+    }
+
+    #region helpers
 
     /// <summary>
     /// Creates an ask command handler configured for RAG tests.
@@ -262,4 +300,6 @@ public sealed class AskCommandHandlerRagTests
             });
         }
     }
+
+    #endregion
 }

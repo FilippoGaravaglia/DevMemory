@@ -417,7 +417,7 @@ public sealed class AskCommandHandler : ICommandHandler
 
         if (showContext)
         {
-            PrintRagContext((IReadOnlyCollection<VectorMemorySearchResult>)result.ContextResults);
+            PrintRagContext(result.ContextResults);
         }
     }
 
