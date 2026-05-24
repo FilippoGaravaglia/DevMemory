@@ -1,10 +1,10 @@
-using System.Globalization;
 using System.Net;
 using System.Text;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Models.Ai.Embeddings;
+using DevMemory.Application.Models.Ai.Runtime;
 using DevMemory.Infrastructure.Ai.Ollama;
 
-namespace DevMemory.Infrastructure.Tests;
+namespace DevMemory.Infrastructure.Tests.Ai.Ollama;
 
 public sealed class OllamaEmbeddingServiceTests
 {

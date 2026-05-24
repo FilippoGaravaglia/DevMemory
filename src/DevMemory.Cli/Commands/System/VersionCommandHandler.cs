@@ -1,7 +1,7 @@
 using System.Reflection;
 using DevMemory.Cli.CommandLine;
 
-namespace DevMemory.Cli.Commands;
+namespace DevMemory.Cli.Commands.System;
 
 public sealed class VersionCommandHandler : ICommandHandler
 {

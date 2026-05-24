@@ -1,6 +1,7 @@
-using DevMemory.Application.Models;
 
-namespace DevMemory.Application.Abstractions;
+using DevMemory.Application.Models.Git;
+
+namespace DevMemory.Application.Abstractions.Git;
 
 public interface IGitRepositoryInspector
 {

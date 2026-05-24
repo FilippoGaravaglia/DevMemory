@@ -1,8 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using DevMemory.Application.Abstractions.Ai;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Abstractions;
+using DevMemory.Application.Models.Ai.VectorStore;
 
 namespace DevMemory.Infrastructure.Ai.Qdrant;
 

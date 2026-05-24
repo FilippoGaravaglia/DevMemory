@@ -1,9 +1,9 @@
 using System.Globalization;
 using System.Text;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Models.Ai.VectorStore;
 using DevMemory.Core;
 
-namespace DevMemory.Application.Ai;
+namespace DevMemory.Application.Ai.Indexing;
 
 /// <summary>
 /// Builds vector memory documents from persisted task memories.

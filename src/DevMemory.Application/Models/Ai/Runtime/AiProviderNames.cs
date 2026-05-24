@@ -1,4 +1,4 @@
-namespace DevMemory.Application.Models.Ai;
+namespace DevMemory.Application.Models.Ai.Runtime;
 
 /// <summary>
 /// Defines supported AI provider names.

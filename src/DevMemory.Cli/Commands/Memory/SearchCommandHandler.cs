@@ -1,8 +1,9 @@
 using DevMemory.Application;
+using DevMemory.Application.Models;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Cli.Presentation;
 
-namespace DevMemory.Cli.Commands;
+namespace DevMemory.Cli.Commands.Memory;
 
 public sealed class SearchCommandHandler : ICommandHandler
 {

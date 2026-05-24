@@ -1,6 +1,6 @@
 using DevMemory.Cli.CommandLine;
 
-namespace DevMemory.Cli.Tests;
+namespace DevMemory.Cli.Tests.CommandLine;
 
 public sealed class CommandOptionsTests
 {

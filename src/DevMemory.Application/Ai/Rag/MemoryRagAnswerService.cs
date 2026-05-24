@@ -1,7 +1,11 @@
-using DevMemory.Application.Abstractions.Ai;
+using DevMemory.Application.Abstractions;
+using DevMemory.Application.Ai.Search;
 using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Models.Ai.Chat;
+using DevMemory.Application.Models.Ai.Rag;
+using DevMemory.Application.Models.Git;
 
-namespace DevMemory.Application.Ai;
+namespace DevMemory.Application.Ai.Rag;
 
 /// <summary>
 /// Orchestrates retrieval-augmented answers over indexed developer memories.

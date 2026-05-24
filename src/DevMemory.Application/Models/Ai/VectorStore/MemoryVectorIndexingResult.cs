@@ -1,4 +1,4 @@
-namespace DevMemory.Application.Models.Ai;
+namespace DevMemory.Application.Models.Ai.VectorStore;
 
 /// <summary>
 /// Represents the result of a memory vector indexing operation.

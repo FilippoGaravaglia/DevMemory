@@ -1,4 +1,4 @@
-namespace DevMemory.Application.Models;
+namespace DevMemory.Application.Models.Git;
 
 public sealed class GitRepositorySnapshot
 {

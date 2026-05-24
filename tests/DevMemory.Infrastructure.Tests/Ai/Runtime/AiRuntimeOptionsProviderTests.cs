@@ -1,7 +1,6 @@
-using DevMemory.Application.Models.Ai;
-using DevMemory.Infrastructure;
+using DevMemory.Application.Models.Ai.Runtime;
 
-namespace DevMemory.Infrastructure.Tests;
+namespace DevMemory.Infrastructure.Tests.Ai.Runtime;
 
 public sealed class AiRuntimeOptionsProviderTests
 {

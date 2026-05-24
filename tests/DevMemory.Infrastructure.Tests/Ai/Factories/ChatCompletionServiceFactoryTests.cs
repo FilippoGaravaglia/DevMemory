@@ -1,8 +1,9 @@
-using DevMemory.Application.Models.Ai;
-using DevMemory.Infrastructure.Ai;
+using DevMemory.Application.Models.Ai.Chat;
+using DevMemory.Application.Models.Ai.Runtime;
+using DevMemory.Infrastructure.Ai.Factories;
 using DevMemory.Infrastructure.Ai.Ollama;
 
-namespace DevMemory.Infrastructure.Tests;
+namespace DevMemory.Infrastructure.Tests.Ai.Factories;
 
 public sealed class ChatCompletionServiceFactoryTests
 {

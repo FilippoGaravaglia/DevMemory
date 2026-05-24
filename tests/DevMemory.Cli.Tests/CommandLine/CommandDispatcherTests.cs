@@ -1,7 +1,7 @@
 using DevMemory.Cli.CommandLine;
 using DevMemory.Cli.Commands;
 
-namespace DevMemory.Cli.Tests;
+namespace DevMemory.Cli.Tests.CommandLine;
 
 public sealed class CommandDispatcherTests
 {

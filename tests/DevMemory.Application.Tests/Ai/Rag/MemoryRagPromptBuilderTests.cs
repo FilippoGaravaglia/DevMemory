@@ -1,7 +1,7 @@
-using DevMemory.Application.Ai;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Ai.Rag;
+using DevMemory.Application.Models.Ai.VectorStore;
 
-namespace DevMemory.Application.Tests;
+namespace DevMemory.Application.Tests.Ai.Rag;
 
 public sealed class MemoryRagPromptBuilderTests
 {

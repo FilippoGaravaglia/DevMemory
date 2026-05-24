@@ -1,8 +1,10 @@
 using System.Text.Json;
 using DevMemory.Application.Abstractions;
+using DevMemory.Application.Abstractions.Memory;
+using DevMemory.Application.Models;
 using DevMemory.Core;
 
-namespace DevMemory.Infrastructure;
+namespace DevMemory.Infrastructure.Storage;
 
 public sealed class MemoryRepository : IMemoryRepository
 {

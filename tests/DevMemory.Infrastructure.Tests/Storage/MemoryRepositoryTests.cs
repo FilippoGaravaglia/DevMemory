@@ -1,7 +1,7 @@
 using DevMemory.Core;
-using DevMemory.Infrastructure;
+using DevMemory.Infrastructure.Storage;
 
-namespace DevMemory.Infrastructure.Tests;
+namespace DevMemory.Infrastructure.Tests.Storage;
 
 public sealed class MemoryRepositoryTests
 {

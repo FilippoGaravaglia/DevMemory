@@ -1,8 +1,9 @@
-using DevMemory.Application.Abstractions;
+using DevMemory.Application.Abstractions.Graph;
+using DevMemory.Application.Abstractions.Memory;
 using DevMemory.Application.Models.Graph;
 using DevMemory.Core;
 
-namespace DevMemory.Application.Tests;
+namespace DevMemory.Application.Tests.Graph;
 
 public sealed class MemoryGraphServiceTests
 {

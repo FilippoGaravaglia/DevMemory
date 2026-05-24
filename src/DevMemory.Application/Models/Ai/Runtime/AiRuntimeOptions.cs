@@ -1,4 +1,8 @@
-namespace DevMemory.Application.Models.Ai;
+using DevMemory.Application.Models.Ai.Chat;
+using DevMemory.Application.Models.Ai.Embeddings;
+using DevMemory.Application.Models.Ai.VectorStore;
+
+namespace DevMemory.Application.Models.Ai.Runtime;
 
 /// <summary>
 /// Represents the full AI/RAG runtime configuration.

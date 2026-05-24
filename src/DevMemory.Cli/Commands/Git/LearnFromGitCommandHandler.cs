@@ -1,8 +1,8 @@
 using DevMemory.Application;
-using DevMemory.Application.Models;
+using DevMemory.Application.Models.Git;
 using DevMemory.Cli.CommandLine;
 
-namespace DevMemory.Cli.Commands;
+namespace DevMemory.Cli.Commands.Git;
 
 public sealed class LearnFromGitCommandHandler : ICommandHandler
 {

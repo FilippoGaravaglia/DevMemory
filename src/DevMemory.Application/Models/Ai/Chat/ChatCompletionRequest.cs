@@ -1,4 +1,4 @@
-namespace DevMemory.Application.Models.Ai;
+namespace DevMemory.Application.Models.Ai.Chat;
 
 /// <summary>
 /// Represents a provider-independent chat completion request.

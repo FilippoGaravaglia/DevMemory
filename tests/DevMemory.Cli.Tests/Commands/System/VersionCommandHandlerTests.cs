@@ -1,7 +1,7 @@
 using DevMemory.Cli.CommandLine;
-using DevMemory.Cli.Commands;
+using DevMemory.Cli.Commands.System;
 
-namespace DevMemory.Cli.Tests;
+namespace DevMemory.Cli.Tests.Commands.System;
 
 public sealed class VersionCommandHandlerTests
 {

@@ -1,8 +1,9 @@
-using DevMemory.Application.Models.Ai;
-using DevMemory.Infrastructure.Ai;
+using DevMemory.Application.Models.Ai.Runtime;
+using DevMemory.Application.Models.Ai.VectorStore;
+using DevMemory.Infrastructure.Ai.Factories;
 using DevMemory.Infrastructure.Ai.Qdrant;
 
-namespace DevMemory.Infrastructure.Tests;
+namespace DevMemory.Infrastructure.Tests.Ai.Factories;
 
 public sealed class VectorMemoryStoreFactoryTests
 {

@@ -1,7 +1,8 @@
 using DevMemory.Application;
+using DevMemory.Application.Models;
 using DevMemory.Cli.CommandLine;
 
-namespace DevMemory.Cli.Commands;
+namespace DevMemory.Cli.Commands.Memory;
 
 public sealed class MarkdownCommandHandler : ICommandHandler
 {

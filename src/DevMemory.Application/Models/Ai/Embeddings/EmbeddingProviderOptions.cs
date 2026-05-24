@@ -1,4 +1,6 @@
-namespace DevMemory.Application.Models.Ai;
+using DevMemory.Application.Models.Ai.Runtime;
+
+namespace DevMemory.Application.Models.Ai.Embeddings;
 
 /// <summary>
 /// Represents embedding provider configuration.

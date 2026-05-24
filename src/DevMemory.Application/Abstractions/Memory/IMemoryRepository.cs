@@ -1,6 +1,6 @@
 using DevMemory.Core;
 
-namespace DevMemory.Application.Abstractions;
+namespace DevMemory.Application.Abstractions.Memory;
 
 public interface IMemoryRepository
 {

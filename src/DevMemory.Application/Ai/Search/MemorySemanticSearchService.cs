@@ -1,7 +1,8 @@
-using DevMemory.Application.Abstractions.Ai;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Abstractions;
+using DevMemory.Application.Models.Ai.Embeddings;
+using DevMemory.Application.Models.Ai.VectorStore;
 
-namespace DevMemory.Application.Ai;
+namespace DevMemory.Application.Ai.Search;
 
 /// <summary>
 /// Performs semantic search over indexed memory vectors.

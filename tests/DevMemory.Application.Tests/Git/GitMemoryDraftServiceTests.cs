@@ -1,7 +1,7 @@
-using DevMemory.Application.Abstractions;
-using DevMemory.Application.Models;
+using DevMemory.Application.Abstractions.Git;
+using DevMemory.Application.Models.Git;
 
-namespace DevMemory.Application.Tests;
+namespace DevMemory.Application.Tests.Git;
 
 public sealed class GitMemoryDraftServiceTests
 {

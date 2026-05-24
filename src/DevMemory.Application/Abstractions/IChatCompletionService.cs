@@ -1,6 +1,6 @@
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Models.Ai.Chat;
 
-namespace DevMemory.Application.Abstractions.Ai;
+namespace DevMemory.Application.Abstractions;
 
 /// <summary>
 /// Defines a provider-independent contract for generating chat completions.

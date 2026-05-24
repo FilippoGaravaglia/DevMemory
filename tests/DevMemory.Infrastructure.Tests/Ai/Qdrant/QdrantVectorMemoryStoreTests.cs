@@ -1,9 +1,9 @@
 using System.Net;
 using System.Text;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Models.Ai.VectorStore;
 using DevMemory.Infrastructure.Ai.Qdrant;
 
-namespace DevMemory.Infrastructure.Tests;
+namespace DevMemory.Infrastructure.Tests.Ai.Qdrant;
 
 public sealed class QdrantVectorMemoryStoreTests
 {

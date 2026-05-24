@@ -1,12 +1,16 @@
 using System.Globalization;
-using DevMemory.Application.Abstractions.Ai;
-using DevMemory.Application.Ai;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Abstractions;
+using DevMemory.Application.Ai.Rag;
+using DevMemory.Application.Ai.Search;
+using DevMemory.Application.Models.Ai.Chat;
+using DevMemory.Application.Models.Ai.Embeddings;
+using DevMemory.Application.Models.Ai.Runtime;
+using DevMemory.Application.Models.Ai.VectorStore;
 using DevMemory.Cli.CommandLine;
-using DevMemory.Cli.Commands;
+using DevMemory.Cli.Commands.Ai;
 using DevMemory.Cli.Tests.TestSupport;
 
-namespace DevMemory.Cli.Tests;
+namespace DevMemory.Cli.Tests.Commands.Ai;
 
 [Collection(CliTestCollections.ConsoleOutput)]
 public sealed class AskCommandHandlerRagTests

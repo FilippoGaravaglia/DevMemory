@@ -1,6 +1,6 @@
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Models.Ai.Embeddings;
 
-namespace DevMemory.Application.Abstractions.Ai;
+namespace DevMemory.Application.Abstractions;
 
 /// <summary>
 /// Defines a provider-independent contract for generating text embeddings.

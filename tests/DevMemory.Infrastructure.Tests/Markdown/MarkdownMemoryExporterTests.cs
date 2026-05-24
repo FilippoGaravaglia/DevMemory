@@ -1,7 +1,10 @@
+using DevMemory.Application.Abstractions.Memory;
 using DevMemory.Core;
 using DevMemory.Infrastructure;
+using DevMemory.Infrastructure.Markdown;
+using DevMemory.Infrastructure.Storage;
 
-namespace DevMemory.Infrastructure.Tests;
+namespace DevMemory.Infrastructure.Tests.Markdown;
 
 public sealed class MarkdownMemoryExporterTests
 {

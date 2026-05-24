@@ -1,4 +1,7 @@
-namespace DevMemory.Application.Models.Ai;
+
+using DevMemory.Application.Models.Ai.Runtime;
+
+namespace DevMemory.Application.Models.Ai.Chat;
 
 /// <summary>
 /// Represents a provider-independent chat completion response.

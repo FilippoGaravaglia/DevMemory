@@ -1,11 +1,17 @@
-using DevMemory.Application.Abstractions.Ai;
-using DevMemory.Application.Ai;
-using DevMemory.Application.Models.Ai;
+using System.Globalization;
+using DevMemory.Application.Abstractions;
+using DevMemory.Application.Ai.Rag;
+using DevMemory.Application.Ai.Search;
+using DevMemory.Application.Models.Ai.Chat;
+using DevMemory.Application.Models.Ai.Embeddings;
+using DevMemory.Application.Models.Ai.Runtime;
+using DevMemory.Application.Models.Ai.VectorStore;
+using DevMemory.Application.Models.Git;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Infrastructure;
-using DevMemory.Infrastructure.Ai;
+using DevMemory.Infrastructure.Ai.Factories;
 
-namespace DevMemory.Cli.Commands;
+namespace DevMemory.Cli.Commands.Ai;
 
 public sealed class AskCommandHandler : ICommandHandler
 {
@@ -93,8 +99,8 @@ public sealed class AskCommandHandler : ICommandHandler
         try
         {
             return request.UseRag
-                ? ExecuteRagAsk(request, options, chatService)
-                : ExecutePlainAsk(request, options, chatService);
+                ? ExecuteRagAsk(request, options, (IChatCompletionService)chatService)
+                : ExecutePlainAsk(request, options, (IChatCompletionService)chatService);
         }
         catch (Exception ex) when (ex is not ArgumentException)
         {
@@ -180,7 +186,7 @@ public sealed class AskCommandHandler : ICommandHandler
                 .GetAwaiter()
                 .GetResult();
 
-            PrintRagAnswer(result);
+            PrintRagAnswer(result, request.ShowContext);
 
             return CliExitCodes.Success;
         }
@@ -198,10 +204,11 @@ public sealed class AskCommandHandler : ICommandHandler
     {
         if (args.Length < 2)
         {
-            throw new ArgumentException("Usage: devmemory ask [--rag] [--limit <number>] <question>");
+            throw new ArgumentException("Usage: devmemory ask [--rag] [--show-context] [--limit <number>] <question>");
         }
 
         var useRag = false;
+        var showContext = false;
         var ragLimit = DefaultRagLimit;
         var questionParts = new List<string>();
 
@@ -212,6 +219,13 @@ public sealed class AskCommandHandler : ICommandHandler
             if (value.Equals("--rag", StringComparison.OrdinalIgnoreCase))
             {
                 useRag = true;
+                continue;
+            }
+
+            if (value.Equals("--show-context", StringComparison.OrdinalIgnoreCase))
+            {
+                useRag = true;
+                showContext = true;
                 continue;
             }
 
@@ -234,10 +248,10 @@ public sealed class AskCommandHandler : ICommandHandler
 
         if (string.IsNullOrWhiteSpace(question))
         {
-            throw new ArgumentException("Usage: devmemory ask [--rag] [--limit <number>] <question>");
+            throw new ArgumentException("Usage: devmemory ask [--rag] [--show-context] [--limit <number>] <question>");
         }
 
-        return new AskCliRequest(question, useRag, ragLimit);
+        return new AskCliRequest(question, useRag, showContext, ragLimit);
     }
 
     /// <summary>
@@ -388,7 +402,7 @@ public sealed class AskCommandHandler : ICommandHandler
     /// <summary>
     /// Prints the retrieval-augmented answer returned by the configured provider.
     /// </summary>
-    private static void PrintRagAnswer(MemoryRagAnswerResult result)
+    private static void PrintRagAnswer(MemoryRagAnswerResult result, bool showContext)
     {
         Console.WriteLine("DevMemory RAG answer");
         Console.WriteLine("--------------------");
@@ -400,6 +414,71 @@ public sealed class AskCommandHandler : ICommandHandler
         Console.WriteLine();
         Console.WriteLine("Answer:");
         Console.WriteLine(result.Answer);
+
+        if (showContext)
+        {
+            PrintRagContext((IReadOnlyCollection<VectorMemorySearchResult>)result.ContextResults);
+        }
+    }
+
+    /// <summary>
+    /// Prints the memory context used to produce a RAG answer.
+    /// </summary>
+    private static void PrintRagContext(IReadOnlyCollection<VectorMemorySearchResult> contextResults)
+    {
+        Console.WriteLine();
+        Console.WriteLine("Context:");
+        Console.WriteLine();
+
+        if (contextResults.Count == 0)
+        {
+            Console.WriteLine("No memory context was used.");
+
+            return;
+        }
+
+        var position = 1;
+
+        foreach (var contextResult in contextResults.OrderByDescending(result => result.Score))
+        {
+            Console.WriteLine($"{position}. {FormatOptional(contextResult.Title)}");
+            Console.WriteLine($"   MemoryId: {contextResult.MemoryId:D}");
+            Console.WriteLine($"   Project: {FormatOptional(contextResult.Project)}");
+            Console.WriteLine($"   Area: {FormatOptional(contextResult.Area)}");
+            Console.WriteLine($"   Score: {contextResult.Score.ToString(CultureInfo.InvariantCulture)}");
+
+            var preview = CreateTextPreview(contextResult.Text);
+
+            if (!string.IsNullOrWhiteSpace(preview))
+            {
+                Console.WriteLine($"   Preview: {preview}");
+            }
+
+            Console.WriteLine();
+
+            position++;
+        }
+    }
+
+    /// <summary>
+    /// Creates a short single-line preview from a retrieved memory text.
+    /// </summary>
+    private static string CreateTextPreview(string text)
+    {
+        const int maxLength = 240;
+
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return string.Empty;
+        }
+
+        var normalized = text
+            .ReplaceLineEndings(" ")
+            .Trim();
+
+        return normalized.Length <= maxLength
+            ? normalized
+            : normalized[..maxLength] + "...";
     }
 
     /// <summary>
@@ -421,5 +500,9 @@ public sealed class AskCommandHandler : ICommandHandler
         }
     }
 
-    private sealed record AskCliRequest(string Question, bool UseRag, int RagLimit);
+    private sealed record AskCliRequest(
+        string Question,
+        bool UseRag,
+        bool ShowContext,
+        int RagLimit);
 }

@@ -1,7 +1,7 @@
 using System.Diagnostics;
-using DevMemory.Application.Abstractions;
+using DevMemory.Application.Abstractions.Git;
 using DevMemory.Application.Filtering;
-using DevMemory.Application.Models;
+using DevMemory.Application.Models.Git;
 
 namespace DevMemory.Infrastructure.Git;
 

@@ -1,4 +1,4 @@
-namespace DevMemory.Application.Models.Ai;
+namespace DevMemory.Application.Models.Ai.Rag;
 
 /// <summary>
 /// Represents a prompt prepared for retrieval-augmented generation.

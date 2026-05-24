@@ -1,9 +1,16 @@
 using DevMemory.Application;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Cli.Commands;
+using DevMemory.Cli.Commands.Ai;
+using DevMemory.Cli.Commands.Git;
+using DevMemory.Cli.Commands.Graph;
+using DevMemory.Cli.Commands.Memory;
+using DevMemory.Cli.Commands.System;
 using DevMemory.Infrastructure;
 using DevMemory.Infrastructure.Git;
 using DevMemory.Infrastructure.Graph;
+using DevMemory.Infrastructure.Markdown;
+using DevMemory.Infrastructure.Storage;
 
 
 var repository = new MemoryRepository();

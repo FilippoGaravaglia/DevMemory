@@ -1,4 +1,4 @@
-using DevMemory.Application.Models;
+using DevMemory.Application.Models.Memory;
 
 namespace DevMemory.Cli.CommandLine;
 

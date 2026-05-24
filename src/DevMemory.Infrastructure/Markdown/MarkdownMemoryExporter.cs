@@ -1,8 +1,10 @@
 using System.Text;
 using DevMemory.Application.Abstractions;
+using DevMemory.Application.Abstractions.Memory;
 using DevMemory.Core;
+using DevMemory.Infrastructure.Storage;
 
-namespace DevMemory.Infrastructure;
+namespace DevMemory.Infrastructure.Markdown;
 
 public sealed class MarkdownMemoryExporter : IMemoryExporter
 {

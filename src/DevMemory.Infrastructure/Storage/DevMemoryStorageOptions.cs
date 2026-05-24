@@ -1,4 +1,7 @@
-namespace DevMemory.Infrastructure;
+using DevMemory.Application.Abstractions.Memory;
+using DevMemory.Application.Models;
+
+namespace DevMemory.Infrastructure.Storage;
 
 public sealed class DevMemoryStorageOptions
 {

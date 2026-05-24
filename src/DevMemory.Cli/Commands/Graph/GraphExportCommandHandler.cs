@@ -1,7 +1,8 @@
 using DevMemory.Application;
+using DevMemory.Application.Models.Graph;
 using DevMemory.Cli.CommandLine;
 
-namespace DevMemory.Cli.Commands;
+namespace DevMemory.Cli.Commands.Graph;
 
 public sealed class GraphExportCommandHandler : ICommandHandler
 {

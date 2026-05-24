@@ -1,8 +1,10 @@
-using DevMemory.Application.Abstractions.Ai;
-using DevMemory.Application.Ai;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Abstractions;
+using DevMemory.Application.Ai.Indexing;
+using DevMemory.Application.Models.Ai.Embeddings;
+using DevMemory.Application.Models.Ai.Runtime;
+using DevMemory.Application.Models.Ai.VectorStore;
 
-namespace DevMemory.Application.Tests;
+namespace DevMemory.Application.Tests.Ai.Indexing;
 
 public sealed class MemoryVectorIndexingServiceTests
 {

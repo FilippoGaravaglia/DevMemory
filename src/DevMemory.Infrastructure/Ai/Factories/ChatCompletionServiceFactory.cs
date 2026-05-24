@@ -1,8 +1,8 @@
-using DevMemory.Application.Abstractions.Ai;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Abstractions;
+using DevMemory.Application.Models.Ai.Runtime;
 using DevMemory.Infrastructure.Ai.Ollama;
 
-namespace DevMemory.Infrastructure.Ai;
+namespace DevMemory.Infrastructure.Ai.Factories;
 
 public static class ChatCompletionServiceFactory
 {

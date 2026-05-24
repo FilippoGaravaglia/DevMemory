@@ -1,4 +1,4 @@
-namespace DevMemory.Application.Models.Ai;
+namespace DevMemory.Application.Models.Ai.VectorStore;
 
 /// <summary>
 /// Represents a memory document prepared for vector storage.

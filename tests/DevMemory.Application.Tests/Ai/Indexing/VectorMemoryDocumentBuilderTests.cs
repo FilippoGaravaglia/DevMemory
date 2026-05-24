@@ -1,7 +1,7 @@
-using DevMemory.Application.Ai;
+using DevMemory.Application.Ai.Indexing;
 using DevMemory.Core;
 
-namespace DevMemory.Application.Tests;
+namespace DevMemory.Application.Tests.Ai.Indexing;
 
 public sealed class VectorMemoryDocumentBuilderTests
 {

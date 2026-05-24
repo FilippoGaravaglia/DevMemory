@@ -1,11 +1,12 @@
 using System.Globalization;
-using DevMemory.Application.Abstractions.Ai;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Abstractions;
+using DevMemory.Application.Models.Ai.Chat;
+using DevMemory.Application.Models.Ai.Runtime;
 using DevMemory.Cli.CommandLine;
-using DevMemory.Cli.Commands;
+using DevMemory.Cli.Commands.Ai;
 using DevMemory.Cli.Tests.TestSupport;
 
-namespace DevMemory.Cli.Tests;
+namespace DevMemory.Cli.Tests.Commands.Ai;
 
 [Collection(CliTestCollections.ConsoleOutput)]
 public sealed class AskCommandHandlerTests
@@ -21,7 +22,7 @@ public sealed class AskCommandHandlerTests
 
         // Assert
         Assert.Equal(
-            "Usage: devmemory ask [--rag] [--limit <number>] <question>",
+            "Usage: devmemory ask [--rag] [--show-context] [--limit <number>] <question>",
             exception.Message);
     }
 

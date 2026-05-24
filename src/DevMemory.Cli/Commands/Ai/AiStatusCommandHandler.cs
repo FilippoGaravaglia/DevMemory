@@ -1,8 +1,11 @@
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Models.Ai.Chat;
+using DevMemory.Application.Models.Ai.Embeddings;
+using DevMemory.Application.Models.Ai.Runtime;
+using DevMemory.Application.Models.Ai.VectorStore;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Infrastructure;
 
-namespace DevMemory.Cli.Commands;
+namespace DevMemory.Cli.Commands.Ai;
 
 public sealed class AiStatusCommandHandler : ICommandHandler
 {

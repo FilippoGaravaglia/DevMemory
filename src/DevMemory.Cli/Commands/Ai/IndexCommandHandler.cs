@@ -1,12 +1,14 @@
 using DevMemory.Application;
-using DevMemory.Application.Abstractions.Ai;
-using DevMemory.Application.Ai;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Abstractions;
+using DevMemory.Application.Ai.Indexing;
+using DevMemory.Application.Models.Ai.Embeddings;
+using DevMemory.Application.Models.Ai.Runtime;
+using DevMemory.Application.Models.Ai.VectorStore;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Infrastructure;
-using DevMemory.Infrastructure.Ai;
+using DevMemory.Infrastructure.Ai.Factories;
 
-namespace DevMemory.Cli.Commands;
+namespace DevMemory.Cli.Commands.Ai;
 
 public sealed class IndexCommandHandler : ICommandHandler
 {

@@ -1,4 +1,4 @@
-namespace DevMemory.Application.Models.Ai;
+namespace DevMemory.Application.Models.Ai.Chat;
 
 /// <summary>
 /// Defines supported chat message roles.

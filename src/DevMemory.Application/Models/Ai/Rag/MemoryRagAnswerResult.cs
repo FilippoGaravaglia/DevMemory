@@ -1,4 +1,8 @@
-namespace DevMemory.Application.Models.Ai;
+
+using DevMemory.Application.Models.Ai.Runtime;
+using DevMemory.Application.Models.Ai.VectorStore;
+
+namespace DevMemory.Application.Models.Git;
 
 /// <summary>
 /// Represents the result of a retrieval-augmented memory answer.

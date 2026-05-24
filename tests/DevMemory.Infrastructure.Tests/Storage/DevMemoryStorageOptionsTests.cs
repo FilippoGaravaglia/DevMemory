@@ -1,6 +1,9 @@
+using DevMemory.Application.Abstractions.Memory;
+using DevMemory.Application.Models;
 using DevMemory.Infrastructure;
+using DevMemory.Infrastructure.Storage;
 
-namespace DevMemory.Infrastructure.Tests;
+namespace DevMemory.Infrastructure.Tests.Storage;
 
 public sealed class DevMemoryStorageOptionsTests : IDisposable
 {

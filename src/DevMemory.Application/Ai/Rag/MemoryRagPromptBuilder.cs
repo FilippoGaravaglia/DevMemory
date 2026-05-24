@@ -1,8 +1,9 @@
 using System.Globalization;
 using System.Text;
-using DevMemory.Application.Models.Ai;
+using DevMemory.Application.Models.Ai.Rag;
+using DevMemory.Application.Models.Ai.VectorStore;
 
-namespace DevMemory.Application.Ai;
+namespace DevMemory.Application.Ai.Rag;
 
 /// <summary>
 /// Builds retrieval-augmented prompts from semantic memory search results.

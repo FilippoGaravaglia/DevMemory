@@ -1,6 +1,7 @@
-using DevMemory.Application.Models.Ai;
 
-namespace DevMemory.Application.Abstractions.Ai;
+using DevMemory.Application.Models.Ai.VectorStore;
+
+namespace DevMemory.Application.Abstractions;
 
 /// <summary>
 /// Defines a provider-independent contract for storing and searching memory vectors.

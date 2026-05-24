@@ -1,6 +1,6 @@
 using DevMemory.Application.Models.Graph;
 
-namespace DevMemory.Application.Abstractions;
+namespace DevMemory.Application.Abstractions.Graph;
 
 public interface IMemoryGraphExporter
 {

@@ -1,6 +1,7 @@
+
 using DevMemory.Application.Filtering;
 
-namespace DevMemory.Application.Tests;
+namespace DevMemory.Application.Tests.Memory;
 
 public sealed class MemoryFileFilterTests
 {

@@ -1,8 +1,10 @@
-using DevMemory.Application.Models.Ai;
-using DevMemory.Infrastructure.Ai;
+using DevMemory.Application.Models.Ai.Embeddings;
+using DevMemory.Application.Models.Ai.Runtime;
+using DevMemory.Application.Models.Ai.VectorStore;
+using DevMemory.Infrastructure.Ai.Factories;
 using DevMemory.Infrastructure.Ai.Ollama;
 
-namespace DevMemory.Infrastructure.Tests;
+namespace DevMemory.Infrastructure.Tests.Ai.Factories;
 
 public sealed class EmbeddingServiceFactoryTests
 {

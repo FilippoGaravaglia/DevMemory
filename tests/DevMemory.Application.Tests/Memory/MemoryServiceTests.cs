@@ -1,9 +1,8 @@
-using DevMemory.Application;
-using DevMemory.Application.Abstractions;
-using DevMemory.Application.Models;
+using DevMemory.Application.Abstractions.Memory;
+using DevMemory.Application.Models.Memory;
 using DevMemory.Core;
 
-namespace DevMemory.Application.Tests;
+namespace DevMemory.Application.Tests.Memory;
 
 public sealed class MemoryServiceTests
 {

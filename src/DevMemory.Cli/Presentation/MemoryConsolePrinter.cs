@@ -1,5 +1,5 @@
 using System.Globalization;
-using DevMemory.Application.Models;
+using DevMemory.Application.Models.Memory;
 using DevMemory.Core;
 
 namespace DevMemory.Cli.Presentation;

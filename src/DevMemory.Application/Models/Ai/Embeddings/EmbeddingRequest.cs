@@ -1,4 +1,4 @@
-namespace DevMemory.Application.Models.Ai;
+namespace DevMemory.Application.Models.Ai.Embeddings;
 
 /// <summary>
 /// Represents a provider-independent embedding generation request.

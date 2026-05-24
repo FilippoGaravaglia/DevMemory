@@ -1,8 +1,9 @@
 using DevMemory.Application.Models.Graph;
 using DevMemory.Infrastructure;
 using DevMemory.Infrastructure.Graph;
+using DevMemory.Infrastructure.Storage;
 
-namespace DevMemory.Infrastructure.Tests;
+namespace DevMemory.Infrastructure.Tests.Graph;
 
 public sealed class JsonMemoryGraphExporterTests
 {

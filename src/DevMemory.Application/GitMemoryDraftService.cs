@@ -1,5 +1,5 @@
-using DevMemory.Application.Abstractions;
-using DevMemory.Application.Models;
+using DevMemory.Application.Abstractions.Git;
+using DevMemory.Application.Models.Git;
 using DevMemory.Core;
 
 namespace DevMemory.Application;

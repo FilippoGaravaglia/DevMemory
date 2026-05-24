@@ -1,6 +1,6 @@
 using DevMemory.Cli.CommandLine;
 
-namespace DevMemory.Cli.Commands;
+namespace DevMemory.Cli.Commands.System;
 
 public sealed class HelpCommandHandler : ICommandHandler
 {
@@ -25,7 +25,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- graph-view [--output <file-path>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ai-status");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask <question>");
-        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask --rag <question> [--limit <number>]");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask --rag <question> [--show-context] [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- index");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- semantic-search <query> [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- version");
@@ -45,7 +45,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory graph-view [--output <file-path>]");
         Console.WriteLine("  devmemory ai-status");
         Console.WriteLine("  devmemory ask <question>");
-        Console.WriteLine("  devmemory ask --rag <question> [--limit <number>]");
+        Console.WriteLine("  devmemory ask --rag <question> [--show-context] [--limit <number>]");
         Console.WriteLine("  devmemory index");
         Console.WriteLine("  devmemory semantic-search <query> [--limit <number>]");
         Console.WriteLine("  devmemory version");
@@ -89,6 +89,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory ai-status");
         Console.WriteLine("  devmemory ask \"What did I change last time in this area?\"");
         Console.WriteLine("  devmemory ask --rag \"How did we handle estimate revision cloning?\"");
+        Console.WriteLine("  devmemory ask --rag --show-context \"How did we handle estimate revision cloning?\"");
         Console.WriteLine("  devmemory ask --rag \"What did I change in MongoDB mapping?\" --limit 3");
         Console.WriteLine("  devmemory index");
         Console.WriteLine("  devmemory semantic-search \"estimate revision cloning\"");

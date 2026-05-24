@@ -1,5 +1,5 @@
-using DevMemory.Application.Abstractions;
-using DevMemory.Application.Models;
+using DevMemory.Application.Abstractions.Memory;
+using DevMemory.Application.Models.Memory;
 using DevMemory.Application.Normalization;
 using DevMemory.Application.Validation;
 using DevMemory.Core;
