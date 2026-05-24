@@ -1,0 +1,24 @@
+name: devmemory-ai
+
+services:
+  qdrant:
+    image: qdrant/qdrant:v1.13.4
+    container_name: devmemory-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - devmemory-qdrant-storage:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__HTTP_PORT: 6333
+      QDRANT__SERVICE__GRPC_PORT: 6334
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/6333'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+volumes:
+  devmemory-qdrant-storage:
