@@ -58,6 +58,9 @@ jobs:
       - name: Pack CLI
         run: dotnet pack src/DevMemory.Cli/DevMemory.Cli.csproj --configuration $BUILD_CONFIGURATION --no-build --output artifacts/packages
 
+      - name: Smoke test CLI package
+        run: ./scripts/smoke-test-cli-package.sh
+
       - name: Upload package artifact
         uses: actions/upload-artifact@v4
         with:
