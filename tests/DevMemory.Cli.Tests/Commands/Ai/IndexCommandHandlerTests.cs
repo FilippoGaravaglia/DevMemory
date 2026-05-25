@@ -161,6 +161,80 @@ public sealed class IndexCommandHandlerTests
         Assert.Contains("Vector document memory id cannot be empty.", result.Output, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Execute_WhenDryRunIsProvided_PrintsIndexPreviewWithoutResolvingAiAdapters()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("741bf4b6-2b81-48a5-beae-1d0208e521d2");
+
+        var handler = CreateDryRunHandler(
+        [
+            new VectorMemoryDocument
+            {
+                MemoryId = memoryId,
+                Title = "Estimate revision cloning",
+                Project = "LogicalCommon",
+                Area = "Estimate",
+                Branch = "feature/revisions",
+                Tags = ["dotnet", "mongodb"],
+                FilesTouched = ["src/EstimateService.cs", "tests/EstimateServiceTests.cs"],
+                Text = "Revision cloning was handled by normalizing null collections."
+            }
+        ]);
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["index", "--dry-run"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory vector index dry-run", result.Output, StringComparison.Ordinal);
+        Assert.Contains("No embeddings will be generated.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("No vector store writes will be performed.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Total documents: 1", result.Output, StringComparison.Ordinal);
+
+        Assert.Contains("Estimate revision cloning", result.Output, StringComparison.Ordinal);
+        Assert.Contains(memoryId.ToString("D"), result.Output, StringComparison.Ordinal);
+        Assert.Contains("Project: LogicalCommon", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Area: Estimate", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Branch: feature/revisions", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Tags: dotnet, mongodb", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Files touched: 2", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenDryRunHasNoDocuments_PrintsEmptyIndexMessage()
+    {
+        // Arrange
+        var handler = CreateDryRunHandler([]);
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["index", "--dry-run"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory vector index dry-run", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Total documents: 0", result.Output, StringComparison.Ordinal);
+        Assert.Contains("No memories available for indexing.", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenUnknownOptionIsProvided_ThrowsArgumentException()
+    {
+        // Arrange
+        var handler = CreateDryRunHandler([]);
+
+        // Act
+        var exception = Assert.Throws<ArgumentException>(
+            () => handler.Execute(["index", "--unknown"]));
+
+        // Assert
+        Assert.Equal("Usage: devmemory index [--dry-run]", exception.Message);
+    }
+
     /// <summary>
     /// Creates semantic search options configured with Ollama embeddings and Qdrant.
     /// </summary>
@@ -181,6 +255,20 @@ public sealed class IndexCommandHandlerTests
                 QdrantCollection = "devmemory_memories"
             }
         };
+    }
+
+    /// <summary>
+    /// Creates an index command handler configured for dry-run tests.
+    /// </summary>
+    private static IndexCommandHandler CreateDryRunHandler(
+        IReadOnlyCollection<VectorMemoryDocument> documents)
+    {
+        return new IndexCommandHandler(
+            static () => throw new InvalidOperationException("Options should not be resolved during dry-run."),
+            static _ => throw new InvalidOperationException("Embedding service should not be resolved during dry-run."),
+            static _ => throw new InvalidOperationException("Vector store should not be resolved during dry-run."),
+            () => documents,
+            static (_, _) => throw new InvalidOperationException("Indexing service should not be created during dry-run."));
     }
 
     /// <summary>
