@@ -12,6 +12,8 @@ namespace DevMemory.Cli.Commands.Ai;
 
 public sealed class IndexCommandHandler : ICommandHandler
 {
+    private const int DryRunPreviewLimit = 10;
+
     private readonly Func<AiRuntimeOptions> _optionsFactory;
     private readonly Func<AiRuntimeOptions, IEmbeddingService?> _embeddingServiceFactory;
     private readonly Func<AiRuntimeOptions, IVectorMemoryStore?> _vectorMemoryStoreFactory;
@@ -50,6 +52,43 @@ public sealed class IndexCommandHandler : ICommandHandler
     public string Name => "index";
 
     public int Execute(string[] args)
+    {
+        var request = ParseRequest(args);
+
+        if (request.IsDryRun)
+        {
+            return ExecuteDryRun();
+        }
+
+        return ExecuteIndex();
+    }
+
+    /// <summary>
+    /// Executes a dry-run indexing operation without calling embeddings or vector store adapters.
+    /// </summary>
+    private int ExecuteDryRun()
+    {
+        try
+        {
+            var documents = _documentsFactory();
+
+            PrintDryRunResult(documents);
+
+            return CliExitCodes.Success;
+        }
+        catch (Exception ex) when (ex is not ArgumentException)
+        {
+            Console.Error.WriteLine("Memory vector index dry-run failed.");
+            Console.Error.WriteLine(ex.Message);
+
+            return CliExitCodes.Failure;
+        }
+    }
+
+    /// <summary>
+    /// Executes the real indexing operation by generating embeddings and upserting documents.
+    /// </summary>
+    private int ExecuteIndex()
     {
         var options = _optionsFactory();
 
@@ -112,6 +151,29 @@ public sealed class IndexCommandHandler : ICommandHandler
     }
 
     /// <summary>
+    /// Parses index command arguments.
+    /// </summary>
+    private static IndexCommandRequest ParseRequest(string[] args)
+    {
+        var isDryRun = false;
+
+        for (var index = 1; index < args.Length; index++)
+        {
+            var value = args[index];
+
+            if (value.Equals("--dry-run", StringComparison.OrdinalIgnoreCase))
+            {
+                isDryRun = true;
+                continue;
+            }
+
+            throw new ArgumentException("Usage: devmemory index [--dry-run]");
+        }
+
+        return new IndexCommandRequest(isDryRun);
+    }
+
+    /// <summary>
     /// Prints the memory vector indexing result.
     /// </summary>
     private static void PrintIndexingResult(
@@ -143,6 +205,57 @@ public sealed class IndexCommandHandler : ICommandHandler
         {
             Console.WriteLine($"- {error}");
         }
+    }
+
+    /// <summary>
+    /// Prints a dry-run summary for documents that would be indexed.
+    /// </summary>
+    private static void PrintDryRunResult(IReadOnlyCollection<VectorMemoryDocument> documents)
+    {
+        Console.WriteLine("DevMemory vector index dry-run");
+        Console.WriteLine("------------------------------");
+        Console.WriteLine();
+        Console.WriteLine("No embeddings will be generated.");
+        Console.WriteLine("No vector store writes will be performed.");
+        Console.WriteLine();
+        Console.WriteLine($"Total documents: {documents.Count}");
+
+        if (documents.Count == 0)
+        {
+            Console.WriteLine();
+            Console.WriteLine("No memories available for indexing.");
+
+            return;
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Documents preview:");
+
+        foreach (var document in documents.Take(DryRunPreviewLimit))
+        {
+            PrintDryRunDocument(document);
+        }
+
+        if (documents.Count > DryRunPreviewLimit)
+        {
+            Console.WriteLine();
+            Console.WriteLine($"... {documents.Count - DryRunPreviewLimit} more document(s) not shown.");
+        }
+    }
+
+    /// <summary>
+    /// Prints a single vector document preview for dry-run output.
+    /// </summary>
+    private static void PrintDryRunDocument(VectorMemoryDocument document)
+    {
+        Console.WriteLine($"- {document.Title}");
+        Console.WriteLine($"  MemoryId: {document.MemoryId:D}");
+        Console.WriteLine($"  Project: {FormatOptional(document.Project)}");
+        Console.WriteLine($"  Area: {FormatOptional(document.Area)}");
+        Console.WriteLine($"  Branch: {FormatOptional(document.Branch)}");
+        Console.WriteLine($"  Tags: {FormatCollection(document.Tags)}");
+        Console.WriteLine($"  Files touched: {document.FilesTouched.Count}");
+        Console.WriteLine($"  Text length: {document.Text.Length}");
     }
 
     /// <summary>
@@ -207,6 +320,16 @@ public sealed class IndexCommandHandler : ICommandHandler
     }
 
     /// <summary>
+    /// Formats a collection value for CLI output.
+    /// </summary>
+    private static string FormatCollection(IReadOnlyCollection<string> values)
+    {
+        return values.Count == 0
+            ? "-"
+            : string.Join(", ", values);
+    }
+
+    /// <summary>
     /// Disposes an object when it implements IDisposable.
     /// </summary>
     private static void DisposeIfRequired(object? instance)
@@ -216,4 +339,6 @@ public sealed class IndexCommandHandler : ICommandHandler
             disposable.Dispose();
         }
     }
+
+    private sealed record IndexCommandRequest(bool IsDryRun);
 }

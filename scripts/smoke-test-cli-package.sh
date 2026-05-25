@@ -79,6 +79,9 @@ echo
 "$TOOL_PATH" ai-status
 echo
 
+"$TOOL_PATH" index --dry-run
+echo
+
 "$TOOL_PATH" ai-doctor || true
 echo
 
