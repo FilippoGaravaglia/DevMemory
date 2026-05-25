@@ -5,6 +5,10 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 cd "$ROOT_DIR"
 
+echo "Validating shell scripts..."
+"$ROOT_DIR/scripts/validate-shell-scripts.sh"
+
+echo
 echo "Verifying code formatting..."
 dotnet format DevMemory.slnx --verify-no-changes
 
