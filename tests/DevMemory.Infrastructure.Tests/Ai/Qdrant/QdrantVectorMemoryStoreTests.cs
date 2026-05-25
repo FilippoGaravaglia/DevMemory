@@ -45,10 +45,7 @@ public sealed class QdrantVectorMemoryStoreTests
                 };
             }
 
-            return new HttpResponseMessage(HttpStatusCode.InternalServerError)
-            {
-                Content = new StringContent("""{"error":"unexpected request"}""")
-            };
+            return CreateUnexpectedRequestResponse();
         }))
         {
             BaseAddress = new Uri("http://localhost:6333")
@@ -111,6 +108,8 @@ public sealed class QdrantVectorMemoryStoreTests
                 Assert.Equal("Estimate revision cloning", payload.GetProperty("title").GetString());
                 Assert.Equal("LogicalCommon", payload.GetProperty("project").GetString());
                 Assert.Equal("Estimate", payload.GetProperty("area").GetString());
+                Assert.Equal("feature/revisions", payload.GetProperty("branch").GetString());
+                Assert.Equal("Revision cloning was handled by normalizing null collections.", payload.GetProperty("text").GetString());
             });
     }
 
@@ -143,10 +142,7 @@ public sealed class QdrantVectorMemoryStoreTests
                 };
             }
 
-            return new HttpResponseMessage(HttpStatusCode.InternalServerError)
-            {
-                Content = new StringContent("""{"error":"unexpected request"}""")
-            };
+            return CreateUnexpectedRequestResponse();
         }))
         {
             BaseAddress = new Uri("http://localhost:6333")
@@ -179,6 +175,14 @@ public sealed class QdrantVectorMemoryStoreTests
             {
                 Assert.Equal(HttpMethod.Put, request.Method);
                 Assert.Equal("/collections/devmemory_memories/points?wait=true", request.PathAndQuery);
+
+                using var json = JsonDocument.Parse(request.Body);
+                var point = json.RootElement.GetProperty("points")[0];
+                var payload = point.GetProperty("payload");
+
+                Assert.Equal(memoryId.ToString("D"), point.GetProperty("id").GetString());
+                Assert.Equal(memoryId.ToString("D"), payload.GetProperty("documentId").GetString());
+                Assert.Equal("def456", payload.GetProperty("contentHash").GetString());
             });
     }
 
@@ -210,10 +214,7 @@ public sealed class QdrantVectorMemoryStoreTests
                 };
             }
 
-            return new HttpResponseMessage(HttpStatusCode.InternalServerError)
-            {
-                Content = new StringContent("""{"error":"unexpected request"}""")
-            };
+            return CreateUnexpectedRequestResponse();
         }))
         {
             BaseAddress = new Uri("http://localhost:6333")
@@ -242,6 +243,98 @@ public sealed class QdrantVectorMemoryStoreTests
                 request.PathAndQuery == "/collections/devmemory_memories/points?wait=true"));
     }
 
+    [Fact]
+    public async Task UpsertAsync_WhenDocumentIdIsNotGuid_FallsBackToMemoryIdAsPointId()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var requests = new List<CapturedRequest>();
+
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(async request =>
+        {
+            requests.Add(await CapturedRequest.FromAsync(request));
+
+            if (request.Method == HttpMethod.Get &&
+                request.RequestUri?.PathAndQuery == "/collections/devmemory_memories")
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"result":{"status":"green"}}""")
+                };
+            }
+
+            if (request.Method == HttpMethod.Put &&
+                request.RequestUri?.PathAndQuery == "/collections/devmemory_memories/points?wait=true")
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"result":{"operation_id":1,"status":"completed"}}""")
+                };
+            }
+
+            return CreateUnexpectedRequestResponse();
+        }))
+        {
+            BaseAddress = new Uri("http://localhost:6333")
+        };
+
+        var store = new QdrantVectorMemoryStore(httpClient, "devmemory_memories");
+
+        var document = new VectorMemoryDocument
+        {
+            MemoryId = memoryId,
+            DocumentId = "custom-non-guid-id",
+            ContentHash = "hash789",
+            Title = "Fallback identity",
+            Text = "Fallback identity text.",
+            Vector = [0.1f, 0.2f, 0.3f]
+        };
+
+        // Act
+        await store.UpsertAsync(document, CancellationToken.None);
+
+        // Assert
+        var upsertRequest = Assert.Single(
+            requests,
+            request =>
+                request.Method == HttpMethod.Put &&
+                request.PathAndQuery == "/collections/devmemory_memories/points?wait=true");
+
+        using var json = JsonDocument.Parse(upsertRequest.Body);
+        var point = json.RootElement.GetProperty("points")[0];
+        var payload = point.GetProperty("payload");
+
+        Assert.Equal(memoryId.ToString("D"), point.GetProperty("id").GetString());
+        Assert.Equal("custom-non-guid-id", payload.GetProperty("documentId").GetString());
+        Assert.Equal("hash789", payload.GetProperty("contentHash").GetString());
+    }
+
+    [Fact]
+    public async Task UpsertAsync_WhenCollectionCheckFails_ThrowsClearException()
+    {
+        // Arrange
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(_ =>
+            Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+            {
+                Content = new StringContent("""{"error":"qdrant unavailable"}""")
+            })))
+        {
+            BaseAddress = new Uri("http://localhost:6333")
+        };
+
+        var store = new QdrantVectorMemoryStore(httpClient, "devmemory_memories");
+
+        // Act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => store.UpsertAsync(
+                BuildDocument(Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff")),
+                CancellationToken.None));
+
+        // Assert
+        Assert.Contains("Qdrant collection check failed with status code 500.", exception.Message, StringComparison.Ordinal);
+        Assert.Contains("qdrant unavailable", exception.Message, StringComparison.Ordinal);
+    }
+
     /// <summary>
     /// Builds a valid vector memory document for Qdrant tests.
     /// </summary>
@@ -255,6 +348,17 @@ public sealed class QdrantVectorMemoryStoreTests
             Title = "Test memory",
             Text = "Test memory text.",
             Vector = [0.1f, 0.2f, 0.3f]
+        };
+    }
+
+    /// <summary>
+    /// Creates a response for unexpected fake HTTP requests.
+    /// </summary>
+    private static HttpResponseMessage CreateUnexpectedRequestResponse()
+    {
+        return new HttpResponseMessage(HttpStatusCode.InternalServerError)
+        {
+            Content = new StringContent("""{"error":"unexpected request"}""")
         };
     }
 
