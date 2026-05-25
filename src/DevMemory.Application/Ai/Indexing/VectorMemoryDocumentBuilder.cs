@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Security.Cryptography;
 using System.Text;
 using DevMemory.Application.Models.Ai.VectorStore;
 using DevMemory.Core;
@@ -27,17 +28,40 @@ public static class VectorMemoryDocumentBuilder
     {
         ArgumentNullException.ThrowIfNull(memory);
 
+        var indexableText = BuildIndexableText(memory);
+
         return new VectorMemoryDocument
         {
             MemoryId = memory.Id,
+            DocumentId = BuildDocumentId(memory.Id),
+            ContentHash = ComputeContentHash(indexableText),
             Title = memory.Title,
             Project = memory.Project,
             Area = memory.Area,
             Branch = memory.Branch,
             Tags = memory.Tags,
             FilesTouched = memory.FilesTouched,
-            Text = BuildIndexableText(memory)
+            Text = indexableText
         };
+    }
+
+    /// <summary>
+    /// Builds a stable vector document id from the memory id.
+    /// </summary>
+    private static string BuildDocumentId(Guid memoryId)
+    {
+        return memoryId.ToString("D");
+    }
+
+    /// <summary>
+    /// Computes a stable SHA-256 hash for the indexable text.
+    /// </summary>
+    private static string ComputeContentHash(string text)
+    {
+        var bytes = Encoding.UTF8.GetBytes(text);
+        var hashBytes = SHA256.HashData(bytes);
+
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
     }
 
     /// <summary>

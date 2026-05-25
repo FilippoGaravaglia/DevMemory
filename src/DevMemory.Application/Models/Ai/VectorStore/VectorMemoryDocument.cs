@@ -7,6 +7,10 @@ public sealed record VectorMemoryDocument
 {
     public Guid MemoryId { get; init; }
 
+    public string DocumentId { get; init; } = string.Empty;
+
+    public string ContentHash { get; init; } = string.Empty;
+
     public string Title { get; init; } = string.Empty;
 
     public string Project { get; init; } = string.Empty;

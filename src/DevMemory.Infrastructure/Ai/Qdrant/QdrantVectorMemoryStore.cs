@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -13,6 +14,8 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
     private readonly HttpClient _httpClient;
     private readonly string _collectionName;
     private readonly bool _disposeHttpClient;
+
+    private int? _ensuredVectorSize;
 
     public QdrantVectorMemoryStore(string endpoint, string collectionName)
         : this(CreateHttpClient(endpoint), collectionName, disposeHttpClient: true)
@@ -42,13 +45,15 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
 
         ValidateDocument(document);
 
+        await EnsureCollectionAsync(document.Vector.Count, cancellationToken);
+
         var qdrantRequest = new QdrantUpsertRequest
         {
             Points =
             [
                 new QdrantPoint
                 {
-                    Id = document.MemoryId,
+                    Id = BuildPointId(document),
                     Vector = document.Vector,
                     Payload = BuildPayload(document)
                 }
@@ -56,7 +61,7 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
         };
 
         using var response = await _httpClient.PutAsJsonAsync(
-            $"/collections/{_collectionName}/points?wait=true",
+            $"{BuildCollectionPath()}/points?wait=true",
             qdrantRequest,
             JsonOptions,
             cancellationToken);
@@ -85,7 +90,7 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
         };
 
         using var response = await _httpClient.PostAsJsonAsync(
-            $"/collections/{_collectionName}/points/search",
+            $"{BuildCollectionPath()}/points/search",
             qdrantRequest,
             JsonOptions,
             cancellationToken);
@@ -117,6 +122,63 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
     }
 
     /// <summary>
+    /// Ensures that the configured Qdrant collection exists before writing points.
+    /// </summary>
+    private async Task EnsureCollectionAsync(
+        int vectorSize,
+        CancellationToken cancellationToken)
+    {
+        if (_ensuredVectorSize == vectorSize)
+        {
+            return;
+        }
+
+        using var getResponse = await _httpClient.GetAsync(
+            BuildCollectionPath(),
+            cancellationToken);
+
+        if (getResponse.IsSuccessStatusCode)
+        {
+            _ensuredVectorSize = vectorSize;
+
+            return;
+        }
+
+        var getResponseContent = await getResponse.Content.ReadAsStringAsync(cancellationToken);
+
+        if (getResponse.StatusCode != HttpStatusCode.NotFound)
+        {
+            throw new InvalidOperationException(
+                $"Qdrant collection check failed with status code {(int)getResponse.StatusCode}. Response: {getResponseContent}");
+        }
+
+        var createRequest = new QdrantCreateCollectionRequest
+        {
+            Vectors = new QdrantVectorConfiguration
+            {
+                Size = vectorSize,
+                Distance = "Cosine"
+            }
+        };
+
+        using var createResponse = await _httpClient.PutAsJsonAsync(
+            BuildCollectionPath(),
+            createRequest,
+            JsonOptions,
+            cancellationToken);
+
+        var createResponseContent = await createResponse.Content.ReadAsStringAsync(cancellationToken);
+
+        if (!createResponse.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException(
+                $"Qdrant collection creation failed with status code {(int)createResponse.StatusCode}. Response: {createResponseContent}");
+        }
+
+        _ensuredVectorSize = vectorSize;
+    }
+
+    /// <summary>
     /// Creates the HTTP client used to communicate with Qdrant.
     /// </summary>
     private static HttpClient CreateHttpClient(string endpoint)
@@ -143,6 +205,14 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
         }
 
         return collectionName.Trim();
+    }
+
+    /// <summary>
+    /// Builds the configured Qdrant collection path.
+    /// </summary>
+    private string BuildCollectionPath()
+    {
+        return $"/collections/{Uri.EscapeDataString(_collectionName)}";
     }
 
     /// <summary>
@@ -183,13 +253,32 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
     }
 
     /// <summary>
+    /// Builds a stable Qdrant point id for the vector memory document.
+    /// </summary>
+    private static Guid BuildPointId(VectorMemoryDocument document)
+    {
+        if (Guid.TryParse(document.DocumentId, out var documentId))
+        {
+            return documentId;
+        }
+
+        return document.MemoryId;
+    }
+
+    /// <summary>
     /// Builds the payload persisted together with the vector.
     /// </summary>
     private static Dictionary<string, object> BuildPayload(VectorMemoryDocument document)
     {
+        var documentId = string.IsNullOrWhiteSpace(document.DocumentId)
+            ? document.MemoryId.ToString("D")
+            : document.DocumentId;
+
         return new Dictionary<string, object>(StringComparer.Ordinal)
         {
             ["memoryId"] = document.MemoryId.ToString("D"),
+            ["documentId"] = documentId,
+            ["contentHash"] = document.ContentHash,
             ["title"] = document.Title,
             ["project"] = document.Project,
             ["area"] = document.Area,
@@ -248,6 +337,21 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
         return value.ValueKind == JsonValueKind.String
             ? value.GetString() ?? string.Empty
             : string.Empty;
+    }
+
+    private sealed record QdrantCreateCollectionRequest
+    {
+        [JsonPropertyName("vectors")]
+        public QdrantVectorConfiguration Vectors { get; init; } = new();
+    }
+
+    private sealed record QdrantVectorConfiguration
+    {
+        [JsonPropertyName("size")]
+        public int Size { get; init; }
+
+        [JsonPropertyName("distance")]
+        public string Distance { get; init; } = "Cosine";
     }
 
     private sealed record QdrantUpsertRequest
