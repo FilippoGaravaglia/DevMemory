@@ -78,8 +78,7 @@ public sealed class IndexCommandHandler : ICommandHandler
         }
         catch (Exception ex) when (ex is not ArgumentException)
         {
-            Console.Error.WriteLine("Memory vector index dry-run failed.");
-            Console.Error.WriteLine(ex.Message);
+            AiRuntimeErrorPrinter.PrintFailure("Memory vector indexing", ex);
 
             return CliExitCodes.Failure;
         }

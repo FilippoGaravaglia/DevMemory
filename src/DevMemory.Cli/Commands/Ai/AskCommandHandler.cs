@@ -104,8 +104,7 @@ public sealed class AskCommandHandler : ICommandHandler
         }
         catch (Exception ex) when (ex is not ArgumentException)
         {
-            Console.Error.WriteLine(request.UseRag ? "AI RAG request failed." : "AI chat request failed.");
-            Console.Error.WriteLine(ex.Message);
+            AiRuntimeErrorPrinter.PrintFailure("AI chat request", ex);
 
             return CliExitCodes.Failure;
         }

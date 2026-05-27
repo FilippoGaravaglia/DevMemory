@@ -98,8 +98,7 @@ public sealed class SemanticSearchCommandHandler : ICommandHandler
         }
         catch (Exception ex) when (ex is not ArgumentException)
         {
-            Console.Error.WriteLine("Semantic search failed.");
-            Console.Error.WriteLine(ex.Message);
+            AiRuntimeErrorPrinter.PrintFailure("Semantic search", ex);
 
             return CliExitCodes.Failure;
         }
