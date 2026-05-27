@@ -190,6 +190,7 @@ public sealed class IndexCommandHandler : ICommandHandler
         Console.WriteLine();
         Console.WriteLine($"Total documents: {result.TotalDocuments}");
         Console.WriteLine($"Indexed documents: {result.IndexedDocuments}");
+        Console.WriteLine($"Skipped documents: {result.SkippedDocuments}");
         Console.WriteLine($"Failed documents: {result.FailedDocuments}");
 
         if (result.Errors.Count == 0)

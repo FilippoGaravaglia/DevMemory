@@ -1,5 +1,4 @@
 using DevMemory.Application.Abstractions;
-using DevMemory.Application.Models.Ai;
 using DevMemory.Application.Models.Ai.Embeddings;
 using DevMemory.Application.Models.Ai.VectorStore;
 
@@ -34,6 +33,7 @@ public sealed class MemoryVectorIndexingService
         }
 
         var indexedDocuments = 0;
+        var skippedDocuments = 0;
         var errors = new List<string>();
 
         foreach (var document in documents)
@@ -43,6 +43,13 @@ public sealed class MemoryVectorIndexingService
             try
             {
                 ValidateDocument(document);
+
+                if (await ShouldSkipUnchangedDocumentAsync(document, cancellationToken))
+                {
+                    skippedDocuments++;
+
+                    continue;
+                }
 
                 var embedding = await _embeddingService.GenerateEmbeddingAsync(
                     new EmbeddingRequest
@@ -71,9 +78,38 @@ public sealed class MemoryVectorIndexingService
         {
             TotalDocuments = documents.Count,
             IndexedDocuments = indexedDocuments,
+            SkippedDocuments = skippedDocuments,
             FailedDocuments = errors.Count,
             Errors = errors
         };
+    }
+
+    /// <summary>
+    /// Determines whether the document can be skipped because the indexed content hash is unchanged.
+    /// </summary>
+    private async Task<bool> ShouldSkipUnchangedDocumentAsync(
+        VectorMemoryDocument document,
+        CancellationToken cancellationToken)
+    {
+        if (_vectorMemoryStore is not IVectorMemoryIndexStateStore indexStateStore)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(document.DocumentId) ||
+            string.IsNullOrWhiteSpace(document.ContentHash))
+        {
+            return false;
+        }
+
+        var indexedContentHash = await indexStateStore.TryGetIndexedContentHashAsync(
+            document.DocumentId,
+            cancellationToken);
+
+        return string.Equals(
+            indexedContentHash,
+            document.ContentHash,
+            StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>

@@ -543,6 +543,84 @@ public sealed class QdrantVectorMemoryStoreTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task TryGetIndexedContentHashAsync_WhenPointExists_ReturnsContentHash()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("741bf4b6-2b81-48a5-beae-1d0208e521d2");
+
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(request =>
+        {
+            if (request.Method == HttpMethod.Post &&
+                request.RequestUri?.PathAndQuery == "/collections/devmemory_memories/points")
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """
+                        {
+                        "result": [
+                            {
+                            "id": "741bf4b6-2b81-48a5-beae-1d0208e521d2",
+                            "payload": {
+                                "contentHash": "abc123"
+                            }
+                            }
+                        ]
+                        }
+                        """)
+                });
+            }
+
+            return Task.FromResult(CreateUnexpectedRequestResponse());
+        }))
+        {
+            BaseAddress = new Uri("http://localhost:6333")
+        };
+
+        var store = new QdrantVectorMemoryStore(httpClient, "devmemory_memories");
+
+        // Act
+        var contentHash = await store.TryGetIndexedContentHashAsync(
+            memoryId.ToString("D"),
+            CancellationToken.None);
+
+        // Assert
+        Assert.Equal("abc123", contentHash);
+    }
+
+    [Fact]
+    public async Task TryGetIndexedContentHashAsync_WhenCollectionDoesNotExist_ReturnsNull()
+    {
+        // Arrange
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(request =>
+        {
+            if (request.Method == HttpMethod.Post &&
+                request.RequestUri?.PathAndQuery == "/collections/devmemory_memories/points")
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent("""{"status":"not_found"}""")
+                });
+            }
+
+            return Task.FromResult(CreateUnexpectedRequestResponse());
+        }))
+        {
+            BaseAddress = new Uri("http://localhost:6333")
+        };
+
+        var store = new QdrantVectorMemoryStore(httpClient, "devmemory_memories");
+
+        // Act
+        var contentHash = await store.TryGetIndexedContentHashAsync(
+            "741bf4b6-2b81-48a5-beae-1d0208e521d2",
+            CancellationToken.None);
+
+        // Assert
+        Assert.Null(contentHash);
+    }
+
     #region Helpers
 
     /// <summary>

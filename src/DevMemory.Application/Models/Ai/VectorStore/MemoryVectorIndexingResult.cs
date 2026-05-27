@@ -9,6 +9,8 @@ public sealed record MemoryVectorIndexingResult
 
     public int IndexedDocuments { get; init; }
 
+    public int SkippedDocuments { get; init; }
+
     public int FailedDocuments { get; init; }
 
     public IReadOnlyCollection<string> Errors { get; init; } = [];

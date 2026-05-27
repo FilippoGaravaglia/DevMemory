@@ -24,6 +24,8 @@ public sealed class MemoryVectorIndexingServiceTests
             new VectorMemoryDocument
             {
                 MemoryId = memoryId,
+                DocumentId = memoryId.ToString("D"),
+                ContentHash = "hash-1",
                 Title = "Estimate revision cloning",
                 Project = "DevMemory",
                 Area = "AI",
@@ -43,12 +45,15 @@ public sealed class MemoryVectorIndexingServiceTests
         // Assert
         Assert.Equal(1, result.TotalDocuments);
         Assert.Equal(1, result.IndexedDocuments);
+        Assert.Equal(0, result.SkippedDocuments);
         Assert.Equal(0, result.FailedDocuments);
         Assert.Empty(result.Errors);
 
         var indexedDocument = Assert.Single(vectorStore.Documents);
 
         Assert.Equal(memoryId, indexedDocument.MemoryId);
+        Assert.Equal(memoryId.ToString("D"), indexedDocument.DocumentId);
+        Assert.Equal("hash-1", indexedDocument.ContentHash);
         Assert.Equal("Estimate revision cloning", indexedDocument.Title);
         Assert.Equal("DevMemory", indexedDocument.Project);
         Assert.Equal("AI", indexedDocument.Area);
@@ -58,6 +63,157 @@ public sealed class MemoryVectorIndexingServiceTests
 
         Assert.Equal("nomic-embed-text", embeddingRequest.Model);
         Assert.Equal("Implemented estimate revision cloning.", embeddingRequest.Text);
+    }
+
+    [Fact]
+    public async Task IndexAsync_WhenDocumentHashIsAlreadyIndexed_SkipsEmbeddingAndUpsert()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("741bf4b6-2b81-48a5-beae-1d0208e521d2");
+
+        var document = new VectorMemoryDocument
+        {
+            MemoryId = memoryId,
+            DocumentId = memoryId.ToString("D"),
+            ContentHash = "hash-1",
+            Title = "Already indexed memory",
+            Text = "This memory was already indexed."
+        };
+
+        var embeddingService = new FakeEmbeddingService();
+        var vectorStore = new FakeIncrementalVectorMemoryStore(indexedContentHash: "hash-1");
+
+        var service = new MemoryVectorIndexingService(embeddingService, vectorStore);
+
+        // Act
+        var result = await service.IndexAsync(
+            [document],
+            "nomic-embed-text",
+            CancellationToken.None);
+
+        // Assert
+        Assert.Equal(1, result.TotalDocuments);
+        Assert.Equal(0, result.IndexedDocuments);
+        Assert.Equal(1, result.SkippedDocuments);
+        Assert.Equal(0, result.FailedDocuments);
+        Assert.Empty(result.Errors);
+
+        Assert.Empty(embeddingService.Requests);
+        Assert.Empty(vectorStore.Documents);
+        Assert.Equal(1, vectorStore.ReadStateCalls);
+    }
+
+    [Fact]
+    public async Task IndexAsync_WhenDocumentHashChanged_GeneratesEmbeddingAndUpsertsDocument()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("39478526-4706-455e-9444-e18d01771240");
+
+        var document = new VectorMemoryDocument
+        {
+            MemoryId = memoryId,
+            DocumentId = memoryId.ToString("D"),
+            ContentHash = "hash-new",
+            Title = "Updated memory",
+            Text = "This memory changed."
+        };
+
+        var embeddingService = new FakeEmbeddingService();
+        var vectorStore = new FakeIncrementalVectorMemoryStore(indexedContentHash: "hash-old");
+
+        var service = new MemoryVectorIndexingService(embeddingService, vectorStore);
+
+        // Act
+        var result = await service.IndexAsync(
+            [document],
+            "nomic-embed-text",
+            CancellationToken.None);
+
+        // Assert
+        Assert.Equal(1, result.TotalDocuments);
+        Assert.Equal(1, result.IndexedDocuments);
+        Assert.Equal(0, result.SkippedDocuments);
+        Assert.Equal(0, result.FailedDocuments);
+        Assert.Empty(result.Errors);
+
+        Assert.Single(embeddingService.Requests);
+        Assert.Single(vectorStore.Documents);
+        Assert.Equal(1, vectorStore.ReadStateCalls);
+    }
+
+    [Fact]
+    public async Task IndexAsync_WhenVectorStoreDoesNotSupportStateLookup_IndexesDocument()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("c4481c81-4d7e-4033-abb5-a16e30748bf3");
+
+        var document = new VectorMemoryDocument
+        {
+            MemoryId = memoryId,
+            DocumentId = memoryId.ToString("D"),
+            ContentHash = "hash-1",
+            Title = "Regular store memory",
+            Text = "This memory should be indexed because the store has no state lookup."
+        };
+
+        var embeddingService = new FakeEmbeddingService();
+        var vectorStore = new FakeVectorMemoryStore();
+
+        var service = new MemoryVectorIndexingService(embeddingService, vectorStore);
+
+        // Act
+        var result = await service.IndexAsync(
+            [document],
+            "nomic-embed-text",
+            CancellationToken.None);
+
+        // Assert
+        Assert.Equal(1, result.TotalDocuments);
+        Assert.Equal(1, result.IndexedDocuments);
+        Assert.Equal(0, result.SkippedDocuments);
+        Assert.Equal(0, result.FailedDocuments);
+        Assert.Empty(result.Errors);
+
+        Assert.Single(embeddingService.Requests);
+        Assert.Single(vectorStore.Documents);
+    }
+
+    [Fact]
+    public async Task IndexAsync_WhenDocumentDoesNotHaveContentHash_IndexesDocument()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("dddddddd-eeee-ffff-aaaa-bbbbbbbbbbbb");
+
+        var document = new VectorMemoryDocument
+        {
+            MemoryId = memoryId,
+            DocumentId = memoryId.ToString("D"),
+            ContentHash = string.Empty,
+            Title = "Missing hash memory",
+            Text = "This memory should still be indexed."
+        };
+
+        var embeddingService = new FakeEmbeddingService();
+        var vectorStore = new FakeIncrementalVectorMemoryStore(indexedContentHash: "hash-1");
+
+        var service = new MemoryVectorIndexingService(embeddingService, vectorStore);
+
+        // Act
+        var result = await service.IndexAsync(
+            [document],
+            "nomic-embed-text",
+            CancellationToken.None);
+
+        // Assert
+        Assert.Equal(1, result.TotalDocuments);
+        Assert.Equal(1, result.IndexedDocuments);
+        Assert.Equal(0, result.SkippedDocuments);
+        Assert.Equal(0, result.FailedDocuments);
+        Assert.Empty(result.Errors);
+
+        Assert.Single(embeddingService.Requests);
+        Assert.Single(vectorStore.Documents);
+        Assert.Equal(0, vectorStore.ReadStateCalls);
     }
 
     [Fact]
@@ -102,6 +258,7 @@ public sealed class MemoryVectorIndexingServiceTests
         // Assert
         Assert.Equal(1, result.TotalDocuments);
         Assert.Equal(0, result.IndexedDocuments);
+        Assert.Equal(0, result.SkippedDocuments);
         Assert.Equal(1, result.FailedDocuments);
 
         var error = Assert.Single(result.Errors);
@@ -131,11 +288,15 @@ public sealed class MemoryVectorIndexingServiceTests
             new VectorMemoryDocument
             {
                 MemoryId = failedMemoryId,
+                DocumentId = failedMemoryId.ToString("D"),
+                ContentHash = "hash-failed",
                 Text = "This one fails."
             },
             new VectorMemoryDocument
             {
                 MemoryId = successfulMemoryId,
+                DocumentId = successfulMemoryId.ToString("D"),
+                ContentHash = "hash-success",
                 Text = "This one succeeds."
             }
         };
@@ -149,6 +310,7 @@ public sealed class MemoryVectorIndexingServiceTests
         // Assert
         Assert.Equal(2, result.TotalDocuments);
         Assert.Equal(1, result.IndexedDocuments);
+        Assert.Equal(0, result.SkippedDocuments);
         Assert.Equal(1, result.FailedDocuments);
         Assert.Single(result.Errors);
 
@@ -215,6 +377,46 @@ public sealed class MemoryVectorIndexingServiceTests
     private sealed class FakeVectorMemoryStore : IVectorMemoryStore
     {
         public List<VectorMemoryDocument> Documents { get; } = [];
+
+        public Task UpsertAsync(
+            VectorMemoryDocument document,
+            CancellationToken cancellationToken)
+        {
+            Documents.Add(document);
+
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyCollection<VectorMemorySearchResult>> SearchAsync(
+            IReadOnlyList<float> queryVector,
+            int limit,
+            CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    private sealed class FakeIncrementalVectorMemoryStore : IVectorMemoryStore, IVectorMemoryIndexStateStore
+    {
+        private readonly string? _indexedContentHash;
+
+        public FakeIncrementalVectorMemoryStore(string? indexedContentHash)
+        {
+            _indexedContentHash = indexedContentHash;
+        }
+
+        public List<VectorMemoryDocument> Documents { get; } = [];
+
+        public int ReadStateCalls { get; private set; }
+
+        public Task<string?> TryGetIndexedContentHashAsync(
+            string documentId,
+            CancellationToken cancellationToken)
+        {
+            ReadStateCalls++;
+
+            return Task.FromResult(_indexedContentHash);
+        }
 
         public Task UpsertAsync(
             VectorMemoryDocument document,

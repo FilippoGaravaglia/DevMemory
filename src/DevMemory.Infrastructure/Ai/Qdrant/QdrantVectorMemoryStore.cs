@@ -7,7 +7,7 @@ using DevMemory.Application.Models.Ai.VectorStore;
 
 namespace DevMemory.Infrastructure.Ai.Qdrant;
 
-public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
+public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IVectorMemoryIndexStateStore, IDisposable
 {
     private static readonly JsonSerializerOptions JsonOptions = JsonSerializerOptions.Web;
 
@@ -116,6 +116,60 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
             .Select(MapSearchResult)
             .ToArray()
             ?? [];
+    }
+
+    public async Task<string?> TryGetIndexedContentHashAsync(
+        string documentId,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(documentId))
+        {
+            return null;
+        }
+
+        if (!Guid.TryParse(documentId, out var pointId))
+        {
+            return null;
+        }
+
+        var request = new QdrantRetrievePointsRequest
+        {
+            Ids = [pointId],
+            WithPayload = true,
+            WithVector = false
+        };
+
+        using var response = await _httpClient.PostAsJsonAsync(
+            $"{BuildCollectionPath()}/points",
+            request,
+            JsonOptions,
+            cancellationToken);
+
+        var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new InvalidOperationException(
+                $"Qdrant point retrieve request failed with status code {(int)response.StatusCode}. Response: {responseContent}");
+        }
+
+        var qdrantResponse = JsonSerializer.Deserialize<QdrantRetrievePointsResponse>(
+            responseContent,
+            JsonOptions);
+
+        var point = qdrantResponse?.Result.FirstOrDefault();
+
+        if (point?.Payload is null)
+        {
+            return null;
+        }
+
+        return ReadStringPayload(point.Payload, "contentHash");
     }
 
     public void Dispose()
@@ -480,6 +534,33 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
 
         [JsonPropertyName("score")]
         public double Score { get; init; }
+
+        [JsonPropertyName("payload")]
+        public Dictionary<string, JsonElement>? Payload { get; init; }
+    }
+
+    private sealed record QdrantRetrievePointsRequest
+    {
+        [JsonPropertyName("ids")]
+        public IReadOnlyCollection<Guid> Ids { get; init; } = [];
+
+        [JsonPropertyName("with_payload")]
+        public bool WithPayload { get; init; }
+
+        [JsonPropertyName("with_vector")]
+        public bool WithVector { get; init; }
+    }
+
+    private sealed record QdrantRetrievePointsResponse
+    {
+        [JsonPropertyName("result")]
+        public IReadOnlyCollection<QdrantRetrievedPoint> Result { get; init; } = [];
+    }
+
+    private sealed record QdrantRetrievedPoint
+    {
+        [JsonPropertyName("id")]
+        public Guid Id { get; init; }
 
         [JsonPropertyName("payload")]
         public Dictionary<string, JsonElement>? Payload { get; init; }
