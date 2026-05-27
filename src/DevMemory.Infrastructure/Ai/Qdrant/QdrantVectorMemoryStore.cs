@@ -97,6 +97,11 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
 
         var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
 
+        if (response.StatusCode == HttpStatusCode.NotFound)
+        {
+            return [];
+        }
+
         if (!response.IsSuccessStatusCode)
         {
             throw new InvalidOperationException(

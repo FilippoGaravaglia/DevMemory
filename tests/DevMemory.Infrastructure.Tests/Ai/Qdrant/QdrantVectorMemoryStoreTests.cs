@@ -468,6 +468,83 @@ public sealed class QdrantVectorMemoryStoreTests
             });
     }
 
+    [Fact]
+    public async Task SearchAsync_WhenCollectionDoesNotExist_ReturnsEmptyResults()
+    {
+        // Arrange
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(request =>
+        {
+            if (request.Method == HttpMethod.Post &&
+                request.RequestUri?.PathAndQuery == "/collections/devmemory_memories/points/search")
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.NotFound)
+                {
+                    Content = new StringContent("""{"status":"not_found"}""")
+                });
+            }
+
+            return Task.FromResult(CreateUnexpectedRequestResponse());
+        }))
+        {
+            BaseAddress = new Uri("http://localhost:6333")
+        };
+
+        var store = new QdrantVectorMemoryStore(httpClient, "devmemory_memories");
+
+        // Act
+        var results = await store.SearchAsync(
+            [0.1f, 0.2f, 0.3f],
+            5,
+            CancellationToken.None);
+
+        // Assert
+        Assert.Empty(results);
+    }
+
+    [Fact]
+    public async Task SearchAsync_WhenQdrantReturnsServerError_ThrowsClearException()
+    {
+        // Arrange
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(request =>
+        {
+            if (request.Method == HttpMethod.Post &&
+                request.RequestUri?.PathAndQuery == "/collections/devmemory_memories/points/search")
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError)
+                {
+                    Content = new StringContent("""{"error":"qdrant search failed"}""")
+                });
+            }
+
+            return Task.FromResult(CreateUnexpectedRequestResponse());
+        }))
+        {
+            BaseAddress = new Uri("http://localhost:6333")
+        };
+
+        var store = new QdrantVectorMemoryStore(httpClient, "devmemory_memories");
+
+        // Act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => store.SearchAsync(
+                [0.1f, 0.2f, 0.3f],
+                5,
+                CancellationToken.None));
+
+        // Assert
+        Assert.Contains(
+            "Qdrant search request failed with status code 500.",
+            exception.Message,
+            StringComparison.Ordinal);
+
+        Assert.Contains(
+            "qdrant search failed",
+            exception.Message,
+            StringComparison.Ordinal);
+    }
+
+    #region Helpers
+
     /// <summary>
     /// Builds a valid vector memory document for Qdrant tests.
     /// </summary>
@@ -532,4 +609,6 @@ public sealed class QdrantVectorMemoryStoreTests
             return _responseFactory(request);
         }
     }
+
+    #endregion
 }
