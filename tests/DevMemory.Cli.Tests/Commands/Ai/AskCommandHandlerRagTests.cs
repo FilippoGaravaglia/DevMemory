@@ -145,6 +145,37 @@ public sealed class AskCommandHandlerRagTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Execute_WhenRagHasNoContext_PrintsNoIndexedMemoriesMessage()
+    {
+        // Arrange
+        var chatService = new FakeChatCompletionService();
+
+        var handler = CreateHandler(
+            chatServiceFactory: _ => chatService,
+            vectorMemoryStoreFactory: _ => new EmptyFakeVectorMemoryStore());
+
+        // Act
+        var result = ExecuteAndCaptureOutput(
+            handler,
+            ["ask", "--rag", "How", "did", "we", "handle", "revisions?"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory RAG answer", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Provider: none", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Model: llama3.2", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Question: How did we handle revisions?", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Context items: 0", result.Output, StringComparison.Ordinal);
+        Assert.Contains("No indexed memories were found for this question.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory index", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory index --dry-run", result.Output, StringComparison.Ordinal);
+
+        Assert.False(chatService.WasCalled);
+    }
+
     #region helpers
 
     /// <summary>
@@ -288,16 +319,40 @@ public sealed class AskCommandHandlerRagTests
 
     private sealed class FakeChatCompletionService : IChatCompletionService
     {
+        public bool WasCalled { get; private set; }
+
         public Task<ChatCompletionResponse> CompleteAsync(
             ChatCompletionRequest request,
             CancellationToken cancellationToken)
         {
+            WasCalled = true;
+
             return Task.FromResult(new ChatCompletionResponse
             {
                 Provider = AiProviderNames.Ollama,
                 Model = request.Model,
                 Content = "Use the revision cloning memory."
             });
+        }
+    }
+
+    private sealed class EmptyFakeVectorMemoryStore : IVectorMemoryStore
+    {
+        public Task UpsertAsync(
+            VectorMemoryDocument document,
+            CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<IReadOnlyCollection<VectorMemorySearchResult>> SearchAsync(
+            IReadOnlyList<float> queryVector,
+            int limit,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyCollection<VectorMemorySearchResult> results = [];
+
+            return Task.FromResult(results);
         }
     }
 

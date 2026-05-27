@@ -1,8 +1,7 @@
 using DevMemory.Application.Abstractions;
 using DevMemory.Application.Ai.Search;
-using DevMemory.Application.Models.Ai;
 using DevMemory.Application.Models.Ai.Chat;
-using DevMemory.Application.Models.Ai.Rag;
+using DevMemory.Application.Models.Ai.Runtime;
 using DevMemory.Application.Models.Git;
 
 namespace DevMemory.Application.Ai.Rag;
@@ -62,9 +61,18 @@ public sealed class MemoryRagAnswerService
             contextLimit,
             cancellationToken);
 
+        var relevantContextResults = contextResults
+            .Where(result => !string.IsNullOrWhiteSpace(result.Text))
+            .ToArray();
+
+        if (relevantContextResults.Length == 0)
+        {
+            return BuildNoContextResult(normalizedQuestion, chatModel);
+        }
+
         var ragPrompt = MemoryRagPromptBuilder.Build(
             normalizedQuestion,
-            contextResults,
+            relevantContextResults,
             contextLimit);
 
         var chatResponse = await _chatCompletionService.CompleteAsync(
@@ -95,7 +103,33 @@ public sealed class MemoryRagAnswerService
             Provider = chatResponse.Provider,
             Model = chatResponse.Model,
             ContextItemsCount = ragPrompt.ContextItemsCount,
-            ContextResults = contextResults
+            ContextResults = relevantContextResults
+        };
+    }
+
+    /// <summary>
+    /// Builds a deterministic RAG answer when no indexed memory context is available.
+    /// </summary>
+    private static MemoryRagAnswerResult BuildNoContextResult(
+        string normalizedQuestion,
+        string chatModel)
+    {
+        return new MemoryRagAnswerResult
+        {
+            Question = normalizedQuestion,
+            Answer = """
+            No indexed memories were found for this question.
+
+            Run:
+              devmemory index
+
+            or inspect what would be indexed with:
+              devmemory index --dry-run
+            """,
+            Provider = AiProviderNames.None,
+            Model = chatModel,
+            ContextItemsCount = 0,
+            ContextResults = []
         };
     }
 }

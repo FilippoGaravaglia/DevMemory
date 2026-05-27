@@ -125,6 +125,32 @@ public sealed class SemanticSearchCommandHandlerTests
         Assert.Contains("Score: 0.91", result.Output, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Execute_WhenSemanticSearchReturnsNoResults_PrintsIndexGuidance()
+    {
+        // Arrange
+        var handler = CreateHandler(
+            vectorMemoryStoreFactory: _ => new EmptyFakeVectorMemoryStore());
+
+        // Act
+        var result = ExecuteAndCaptureOutput(
+            handler,
+            ["semantic-search", "unknown", "query"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory semantic search", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Query: unknown query", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Results: 0", result.Output, StringComparison.Ordinal);
+        Assert.Contains("No indexed memories were found for this query.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory index", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory index --dry-run", result.Output, StringComparison.Ordinal);
+    }
+
+    #region Helpers
+
     /// <summary>
     /// Creates a semantic search command handler with test defaults.
     /// </summary>
@@ -237,4 +263,26 @@ public sealed class SemanticSearchCommandHandlerTests
             return Task.FromResult(results);
         }
     }
+
+    private sealed class EmptyFakeVectorMemoryStore : IVectorMemoryStore
+    {
+        public Task UpsertAsync(
+            VectorMemoryDocument document,
+            CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException();
+        }
+
+        public Task<IReadOnlyCollection<VectorMemorySearchResult>> SearchAsync(
+            IReadOnlyList<float> queryVector,
+            int limit,
+            CancellationToken cancellationToken)
+        {
+            IReadOnlyCollection<VectorMemorySearchResult> results = [];
+
+            return Task.FromResult(results);
+        }
+    }
+
+    #endregion
 }

@@ -168,7 +168,13 @@ public sealed class SemanticSearchCommandHandler : ICommandHandler
 
         if (results.Count == 0)
         {
-            Console.WriteLine("No semantic results found.");
+            Console.WriteLine("No indexed memories were found for this query.");
+            Console.WriteLine();
+            Console.WriteLine("Run:");
+            Console.WriteLine("  devmemory index");
+            Console.WriteLine();
+            Console.WriteLine("or inspect what would be indexed with:");
+            Console.WriteLine("  devmemory index --dry-run");
 
             return;
         }
