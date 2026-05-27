@@ -335,6 +335,139 @@ public sealed class QdrantVectorMemoryStoreTests
         Assert.Contains("qdrant unavailable", exception.Message, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public async Task UpsertAsync_WhenExistingCollectionVectorSizeDoesNotMatch_ThrowsClearException()
+    {
+        // Arrange
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(request =>
+        {
+            if (request.Method == HttpMethod.Get &&
+                request.RequestUri?.PathAndQuery == "/collections/devmemory_memories")
+            {
+                return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """
+                        {
+                          "result": {
+                            "config": {
+                              "params": {
+                                "vectors": {
+                                  "size": 768,
+                                  "distance": "Cosine"
+                                }
+                              }
+                            }
+                          }
+                        }
+                        """)
+                });
+            }
+
+            return Task.FromResult(CreateUnexpectedRequestResponse());
+        }))
+        {
+            BaseAddress = new Uri("http://localhost:6333")
+        };
+
+        var store = new QdrantVectorMemoryStore(httpClient, "devmemory_memories");
+
+        var document = BuildDocument(Guid.Parse("cccccccc-dddd-eeee-ffff-aaaaaaaaaaaa")) with
+        {
+            Vector = [0.1f, 0.2f, 0.3f]
+        };
+
+        // Act
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => store.UpsertAsync(document, CancellationToken.None));
+
+        // Assert
+        Assert.Contains(
+            "Qdrant collection vector size mismatch.",
+            exception.Message,
+            StringComparison.Ordinal);
+
+        Assert.Contains(
+            "Existing size is 768, but current embedding size is 3.",
+            exception.Message,
+            StringComparison.Ordinal);
+
+        Assert.Contains(
+            "Use the same embedding model used to create the collection, or recreate/reindex the collection.",
+            exception.Message,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task UpsertAsync_WhenExistingCollectionVectorSizeMatches_UpsertsPoint()
+    {
+        // Arrange
+        var requests = new List<CapturedRequest>();
+
+        using var httpClient = new HttpClient(new FakeHttpMessageHandler(async request =>
+        {
+            requests.Add(await CapturedRequest.FromAsync(request));
+
+            if (request.Method == HttpMethod.Get &&
+                request.RequestUri?.PathAndQuery == "/collections/devmemory_memories")
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent(
+                        """
+                        {
+                          "result": {
+                            "config": {
+                              "params": {
+                                "vectors": {
+                                  "size": 3,
+                                  "distance": "Cosine"
+                                }
+                              }
+                            }
+                          }
+                        }
+                        """)
+                };
+            }
+
+            if (request.Method == HttpMethod.Put &&
+                request.RequestUri?.PathAndQuery == "/collections/devmemory_memories/points?wait=true")
+            {
+                return new HttpResponseMessage(HttpStatusCode.OK)
+                {
+                    Content = new StringContent("""{"result":{"operation_id":1,"status":"completed"}}""")
+                };
+            }
+
+            return CreateUnexpectedRequestResponse();
+        }))
+        {
+            BaseAddress = new Uri("http://localhost:6333")
+        };
+
+        var store = new QdrantVectorMemoryStore(httpClient, "devmemory_memories");
+
+        var document = BuildDocument(Guid.Parse("dddddddd-eeee-ffff-aaaa-bbbbbbbbbbbb"));
+
+        // Act
+        await store.UpsertAsync(document, CancellationToken.None);
+
+        // Assert
+        Assert.Collection(
+            requests,
+            request =>
+            {
+                Assert.Equal(HttpMethod.Get, request.Method);
+                Assert.Equal("/collections/devmemory_memories", request.PathAndQuery);
+            },
+            request =>
+            {
+                Assert.Equal(HttpMethod.Put, request.Method);
+                Assert.Equal("/collections/devmemory_memories/points?wait=true", request.PathAndQuery);
+            });
+    }
+
     /// <summary>
     /// Builds a valid vector memory document for Qdrant tests.
     /// </summary>

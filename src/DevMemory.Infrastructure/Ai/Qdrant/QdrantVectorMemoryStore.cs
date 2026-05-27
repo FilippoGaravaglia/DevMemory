@@ -137,14 +137,16 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
             BuildCollectionPath(),
             cancellationToken);
 
+        var getResponseContent = await getResponse.Content.ReadAsStringAsync(cancellationToken);
+
         if (getResponse.IsSuccessStatusCode)
         {
+            ValidateExistingCollectionVectorSize(getResponseContent, vectorSize);
+
             _ensuredVectorSize = vectorSize;
 
             return;
         }
-
-        var getResponseContent = await getResponse.Content.ReadAsStringAsync(cancellationToken);
 
         if (getResponse.StatusCode != HttpStatusCode.NotFound)
         {
@@ -176,6 +178,81 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IDisposable
         }
 
         _ensuredVectorSize = vectorSize;
+    }
+
+    /// <summary>
+    /// Validates that an existing Qdrant collection is compatible with the current embedding vector size.
+    /// </summary>
+    private static void ValidateExistingCollectionVectorSize(
+        string responseContent,
+        int expectedVectorSize)
+    {
+        var existingVectorSize = TryReadExistingCollectionVectorSize(responseContent);
+
+        if (existingVectorSize is null)
+        {
+            return;
+        }
+
+        if (existingVectorSize.Value == expectedVectorSize)
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"Qdrant collection vector size mismatch. Existing size is {existingVectorSize.Value}, but current embedding size is {expectedVectorSize}. " +
+            "Use the same embedding model used to create the collection, or recreate/reindex the collection.");
+    }
+
+    /// <summary>
+    /// Reads the vector size from a Qdrant collection response when available.
+    /// </summary>
+    private static int? TryReadExistingCollectionVectorSize(string responseContent)
+    {
+        if (string.IsNullOrWhiteSpace(responseContent))
+        {
+            return null;
+        }
+
+        try
+        {
+            using var json = JsonDocument.Parse(responseContent);
+
+            var root = json.RootElement;
+
+            if (!root.TryGetProperty("result", out var result))
+            {
+                return null;
+            }
+
+            if (!result.TryGetProperty("config", out var config))
+            {
+                return null;
+            }
+
+            if (!config.TryGetProperty("params", out var parameters))
+            {
+                return null;
+            }
+
+            if (!parameters.TryGetProperty("vectors", out var vectors))
+            {
+                return null;
+            }
+
+            if (vectors.TryGetProperty("size", out var unnamedVectorSize) &&
+                unnamedVectorSize.ValueKind == JsonValueKind.Number &&
+                unnamedVectorSize.TryGetInt32(out var size))
+            {
+                return size;
+            }
+
+            return null;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     /// <summary>
