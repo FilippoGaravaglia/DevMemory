@@ -243,6 +243,8 @@ public sealed class IndexCommandHandler : ICommandHandler
         Console.WriteLine($"Skipped documents: {result.SkippedDocuments}");
         Console.WriteLine($"Failed documents: {result.FailedDocuments}");
 
+        PrintIndexingGuidance(result, force);
+
         if (result.Errors.Count == 0)
         {
             return;
@@ -406,6 +408,43 @@ public sealed class IndexCommandHandler : ICommandHandler
         if (instance is IDisposable disposable)
         {
             disposable.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Prints actionable guidance based on the indexing result.
+    /// </summary>
+    private static void PrintIndexingGuidance(
+        MemoryVectorIndexingResult result,
+        bool force)
+    {
+        if (result.TotalDocuments == 0)
+        {
+            Console.WriteLine();
+            Console.WriteLine("No memories are available for indexing.");
+            Console.WriteLine();
+            Console.WriteLine("Create a memory with:");
+            Console.WriteLine("  devmemory add");
+
+            return;
+        }
+
+        if (force)
+        {
+            return;
+        }
+
+        if (result.FailedDocuments == 0 &&
+            result.IndexedDocuments == 0 &&
+            result.SkippedDocuments == result.TotalDocuments)
+        {
+            Console.WriteLine();
+            Console.WriteLine("No changes detected. All documents were already indexed.");
+            Console.WriteLine();
+            Console.WriteLine("Use:");
+            Console.WriteLine("  devmemory index --force");
+            Console.WriteLine();
+            Console.WriteLine("to rebuild embeddings and overwrite the vector index.");
         }
     }
 

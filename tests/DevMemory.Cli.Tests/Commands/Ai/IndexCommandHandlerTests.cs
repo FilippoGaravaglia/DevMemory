@@ -392,6 +392,82 @@ public sealed class IndexCommandHandlerTests
         Assert.Equal(firstMemoryId, indexedDocument.MemoryId);
     }
 
+    [Fact]
+    public void Execute_WhenAllDocumentsAreSkipped_PrintsNoChangesGuidance()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("741bf4b6-2b81-48a5-beae-1d0208e521d2");
+
+        var documents = new[]
+        {
+            new VectorMemoryDocument
+            {
+                MemoryId = memoryId,
+                DocumentId = memoryId.ToString("D"),
+                ContentHash = "hash-1",
+                Title = "Already indexed memory",
+                Project = "DevMemory",
+                Area = "AI",
+                Text = "This memory has already been indexed."
+            }
+        };
+
+        var vectorStore = new FakeIncrementalVectorMemoryStore(indexedContentHash: "hash-1");
+
+        var handler = new IndexCommandHandler(
+            CreateSemanticSearchOptions,
+            _ => new FakeEmbeddingService(),
+            _ => vectorStore,
+            () => documents,
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore));
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["index"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("Total documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Indexed documents: 0", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Skipped documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Failed documents: 0", result.Output, StringComparison.Ordinal);
+
+        Assert.Contains("No changes detected. All documents were already indexed.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory index --force", result.Output, StringComparison.Ordinal);
+
+        Assert.Empty(vectorStore.Documents);
+    }
+
+    [Fact]
+    public void Execute_WhenNoDocumentsAreAvailable_PrintsCreateMemoryGuidance()
+    {
+        // Arrange
+        var handler = new IndexCommandHandler(
+            CreateSemanticSearchOptions,
+            _ => new FakeEmbeddingService(),
+            _ => new FakeVectorMemoryStore(),
+            () => [],
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore));
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["index"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("Total documents: 0", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Indexed documents: 0", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Skipped documents: 0", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Failed documents: 0", result.Output, StringComparison.Ordinal);
+
+        Assert.Contains("No memories are available for indexing.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory add", result.Output, StringComparison.Ordinal);
+    }
+
     #region Helpers
 
     /// <summary>
@@ -477,6 +553,42 @@ public sealed class IndexCommandHandlerTests
     private sealed class FakeVectorMemoryStore : IVectorMemoryStore
     {
         public List<VectorMemoryDocument> Documents { get; } = [];
+
+        public Task UpsertAsync(
+            VectorMemoryDocument document,
+            CancellationToken cancellationToken)
+        {
+            Documents.Add(document);
+
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyCollection<VectorMemorySearchResult>> SearchAsync(
+            IReadOnlyList<float> queryVector,
+            int limit,
+            CancellationToken cancellationToken)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    private sealed class FakeIncrementalVectorMemoryStore : IVectorMemoryStore, IVectorMemoryIndexStateStore
+    {
+        private readonly string? _indexedContentHash;
+
+        public FakeIncrementalVectorMemoryStore(string? indexedContentHash)
+        {
+            _indexedContentHash = indexedContentHash;
+        }
+
+        public List<VectorMemoryDocument> Documents { get; } = [];
+
+        public Task<string?> TryGetIndexedContentHashAsync(
+            string documentId,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_indexedContentHash);
+        }
 
         public Task UpsertAsync(
             VectorMemoryDocument document,
