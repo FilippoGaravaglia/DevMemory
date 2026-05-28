@@ -232,7 +232,7 @@ public sealed class IndexCommandHandlerTests
             () => handler.Execute(["index", "--unknown"]));
 
         // Assert
-        Assert.Equal("Usage: devmemory index [--dry-run] [--force]", exception.Message);
+        Assert.Equal("Usage: devmemory index [--dry-run] [--force] [--limit <number>]", exception.Message);
     }
 
     [Fact]
@@ -284,6 +284,112 @@ public sealed class IndexCommandHandlerTests
         Assert.Contains("Force indexing: yes", result.Output, StringComparison.Ordinal);
         Assert.Contains("Indexed documents: 1", result.Output, StringComparison.Ordinal);
         Assert.Contains("Skipped documents: 0", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenLimitIsInvalid_ThrowsArgumentException()
+    {
+        // Arrange
+        var handler = CreateDryRunHandler([]);
+
+        // Act
+        var exception = Assert.Throws<ArgumentException>(
+            () => handler.Execute(["index", "--limit", "0"]));
+
+        // Assert
+        Assert.Equal("Option --limit must be a positive integer.", exception.Message);
+    }
+
+    [Fact]
+    public void Execute_WhenDryRunLimitIsProvided_PrintsOnlyLimitedDocuments()
+    {
+        // Arrange
+        var firstMemoryId = Guid.Parse("741bf4b6-2b81-48a5-beae-1d0208e521d2");
+        var secondMemoryId = Guid.Parse("39478526-4706-455e-9444-e18d01771240");
+
+        var handler = CreateDryRunHandler(
+        [
+            new VectorMemoryDocument
+            {
+                MemoryId = firstMemoryId,
+                DocumentId = firstMemoryId.ToString("D"),
+                ContentHash = "hash-1",
+                Title = "First memory",
+                Text = "First memory text."
+            },
+            new VectorMemoryDocument
+            {
+                MemoryId = secondMemoryId,
+                DocumentId = secondMemoryId.ToString("D"),
+                ContentHash = "hash-2",
+                Title = "Second memory",
+                Text = "Second memory text."
+            }
+        ]);
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["index", "--dry-run", "--limit", "1"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("Limit: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Total documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("First memory", result.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Second memory", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenLimitIsProvided_IndexesOnlyLimitedDocuments()
+    {
+        // Arrange
+        var firstMemoryId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var secondMemoryId = Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff");
+
+        var documents = new[]
+        {
+            new VectorMemoryDocument
+            {
+                MemoryId = firstMemoryId,
+                DocumentId = firstMemoryId.ToString("D"),
+                ContentHash = "hash-1",
+                Title = "First memory",
+                Text = "First memory text."
+            },
+            new VectorMemoryDocument
+            {
+                MemoryId = secondMemoryId,
+                DocumentId = secondMemoryId.ToString("D"),
+                ContentHash = "hash-2",
+                Title = "Second memory",
+                Text = "Second memory text."
+            }
+        };
+
+        var vectorStore = new FakeVectorMemoryStore();
+
+        var handler = new IndexCommandHandler(
+            CreateSemanticSearchOptions,
+            _ => new FakeEmbeddingService(),
+            _ => vectorStore,
+            () => documents,
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore));
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["index", "--limit", "1"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("Limit: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Total documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Indexed documents: 1", result.Output, StringComparison.Ordinal);
+
+        var indexedDocument = Assert.Single(vectorStore.Documents);
+        Assert.Equal(firstMemoryId, indexedDocument.MemoryId);
     }
 
     #region Helpers

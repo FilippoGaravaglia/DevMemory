@@ -1,3 +1,4 @@
+using System.Globalization;
 using DevMemory.Application;
 using DevMemory.Application.Abstractions;
 using DevMemory.Application.Ai.Indexing;
@@ -57,7 +58,7 @@ public sealed class IndexCommandHandler : ICommandHandler
 
         if (request.IsDryRun)
         {
-            return ExecuteDryRun();
+            return ExecuteDryRun(request);
         }
 
         return ExecuteIndex(request);
@@ -66,19 +67,19 @@ public sealed class IndexCommandHandler : ICommandHandler
     /// <summary>
     /// Executes a dry-run indexing operation without calling embeddings or vector store adapters.
     /// </summary>
-    private int ExecuteDryRun()
+    private int ExecuteDryRun(IndexCommandRequest request)
     {
         try
         {
-            var documents = _documentsFactory();
+            var documents = ApplyLimit(_documentsFactory(), request.Limit);
 
-            PrintDryRunResult(documents);
+            PrintDryRunResult(documents, request.Limit);
 
             return CliExitCodes.Success;
         }
         catch (Exception ex) when (ex is not ArgumentException)
         {
-            AiRuntimeErrorPrinter.PrintFailure("Memory vector indexing", ex);
+            AiRuntimeErrorPrinter.PrintFailure("Memory vector index dry-run", ex);
 
             return CliExitCodes.Failure;
         }
@@ -119,7 +120,7 @@ public sealed class IndexCommandHandler : ICommandHandler
 
         try
         {
-            var documents = _documentsFactory();
+            var documents = ApplyLimit(_documentsFactory(), request.Limit);
             var embeddingModel = ResolveEmbeddingModel(options.Embedding);
 
             var indexingService = _indexingServiceFactory(embeddingService, vectorMemoryStore);
@@ -129,7 +130,7 @@ public sealed class IndexCommandHandler : ICommandHandler
                 .GetAwaiter()
                 .GetResult();
 
-            PrintIndexingResult(options, result, request.Force);
+            PrintIndexingResult(options, result, request.Force, request.Limit);
 
             return result.FailedDocuments == 0
                 ? CliExitCodes.Success
@@ -156,6 +157,7 @@ public sealed class IndexCommandHandler : ICommandHandler
     {
         var isDryRun = false;
         var force = false;
+        int? limit = null;
 
         for (var index = 1; index < args.Length; index++)
         {
@@ -173,7 +175,22 @@ public sealed class IndexCommandHandler : ICommandHandler
                 continue;
             }
 
-            throw new ArgumentException("Usage: devmemory index [--dry-run] [--force]");
+            if (value.Equals("--limit", StringComparison.OrdinalIgnoreCase))
+            {
+                if (index + 1 >= args.Length ||
+                    !int.TryParse(args[index + 1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedLimit) ||
+                    parsedLimit <= 0)
+                {
+                    throw new ArgumentException("Option --limit must be a positive integer.");
+                }
+
+                limit = parsedLimit;
+                index++;
+
+                continue;
+            }
+
+            throw new ArgumentException("Usage: devmemory index [--dry-run] [--force] [--limit <number>]");
         }
 
         if (isDryRun && force)
@@ -181,7 +198,24 @@ public sealed class IndexCommandHandler : ICommandHandler
             throw new ArgumentException("Options --dry-run and --force cannot be used together.");
         }
 
-        return new IndexCommandRequest(isDryRun, force);
+        return new IndexCommandRequest(isDryRun, force, limit);
+    }
+
+    /// <summary>
+    /// Applies an optional document limit to the indexing input.
+    /// </summary>
+    private static IReadOnlyCollection<VectorMemoryDocument> ApplyLimit(
+        IReadOnlyCollection<VectorMemoryDocument> documents,
+        int? limit)
+    {
+        if (limit is null)
+        {
+            return documents;
+        }
+
+        return documents
+            .Take(limit.Value)
+            .ToArray();
     }
 
     /// <summary>
@@ -190,7 +224,8 @@ public sealed class IndexCommandHandler : ICommandHandler
     private static void PrintIndexingResult(
         AiRuntimeOptions options,
         MemoryVectorIndexingResult result,
-        bool force)
+        bool force,
+        int? limit)
     {
         Console.WriteLine("DevMemory vector index");
         Console.WriteLine("----------------------");
@@ -201,6 +236,7 @@ public sealed class IndexCommandHandler : ICommandHandler
         Console.WriteLine($"Qdrant endpoint: {FormatOptional(options.VectorStore.QdrantEndpoint)}");
         Console.WriteLine($"Qdrant collection: {FormatOptional(options.VectorStore.QdrantCollection)}");
         Console.WriteLine($"Force indexing: {FormatBoolean(force)}");
+        Console.WriteLine($"Limit: {FormatOptionalNumber(limit)}");
         Console.WriteLine();
         Console.WriteLine($"Total documents: {result.TotalDocuments}");
         Console.WriteLine($"Indexed documents: {result.IndexedDocuments}");
@@ -224,7 +260,9 @@ public sealed class IndexCommandHandler : ICommandHandler
     /// <summary>
     /// Prints a dry-run summary for documents that would be indexed.
     /// </summary>
-    private static void PrintDryRunResult(IReadOnlyCollection<VectorMemoryDocument> documents)
+    private static void PrintDryRunResult(
+        IReadOnlyCollection<VectorMemoryDocument> documents,
+        int? limit)
     {
         Console.WriteLine("DevMemory vector index dry-run");
         Console.WriteLine("------------------------------");
@@ -232,6 +270,7 @@ public sealed class IndexCommandHandler : ICommandHandler
         Console.WriteLine("No embeddings will be generated.");
         Console.WriteLine("No vector store writes will be performed.");
         Console.WriteLine();
+        Console.WriteLine($"Limit: {FormatOptionalNumber(limit)}");
         Console.WriteLine($"Total documents: {documents.Count}");
 
         if (documents.Count == 0)
@@ -342,6 +381,14 @@ public sealed class IndexCommandHandler : ICommandHandler
     }
 
     /// <summary>
+    /// Formats an optional numeric value for CLI output.
+    /// </summary>
+    private static string FormatOptionalNumber(int? value)
+    {
+        return value?.ToString(CultureInfo.InvariantCulture) ?? "-";
+    }
+
+    /// <summary>
     /// Formats a collection value for CLI output.
     /// </summary>
     private static string FormatCollection(IReadOnlyCollection<string> values)
@@ -362,5 +409,8 @@ public sealed class IndexCommandHandler : ICommandHandler
         }
     }
 
-    private sealed record IndexCommandRequest(bool IsDryRun, bool Force);
+    private sealed record IndexCommandRequest(
+        bool IsDryRun,
+        bool Force,
+        int? Limit);
 }
