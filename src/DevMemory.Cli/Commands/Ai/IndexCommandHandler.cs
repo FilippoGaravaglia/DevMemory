@@ -60,7 +60,7 @@ public sealed class IndexCommandHandler : ICommandHandler
             return ExecuteDryRun();
         }
 
-        return ExecuteIndex();
+        return ExecuteIndex(request);
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public sealed class IndexCommandHandler : ICommandHandler
     /// <summary>
     /// Executes the real indexing operation by generating embeddings and upserting documents.
     /// </summary>
-    private int ExecuteIndex()
+    private int ExecuteIndex(IndexCommandRequest request)
     {
         var options = _optionsFactory();
 
@@ -125,11 +125,11 @@ public sealed class IndexCommandHandler : ICommandHandler
             var indexingService = _indexingServiceFactory(embeddingService, vectorMemoryStore);
 
             var result = indexingService
-                .IndexAsync(documents, embeddingModel, CancellationToken.None)
+                .IndexAsync(documents, embeddingModel, request.Force, CancellationToken.None)
                 .GetAwaiter()
                 .GetResult();
 
-            PrintIndexingResult(options, result);
+            PrintIndexingResult(options, result, request.Force);
 
             return result.FailedDocuments == 0
                 ? CliExitCodes.Success
@@ -155,6 +155,7 @@ public sealed class IndexCommandHandler : ICommandHandler
     private static IndexCommandRequest ParseRequest(string[] args)
     {
         var isDryRun = false;
+        var force = false;
 
         for (var index = 1; index < args.Length; index++)
         {
@@ -166,10 +167,21 @@ public sealed class IndexCommandHandler : ICommandHandler
                 continue;
             }
 
-            throw new ArgumentException("Usage: devmemory index [--dry-run]");
+            if (value.Equals("--force", StringComparison.OrdinalIgnoreCase))
+            {
+                force = true;
+                continue;
+            }
+
+            throw new ArgumentException("Usage: devmemory index [--dry-run] [--force]");
         }
 
-        return new IndexCommandRequest(isDryRun);
+        if (isDryRun && force)
+        {
+            throw new ArgumentException("Options --dry-run and --force cannot be used together.");
+        }
+
+        return new IndexCommandRequest(isDryRun, force);
     }
 
     /// <summary>
@@ -177,7 +189,8 @@ public sealed class IndexCommandHandler : ICommandHandler
     /// </summary>
     private static void PrintIndexingResult(
         AiRuntimeOptions options,
-        MemoryVectorIndexingResult result)
+        MemoryVectorIndexingResult result,
+        bool force)
     {
         Console.WriteLine("DevMemory vector index");
         Console.WriteLine("----------------------");
@@ -187,6 +200,7 @@ public sealed class IndexCommandHandler : ICommandHandler
         Console.WriteLine($"Vector store: {options.VectorStore.Provider}");
         Console.WriteLine($"Qdrant endpoint: {FormatOptional(options.VectorStore.QdrantEndpoint)}");
         Console.WriteLine($"Qdrant collection: {FormatOptional(options.VectorStore.QdrantCollection)}");
+        Console.WriteLine($"Force indexing: {FormatBoolean(force)}");
         Console.WriteLine();
         Console.WriteLine($"Total documents: {result.TotalDocuments}");
         Console.WriteLine($"Indexed documents: {result.IndexedDocuments}");
@@ -320,6 +334,14 @@ public sealed class IndexCommandHandler : ICommandHandler
     }
 
     /// <summary>
+    /// Formats a boolean value for CLI output.
+    /// </summary>
+    private static string FormatBoolean(bool value)
+    {
+        return value ? "yes" : "no";
+    }
+
+    /// <summary>
     /// Formats a collection value for CLI output.
     /// </summary>
     private static string FormatCollection(IReadOnlyCollection<string> values)
@@ -340,5 +362,5 @@ public sealed class IndexCommandHandler : ICommandHandler
         }
     }
 
-    private sealed record IndexCommandRequest(bool IsDryRun);
+    private sealed record IndexCommandRequest(bool IsDryRun, bool Force);
 }

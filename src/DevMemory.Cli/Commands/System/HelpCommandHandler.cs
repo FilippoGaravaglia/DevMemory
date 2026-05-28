@@ -27,7 +27,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ai-doctor");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask <question>");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask --rag <question> [--show-context] [--limit <number>]");
-        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- index [--dry-run]");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- index [--dry-run] [--force]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- semantic-search <query> [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- version");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- --version");
@@ -48,7 +48,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory ai-doctor");
         Console.WriteLine("  devmemory ask <question>");
         Console.WriteLine("  devmemory ask --rag <question> [--show-context] [--limit <number>]");
-        Console.WriteLine("  devmemory index [--dry-run]");
+        Console.WriteLine("  devmemory index [--dry-run] [--force]");
         Console.WriteLine("  devmemory semantic-search <query> [--limit <number>]");
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
@@ -97,6 +97,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory ask --rag \"What did I change in MongoDB mapping?\" --limit 3");
         Console.WriteLine("  devmemory index");
         Console.WriteLine("  devmemory index --dry-run");
+        Console.WriteLine("  devmemory index --force");
         Console.WriteLine("  devmemory semantic-search \"estimate revision cloning\"");
         Console.WriteLine("  devmemory semantic-search \"mongodb mapping issue\" --limit 3");
         Console.WriteLine("  devmemory version");

@@ -348,6 +348,49 @@ public sealed class MemoryVectorIndexingServiceTests
                 cancellationTokenSource.Token));
     }
 
+    [Fact]
+    public async Task IndexAsync_WhenForceIsTrue_IgnoresAlreadyIndexedHashAndReindexesDocument()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+
+        var document = new VectorMemoryDocument
+        {
+            MemoryId = memoryId,
+            DocumentId = memoryId.ToString("D"),
+            ContentHash = "hash-1",
+            Title = "Force indexed memory",
+            Text = "This memory should be indexed even if the hash is already present."
+        };
+
+        var embeddingService = new FakeEmbeddingService();
+        var vectorStore = new FakeIncrementalVectorMemoryStore(indexedContentHash: "hash-1");
+
+        var service = new MemoryVectorIndexingService(embeddingService, vectorStore);
+
+        // Act
+        var result = await service.IndexAsync(
+            [document],
+            "nomic-embed-text",
+            force: true,
+            CancellationToken.None);
+
+        // Assert
+        Assert.Equal(1, result.TotalDocuments);
+        Assert.Equal(1, result.IndexedDocuments);
+        Assert.Equal(0, result.SkippedDocuments);
+        Assert.Equal(0, result.FailedDocuments);
+        Assert.Empty(result.Errors);
+
+        Assert.Single(embeddingService.Requests);
+        Assert.Single(vectorStore.Documents);
+
+        // Force mode must not need a state lookup before indexing.
+        Assert.Equal(0, vectorStore.ReadStateCalls);
+    }
+
+    #region Helpers
+
     private sealed class FakeEmbeddingService : IEmbeddingService
     {
         public List<EmbeddingRequest> Requests { get; } = [];
@@ -435,4 +478,6 @@ public sealed class MemoryVectorIndexingServiceTests
             throw new NotSupportedException();
         }
     }
+
+    #endregion
 }

@@ -20,9 +20,22 @@ public sealed class MemoryVectorIndexingService
         _vectorMemoryStore = vectorMemoryStore ?? throw new ArgumentNullException(nameof(vectorMemoryStore));
     }
 
+    public Task<MemoryVectorIndexingResult> IndexAsync(
+        IReadOnlyCollection<VectorMemoryDocument> documents,
+        string embeddingModel,
+        CancellationToken cancellationToken)
+    {
+        return IndexAsync(
+            documents,
+            embeddingModel,
+            force: false,
+            cancellationToken);
+    }
+
     public async Task<MemoryVectorIndexingResult> IndexAsync(
         IReadOnlyCollection<VectorMemoryDocument> documents,
         string embeddingModel,
+        bool force,
         CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(documents);
@@ -44,7 +57,7 @@ public sealed class MemoryVectorIndexingService
             {
                 ValidateDocument(document);
 
-                if (await ShouldSkipUnchangedDocumentAsync(document, cancellationToken))
+                if (!force && await ShouldSkipUnchangedDocumentAsync(document, cancellationToken))
                 {
                     skippedDocuments++;
 

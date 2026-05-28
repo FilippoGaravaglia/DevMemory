@@ -232,8 +232,61 @@ public sealed class IndexCommandHandlerTests
             () => handler.Execute(["index", "--unknown"]));
 
         // Assert
-        Assert.Equal("Usage: devmemory index [--dry-run]", exception.Message);
+        Assert.Equal("Usage: devmemory index [--dry-run] [--force]", exception.Message);
     }
+
+    [Fact]
+    public void Execute_WhenDryRunAndForceAreProvided_ThrowsArgumentException()
+    {
+        // Arrange
+        var handler = CreateDryRunHandler([]);
+
+        // Act
+        var exception = Assert.Throws<ArgumentException>(
+            () => handler.Execute(["index", "--dry-run", "--force"]));
+
+        // Assert
+        Assert.Equal("Options --dry-run and --force cannot be used together.", exception.Message);
+    }
+
+    [Fact]
+    public void Execute_WhenForceIsProvided_PrintsForceIndexingEnabled()
+    {
+        // Arrange
+        var documents = new[]
+        {
+            new VectorMemoryDocument
+            {
+                MemoryId = Guid.Parse("741bf4b6-2b81-48a5-beae-1d0208e521d2"),
+                DocumentId = "741bf4b6-2b81-48a5-beae-1d0208e521d2",
+                ContentHash = "hash-1",
+                Title = "Force indexing memory",
+                Project = "DevMemory",
+                Area = "AI",
+                Text = "Force indexing should regenerate this embedding."
+            }
+        };
+
+        var handler = new IndexCommandHandler(
+            CreateSemanticSearchOptions,
+            _ => new FakeEmbeddingService(),
+            _ => new FakeVectorMemoryStore(),
+            () => documents,
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore));
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["index", "--force"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+        Assert.Contains("Force indexing: yes", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Indexed documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Skipped documents: 0", result.Output, StringComparison.Ordinal);
+    }
+
+    #region Helpers
 
     /// <summary>
     /// Creates semantic search options configured with Ollama embeddings and Qdrant.
@@ -336,4 +389,6 @@ public sealed class IndexCommandHandlerTests
             throw new NotSupportedException();
         }
     }
+
+    #endregion
 }
