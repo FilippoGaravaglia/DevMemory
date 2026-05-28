@@ -85,6 +85,9 @@ echo
 "$TOOL_PATH" index --dry-run --limit 1
 echo
 
+"$TOOL_PATH" index --dry-run --project DevMemory --limit 1
+echo
+
 "$TOOL_PATH" ai-doctor || true
 echo
 

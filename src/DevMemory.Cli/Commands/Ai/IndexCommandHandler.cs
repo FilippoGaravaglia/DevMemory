@@ -71,9 +71,11 @@ public sealed class IndexCommandHandler : ICommandHandler
     {
         try
         {
-            var documents = ApplyLimit(_documentsFactory(), request.Limit);
+            var documents = ApplyLimit(
+                ApplyFilters(_documentsFactory(), request),
+                request.Limit);
 
-            PrintDryRunResult(documents, request.Limit);
+            PrintDryRunResult(documents, request);
 
             return CliExitCodes.Success;
         }
@@ -120,7 +122,10 @@ public sealed class IndexCommandHandler : ICommandHandler
 
         try
         {
-            var documents = ApplyLimit(_documentsFactory(), request.Limit);
+            var documents = ApplyLimit(
+                ApplyFilters(_documentsFactory(), request),
+                request.Limit);
+
             var embeddingModel = ResolveEmbeddingModel(options.Embedding);
 
             var indexingService = _indexingServiceFactory(embeddingService, vectorMemoryStore);
@@ -130,7 +135,7 @@ public sealed class IndexCommandHandler : ICommandHandler
                 .GetAwaiter()
                 .GetResult();
 
-            PrintIndexingResult(options, result, request.Force, request.Limit);
+            PrintIndexingResult(options, result, request);
 
             return result.FailedDocuments == 0
                 ? CliExitCodes.Success
@@ -158,6 +163,9 @@ public sealed class IndexCommandHandler : ICommandHandler
         var isDryRun = false;
         var force = false;
         int? limit = null;
+        string? project = null;
+        string? area = null;
+        string? tag = null;
 
         for (var index = 1; index < args.Length; index++)
         {
@@ -190,7 +198,26 @@ public sealed class IndexCommandHandler : ICommandHandler
                 continue;
             }
 
-            throw new ArgumentException("Usage: devmemory index [--dry-run] [--force] [--limit <number>]");
+            if (value.Equals("--project", StringComparison.OrdinalIgnoreCase))
+            {
+                project = ReadRequiredOptionValue(args, ref index, "--project");
+                continue;
+            }
+
+            if (value.Equals("--area", StringComparison.OrdinalIgnoreCase))
+            {
+                area = ReadRequiredOptionValue(args, ref index, "--area");
+                continue;
+            }
+
+            if (value.Equals("--tag", StringComparison.OrdinalIgnoreCase))
+            {
+                tag = ReadRequiredOptionValue(args, ref index, "--tag");
+                continue;
+            }
+
+            throw new ArgumentException(
+                "Usage: devmemory index [--dry-run] [--force] [--limit <number>] [--project <project>] [--area <area>] [--tag <tag>]");
         }
 
         if (isDryRun && force)
@@ -198,7 +225,64 @@ public sealed class IndexCommandHandler : ICommandHandler
             throw new ArgumentException("Options --dry-run and --force cannot be used together.");
         }
 
-        return new IndexCommandRequest(isDryRun, force, limit);
+        return new IndexCommandRequest(
+            isDryRun,
+            force,
+            limit,
+            project,
+            area,
+            tag);
+    }
+
+    /// <summary>
+    /// Reads a required option value from the command arguments.
+    /// </summary>
+    private static string ReadRequiredOptionValue(
+        string[] args,
+        ref int index,
+        string optionName)
+    {
+        if (index + 1 >= args.Length ||
+            string.IsNullOrWhiteSpace(args[index + 1]) ||
+            args[index + 1].StartsWith("--", StringComparison.Ordinal))
+        {
+            throw new ArgumentException($"Option {optionName} requires a value.");
+        }
+
+        index++;
+
+        return args[index].Trim();
+    }
+
+    /// <summary>
+    /// Applies optional metadata filters to the indexing input.
+    /// </summary>
+    private static VectorMemoryDocument[] ApplyFilters(
+        IReadOnlyCollection<VectorMemoryDocument> documents,
+        IndexCommandRequest request)
+    {
+        IEnumerable<VectorMemoryDocument> filteredDocuments = documents;
+
+        if (!string.IsNullOrWhiteSpace(request.Project))
+        {
+            filteredDocuments = filteredDocuments.Where(document =>
+                string.Equals(document.Project, request.Project, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Area))
+        {
+            filteredDocuments = filteredDocuments.Where(document =>
+                string.Equals(document.Area, request.Area, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Tag))
+        {
+            filteredDocuments = filteredDocuments.Where(document =>
+                document.Tags.Any(tag =>
+                    string.Equals(tag, request.Tag, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        return filteredDocuments.ToArray();
     }
 
     /// <summary>
@@ -224,8 +308,7 @@ public sealed class IndexCommandHandler : ICommandHandler
     private static void PrintIndexingResult(
         AiRuntimeOptions options,
         MemoryVectorIndexingResult result,
-        bool force,
-        int? limit)
+        IndexCommandRequest request)
     {
         Console.WriteLine("DevMemory vector index");
         Console.WriteLine("----------------------");
@@ -235,15 +318,18 @@ public sealed class IndexCommandHandler : ICommandHandler
         Console.WriteLine($"Vector store: {options.VectorStore.Provider}");
         Console.WriteLine($"Qdrant endpoint: {FormatOptional(options.VectorStore.QdrantEndpoint)}");
         Console.WriteLine($"Qdrant collection: {FormatOptional(options.VectorStore.QdrantCollection)}");
-        Console.WriteLine($"Force indexing: {FormatBoolean(force)}");
-        Console.WriteLine($"Limit: {FormatOptionalNumber(limit)}");
+        Console.WriteLine($"Force indexing: {FormatBoolean(request.Force)}");
+        Console.WriteLine($"Limit: {FormatOptionalNumber(request.Limit)}");
+        Console.WriteLine($"Project filter: {FormatOptional(request.Project)}");
+        Console.WriteLine($"Area filter: {FormatOptional(request.Area)}");
+        Console.WriteLine($"Tag filter: {FormatOptional(request.Tag)}");
         Console.WriteLine();
         Console.WriteLine($"Total documents: {result.TotalDocuments}");
         Console.WriteLine($"Indexed documents: {result.IndexedDocuments}");
         Console.WriteLine($"Skipped documents: {result.SkippedDocuments}");
         Console.WriteLine($"Failed documents: {result.FailedDocuments}");
 
-        PrintIndexingGuidance(result, force);
+        PrintIndexingGuidance(result, request.Force);
 
         if (result.Errors.Count == 0)
         {
@@ -264,7 +350,7 @@ public sealed class IndexCommandHandler : ICommandHandler
     /// </summary>
     private static void PrintDryRunResult(
         IReadOnlyCollection<VectorMemoryDocument> documents,
-        int? limit)
+        IndexCommandRequest request)
     {
         Console.WriteLine("DevMemory vector index dry-run");
         Console.WriteLine("------------------------------");
@@ -272,7 +358,10 @@ public sealed class IndexCommandHandler : ICommandHandler
         Console.WriteLine("No embeddings will be generated.");
         Console.WriteLine("No vector store writes will be performed.");
         Console.WriteLine();
-        Console.WriteLine($"Limit: {FormatOptionalNumber(limit)}");
+        Console.WriteLine($"Limit: {FormatOptionalNumber(request.Limit)}");
+        Console.WriteLine($"Project filter: {FormatOptional(request.Project)}");
+        Console.WriteLine($"Area filter: {FormatOptional(request.Area)}");
+        Console.WriteLine($"Tag filter: {FormatOptional(request.Tag)}");
         Console.WriteLine($"Total documents: {documents.Count}");
 
         if (documents.Count == 0)
@@ -451,5 +540,8 @@ public sealed class IndexCommandHandler : ICommandHandler
     private sealed record IndexCommandRequest(
         bool IsDryRun,
         bool Force,
-        int? Limit);
+        int? Limit,
+        string? Project,
+        string? Area,
+        string? Tag);
 }

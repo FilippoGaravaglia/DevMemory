@@ -232,7 +232,7 @@ public sealed class IndexCommandHandlerTests
             () => handler.Execute(["index", "--unknown"]));
 
         // Assert
-        Assert.Equal("Usage: devmemory index [--dry-run] [--force] [--limit <number>]", exception.Message);
+        Assert.Equal("Usage: devmemory index [--dry-run] [--force] [--limit <number>] [--project <project>] [--area <area>] [--tag <tag>]", exception.Message);
     }
 
     [Fact]
@@ -466,6 +466,130 @@ public sealed class IndexCommandHandlerTests
 
         Assert.Contains("No memories are available for indexing.", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory add", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenProjectOptionHasNoValue_ThrowsArgumentException()
+    {
+        // Arrange
+        var handler = CreateDryRunHandler([]);
+
+        // Act
+        var exception = Assert.Throws<ArgumentException>(
+            () => handler.Execute(["index", "--project"]));
+
+        // Assert
+        Assert.Equal("Option --project requires a value.", exception.Message);
+    }
+
+    [Fact]
+    public void Execute_WhenDryRunFiltersAreProvided_PrintsOnlyMatchingDocuments()
+    {
+        // Arrange
+        var matchingMemoryId = Guid.Parse("741bf4b6-2b81-48a5-beae-1d0208e521d2");
+        var otherMemoryId = Guid.Parse("39478526-4706-455e-9444-e18d01771240");
+
+        var handler = CreateDryRunHandler(
+        [
+            new VectorMemoryDocument
+            {
+                MemoryId = matchingMemoryId,
+                DocumentId = matchingMemoryId.ToString("D"),
+                ContentHash = "hash-1",
+                Title = "Matching memory",
+                Project = "LogicalCommon",
+                Area = "Estimate",
+                Tags = ["mongodb", "dotnet"],
+                Text = "Matching memory text."
+            },
+            new VectorMemoryDocument
+            {
+                MemoryId = otherMemoryId,
+                DocumentId = otherMemoryId.ToString("D"),
+                ContentHash = "hash-2",
+                Title = "Other memory",
+                Project = "DevMemory",
+                Area = "AI",
+                Tags = ["rag"],
+                Text = "Other memory text."
+            }
+        ]);
+
+        // Act
+        var result = ExecuteAndCaptureOutput(
+            handler,
+            ["index", "--dry-run", "--project", "logicalcommon", "--area", "estimate", "--tag", "MongoDB"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("Project filter: logicalcommon", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Area filter: estimate", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Tag filter: MongoDB", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Total documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Matching memory", result.Output, StringComparison.Ordinal);
+        Assert.DoesNotContain("Other memory", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenProjectFilterIsProvided_IndexesOnlyMatchingDocuments()
+    {
+        // Arrange
+        var matchingMemoryId = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee");
+        var otherMemoryId = Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff");
+
+        var documents = new[]
+        {
+            new VectorMemoryDocument
+            {
+                MemoryId = matchingMemoryId,
+                DocumentId = matchingMemoryId.ToString("D"),
+                ContentHash = "hash-1",
+                Title = "LogicalCommon memory",
+                Project = "LogicalCommon",
+                Area = "Estimate",
+                Tags = ["mongodb"],
+                Text = "LogicalCommon memory text."
+            },
+            new VectorMemoryDocument
+            {
+                MemoryId = otherMemoryId,
+                DocumentId = otherMemoryId.ToString("D"),
+                ContentHash = "hash-2",
+                Title = "DevMemory memory",
+                Project = "DevMemory",
+                Area = "AI",
+                Tags = ["rag"],
+                Text = "DevMemory memory text."
+            }
+        };
+
+        var vectorStore = new FakeVectorMemoryStore();
+
+        var handler = new IndexCommandHandler(
+            CreateSemanticSearchOptions,
+            _ => new FakeEmbeddingService(),
+            _ => vectorStore,
+            () => documents,
+            static (embeddingService, vectorMemoryStore) =>
+                new MemoryVectorIndexingService(embeddingService, vectorMemoryStore));
+
+        // Act
+        var result = ExecuteAndCaptureOutput(
+            handler,
+            ["index", "--project", "logicalcommon"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("Project filter: logicalcommon", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Total documents: 1", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Indexed documents: 1", result.Output, StringComparison.Ordinal);
+
+        var indexedDocument = Assert.Single(vectorStore.Documents);
+        Assert.Equal(matchingMemoryId, indexedDocument.MemoryId);
     }
 
     #region Helpers
