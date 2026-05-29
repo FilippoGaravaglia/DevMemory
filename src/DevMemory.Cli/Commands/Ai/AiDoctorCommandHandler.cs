@@ -384,8 +384,7 @@ public sealed class AiDoctorCommandHandler : ICommandHandler
             return false;
         }
 
-        var exists = availableModels.Any(
-            availableModel => availableModel.Equals(modelName, StringComparison.OrdinalIgnoreCase));
+        var exists = IsOllamaModelAvailable(availableModels, modelName);
 
         if (exists)
         {
@@ -398,6 +397,45 @@ public sealed class AiDoctorCommandHandler : ICommandHandler
         Console.WriteLine($"Hint: run ollama pull {modelName}");
 
         return false;
+    }
+
+    /// <summary>
+    /// Determines whether an Ollama model is available, treating a missing tag as the default latest tag.
+    /// </summary>
+    private static bool IsOllamaModelAvailable(
+        IReadOnlyCollection<string> availableModels,
+        string configuredModel)
+    {
+        if (availableModels.Count == 0 || string.IsNullOrWhiteSpace(configuredModel))
+        {
+            return false;
+        }
+
+        var normalizedConfiguredModel = NormalizeOllamaModelName(configuredModel);
+
+        return availableModels
+            .Select(NormalizeOllamaModelName)
+            .Any(availableModel => string.Equals(
+                availableModel,
+                normalizedConfiguredModel,
+                StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Normalizes an Ollama model name by adding the default latest tag when no tag is provided.
+    /// </summary>
+    private static string NormalizeOllamaModelName(string modelName)
+    {
+        var normalizedModelName = modelName.Trim();
+
+        if (normalizedModelName.Contains('@', StringComparison.Ordinal))
+        {
+            normalizedModelName = normalizedModelName.Split('@', 2)[0];
+        }
+
+        return normalizedModelName.Contains(':', StringComparison.Ordinal)
+            ? normalizedModelName
+            : $"{normalizedModelName}:latest";
     }
 
     /// <summary>
