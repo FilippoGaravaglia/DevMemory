@@ -1,6 +1,6 @@
-# DevMemory
-
 <div align="center">
+
+# DevMemory
 
 ### Local-first AI memory for developers
 
