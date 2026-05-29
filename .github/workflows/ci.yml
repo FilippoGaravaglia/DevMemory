@@ -43,5 +43,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: devmemory-cli-package
-          path: artifacts/packages/*.nupkg
+          path: |
+            artifacts/packages/*.nupkg
+            artifacts/packages/*.sha256
           if-no-files-found: error
