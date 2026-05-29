@@ -11,18 +11,14 @@ on:
       - master
   workflow_dispatch:
 
-permissions:
-  contents: read
-
 env:
   DOTNET_NOLOGO: true
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
   DOTNET_CLI_TELEMETRY_OPTOUT: true
-  BUILD_CONFIGURATION: Release
 
 jobs:
-  build-test-pack:
-    name: Build, test and pack
+  release-check:
+    name: Release check
     runs-on: ubuntu-latest
 
     steps:
@@ -37,31 +33,13 @@ jobs:
       - name: Display .NET information
         run: dotnet --info
 
-      - name: Restore solution
-        run: dotnet restore DevMemory.slnx
-
-      - name: Ensure shell scripts are executable
+      - name: Ensure scripts are executable
         run: chmod +x scripts/*.sh
 
-      - name: Validate shell scripts
-        run: ./scripts/validate-shell-scripts.sh
+      - name: Run release check
+        run: ./scripts/release-check.sh
 
-      - name: Verify formatting
-        run: dotnet format DevMemory.slnx --verify-no-changes --verbosity diagnostic --no-restore
-
-      - name: Build solution
-        run: dotnet build DevMemory.slnx --configuration $BUILD_CONFIGURATION --no-restore
-
-      - name: Run tests
-        run: dotnet test DevMemory.slnx --configuration $BUILD_CONFIGURATION --no-build --verbosity normal
-
-      - name: Pack CLI
-        run: dotnet pack src/DevMemory.Cli/DevMemory.Cli.csproj --configuration $BUILD_CONFIGURATION --no-build --output artifacts/packages
-
-      - name: Smoke test CLI package
-        run: ./scripts/smoke-test-cli-package.sh
-
-      - name: Upload package artifact
+      - name: Upload CLI package artifact
         uses: actions/upload-artifact@v4
         with:
           name: devmemory-cli-package
