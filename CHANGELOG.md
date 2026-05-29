@@ -6,21 +6,29 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 
 ---
 
-## [0.1.3] - 2026-05-10
+## [0.1.3] - 2026-05-29
 
 ### Added
 
-- Added GitHub Actions CI pipeline for build, test and package validation.
+- Added GitHub Actions CI pipeline aligned with the shared local release-check workflow.
 - Added formatting verification with `dotnet format`.
 - Added repository code quality baseline with `.editorconfig`, `.gitattributes` and `Directory.Build.props`.
-- Added local release packaging script.
+- Added local release packaging workflow through `pack-release.sh`.
 - Added CLI `version` command.
 - Added global CLI aliases:
   - `devmemory --version`
   - `devmemory -v`
   - `devmemory --help`
   - `devmemory -h`
+- Added installed CLI verification script.
 - Added end-to-end smoke test script for the installed global tool.
+- Added release-check pipeline with formatting, build, tests, repository hygiene, changelog verification, version consistency, package verification, package smoke test, and final checksum generation.
+- Added NuGet package artifact verification for the DevMemory CLI tool.
+- Added SHA-256 checksum generation and validation for release artifacts.
+- Added repository hygiene verification to prevent generated artifacts from being tracked.
+- Added local data backup and restore scripts.
+- Added local AI setup, diagnostics, and smoke-test scripts.
+- Added vector indexing dry-run, scoped filters, text preview, and indexable text limits.
 - Added README sections for demo, quality practices and release status.
 - Added improved local development workflow documentation.
 
@@ -33,6 +41,9 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 - Cleaned up Markdown exporter analyzer warnings.
 - Improved command dispatching behavior for help and version aliases.
 - Improved release packaging metadata for the CLI package.
+- Aligned CI and local release packaging around the shared release-check pipeline.
+- Aligned `pack-release.sh` with the final release-check workflow.
+- Improved release safety by generating the final checksum after the CLI package smoke test.
 
 ### Notes
 
@@ -41,6 +52,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 - The package is not published to NuGet yet.
 - Storage is currently JSON-based.
 - CLI parsing is currently implemented manually.
+- Local AI end-to-end validation still requires Ollama, Qdrant, and at least one local memory available for indexing.
 
 ---
 
