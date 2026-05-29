@@ -18,7 +18,16 @@ QUERY="${DEVMEMORY_AI_SMOKE_QUERY:-estimate revision cloning}"
 QUESTION="${DEVMEMORY_AI_SMOKE_QUESTION:-How did we handle estimate revision cloning?}"
 
 TEMP_DIR="$(mktemp -d)"
-DEVMEMORY_HOME_DIR="$TEMP_DIR/devmemory-home"
+USES_TEMP_HOME="false"
+
+if [ -n "${DEVMEMORY_AI_SMOKE_HOME:-}" ]; then
+  DEVMEMORY_HOME_DIR="$DEVMEMORY_AI_SMOKE_HOME"
+elif [ -n "${DEVMEMORY_HOME:-}" ]; then
+  DEVMEMORY_HOME_DIR="$DEVMEMORY_HOME"
+else
+  DEVMEMORY_HOME_DIR="$TEMP_DIR/devmemory-home"
+  USES_TEMP_HOME="true"
+fi
 
 cleanup() {
   rm -rf "$TEMP_DIR"
@@ -48,9 +57,38 @@ print_step() {
   printf '%s\n' "$1" | sed 's/./-/g'
 }
 
+fail_no_memories() {
+  echo
+  echo "Local AI smoke test cannot continue because no memories are available for indexing."
+  echo
+  echo "This smoke test must validate the real flow:"
+  echo "  memory -> embedding -> Qdrant index -> semantic search -> RAG answer"
+  echo
+  echo "Create at least one memory first, or point the smoke test to an existing DevMemory home."
+  echo
+  echo "Examples:"
+  echo "  devmemory add"
+  echo "  DEVMEMORY_AI_SMOKE_HOME=\"\$HOME/.devmemory\" ./scripts/dev-ai-local.sh smoke"
+  echo "  DEVMEMORY_HOME=\"\$HOME/.devmemory\" ./scripts/dev-ai-local.sh smoke"
+
+  if [ "$USES_TEMP_HOME" = "true" ]; then
+    echo
+    echo "Current run is using a temporary empty DEVMEMORY_HOME:"
+    echo "  $DEVMEMORY_HOME"
+  fi
+
+  exit 1
+}
+
+extract_total_documents() {
+  local output_file="$1"
+
+  awk -F': ' '/^Total documents:/ { print $2; exit }' "$output_file"
+}
+
 echo "Running DevMemory local AI smoke test..."
 echo
-echo "Temporary DEVMEMORY_HOME: $DEVMEMORY_HOME"
+echo "DEVMEMORY_HOME:           $DEVMEMORY_HOME"
 echo "Chat provider:            $DEVMEMORY_CHAT_PROVIDER"
 echo "Embedding provider:       $DEVMEMORY_EMBEDDING_PROVIDER"
 echo "Vector store:             $DEVMEMORY_VECTOR_STORE"
@@ -61,25 +99,35 @@ echo "Qdrant endpoint:          $DEVMEMORY_QDRANT_ENDPOINT"
 echo "Qdrant collection:        $DEVMEMORY_QDRANT_COLLECTION"
 echo
 
-print_step "Step 1/7 - Build CLI"
+print_step "Step 1/8 - Build CLI"
 dotnet build "$ROOT_DIR/DevMemory.slnx"
 
-print_step "Step 2/7 - Check AI runtime status"
+print_step "Step 2/8 - Check AI runtime status"
 run_cli ai-status
 
-print_step "Step 3/7 - Diagnose local AI runtime"
+print_step "Step 3/8 - Diagnose local AI runtime"
 run_cli ai-doctor
 
-print_step "Step 4/7 - Inspect indexable memories"
-run_cli index --dry-run --show-text --limit 1
+print_step "Step 4/8 - Inspect indexable memories"
+DRY_RUN_OUTPUT_FILE="$TEMP_DIR/index-dry-run-output.txt"
+run_cli index --dry-run --show-text --limit 1 | tee "$DRY_RUN_OUTPUT_FILE"
 
-print_step "Step 5/7 - Index first memory"
+TOTAL_DOCUMENTS="$(extract_total_documents "$DRY_RUN_OUTPUT_FILE")"
+
+if [ -z "$TOTAL_DOCUMENTS" ] || [ "$TOTAL_DOCUMENTS" -le 0 ]; then
+  fail_no_memories
+fi
+
+print_step "Step 5/8 - Index first memory"
 run_cli index --limit 1
 
-print_step "Step 6/7 - Run semantic search"
+print_step "Step 6/8 - Run semantic search"
 run_cli semantic-search "$QUERY" --limit 3
 
-print_step "Step 7/7 - Run RAG question with context"
+print_step "Step 7/8 - Run RAG question"
+run_cli ask --rag "$QUESTION" --limit 3
+
+print_step "Step 8/8 - Run RAG question with context"
 run_cli ask --rag --show-context "$QUESTION" --limit 3
 
 echo
