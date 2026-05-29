@@ -1,3 +1,4 @@
+using System.Globalization;
 using DevMemory.Application.Ai.Indexing;
 using DevMemory.Core;
 
@@ -162,5 +163,67 @@ public sealed class VectorMemoryDocumentBuilderTests
 
         // Assert
         Assert.Equal("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee", document.DocumentId);
+    }
+
+    [Fact]
+    public void BuildFromMemories_WhenFilesTouchedExceedLimit_KeepsFullMetadataButLimitsIndexableText()
+    {
+        // Arrange
+        var filesTouched = Enumerable
+            .Range(1, 55)
+            .Select(index => $"src/File{index.ToString("D2", CultureInfo.InvariantCulture)}.cs")
+            .ToList();
+
+        var memory = new TaskMemory
+        {
+            Id = Guid.Parse("aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"),
+            Title = "Large files touched memory",
+            Project = "DevMemory",
+            Area = "AI",
+            FilesTouched = filesTouched,
+            Solution = "Limit indexed files touched while preserving metadata.",
+            CreatedAt = new DateTime(2026, 5, 23, 10, 0, 0, DateTimeKind.Utc)
+        };
+
+        // Act
+        var document = Assert.Single(VectorMemoryDocumentBuilder.BuildFromMemories([memory]));
+
+        // Assert
+        Assert.Equal(55, document.FilesTouched.Count);
+        Assert.Contains("src/File01.cs", document.Text, StringComparison.Ordinal);
+        Assert.Contains("src/File50.cs", document.Text, StringComparison.Ordinal);
+        Assert.DoesNotContain("src/File51.cs", document.Text, StringComparison.Ordinal);
+        Assert.Contains("5 more item(s) omitted.", document.Text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BuildFromMemories_WhenIndexableTextIsTooLong_TruncatesTextAndKeepsStableHash()
+    {
+        // Arrange
+        var longSolution = new string('a', 20_000);
+
+        var memory = new TaskMemory
+        {
+            Id = Guid.Parse("bbbbbbbb-cccc-dddd-eeee-ffffffffffff"),
+            Title = "Very large memory",
+            Project = "DevMemory",
+            Area = "AI",
+            Solution = longSolution,
+            CreatedAt = new DateTime(2026, 5, 23, 10, 0, 0, DateTimeKind.Utc)
+        };
+
+        // Act
+        var firstDocument = Assert.Single(VectorMemoryDocumentBuilder.BuildFromMemories([memory]));
+        var secondDocument = Assert.Single(VectorMemoryDocumentBuilder.BuildFromMemories([memory]));
+
+        // Assert
+        Assert.True(firstDocument.Text.Length <= 12_000);
+        Assert.Contains(
+            "[Indexable text truncated to keep embedding input bounded.]",
+            firstDocument.Text,
+            StringComparison.Ordinal);
+
+        Assert.Equal(firstDocument.Text, secondDocument.Text);
+        Assert.Equal(firstDocument.ContentHash, secondDocument.ContentHash);
     }
 }

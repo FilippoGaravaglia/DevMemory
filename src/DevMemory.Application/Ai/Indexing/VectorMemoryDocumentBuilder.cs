@@ -11,6 +11,9 @@ namespace DevMemory.Application.Ai.Indexing;
 /// </summary>
 public static class VectorMemoryDocumentBuilder
 {
+    private const int MaxIndexedFilesTouched = 50;
+    private const int MaxIndexableTextLength = 12_000;
+
     public static IReadOnlyCollection<VectorMemoryDocument> BuildFromMemories(
         IReadOnlyCollection<TaskMemory> memories)
     {
@@ -79,12 +82,12 @@ public static class VectorMemoryDocumentBuilder
         AppendSection(builder, "Problem", memory.Problem);
         AppendSection(builder, "Solution", memory.Solution);
         AppendSection(builder, "Decisions", memory.Decisions);
-        AppendSection(builder, "Files touched", memory.FilesTouched);
+        AppendSection(builder, "Files touched", memory.FilesTouched, MaxIndexedFilesTouched);
         AppendSection(builder, "Tests", memory.Tests);
         AppendSection(builder, "Lessons learned", memory.LessonsLearned);
         AppendSection(builder, "Created at", memory.CreatedAt.ToString("O", CultureInfo.InvariantCulture));
 
-        return builder.ToString().Trim();
+        return TruncateIndexableText(builder.ToString().Trim());
     }
 
     /// <summary>
@@ -112,6 +115,18 @@ public static class VectorMemoryDocumentBuilder
         string title,
         IReadOnlyCollection<string> values)
     {
+        AppendSection(builder, title, values, maxItems: null);
+    }
+
+    /// <summary>
+    /// Appends a multi-value text section with an optional item limit.
+    /// </summary>
+    private static void AppendSection(
+        StringBuilder builder,
+        string title,
+        IReadOnlyCollection<string> values,
+        int? maxItems)
+    {
         var cleanedValues = values
             .Where(value => !string.IsNullOrWhiteSpace(value))
             .Select(value => value.Trim())
@@ -122,17 +137,54 @@ public static class VectorMemoryDocumentBuilder
             return;
         }
 
+        var valuesToAppend = maxItems is null
+            ? cleanedValues
+            : cleanedValues.Take(maxItems.Value).ToList();
+
         builder
             .Append(title)
             .AppendLine(":");
 
-        foreach (var value in cleanedValues)
+        foreach (var value in valuesToAppend)
         {
             builder
                 .Append("- ")
                 .AppendLine(value);
         }
 
+        if (maxItems is not null && cleanedValues.Count > maxItems.Value)
+        {
+            builder
+                .Append("- ... ")
+                .Append((cleanedValues.Count - maxItems.Value).ToString(CultureInfo.InvariantCulture))
+                .AppendLine(" more item(s) omitted.");
+        }
+
         builder.AppendLine();
+    }
+
+    /// <summary>
+    /// Truncates the final indexable text to keep embedding input bounded.
+    /// </summary>
+    private static string TruncateIndexableText(string text)
+    {
+        if (text.Length <= MaxIndexableTextLength)
+        {
+            return text;
+        }
+
+        const string suffix = """
+
+        [Indexable text truncated to keep embedding input bounded.]
+        """;
+
+        var maxContentLength = MaxIndexableTextLength - suffix.Length;
+
+        if (maxContentLength <= 0)
+        {
+            return text[..MaxIndexableTextLength];
+        }
+
+        return string.Concat(text.AsSpan(0, maxContentLength), suffix);
     }
 }
