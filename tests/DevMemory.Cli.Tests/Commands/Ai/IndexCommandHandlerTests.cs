@@ -172,6 +172,8 @@ public sealed class IndexCommandHandlerTests
             new VectorMemoryDocument
             {
                 MemoryId = memoryId,
+                DocumentId = memoryId.ToString("D"),
+                ContentHash = "abc123",
                 Title = "Estimate revision cloning",
                 Project = "LogicalCommon",
                 Area = "Estimate",
@@ -192,15 +194,23 @@ public sealed class IndexCommandHandlerTests
         Assert.Contains("DevMemory vector index dry-run", result.Output, StringComparison.Ordinal);
         Assert.Contains("No embeddings will be generated.", result.Output, StringComparison.Ordinal);
         Assert.Contains("No vector store writes will be performed.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Show text: no", result.Output, StringComparison.Ordinal);
         Assert.Contains("Total documents: 1", result.Output, StringComparison.Ordinal);
 
         Assert.Contains("Estimate revision cloning", result.Output, StringComparison.Ordinal);
         Assert.Contains(memoryId.ToString("D"), result.Output, StringComparison.Ordinal);
+        Assert.Contains($"DocumentId: {memoryId:D}", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Content hash: abc123", result.Output, StringComparison.Ordinal);
         Assert.Contains("Project: LogicalCommon", result.Output, StringComparison.Ordinal);
         Assert.Contains("Area: Estimate", result.Output, StringComparison.Ordinal);
         Assert.Contains("Branch: feature/revisions", result.Output, StringComparison.Ordinal);
         Assert.Contains("Tags: dotnet, mongodb", result.Output, StringComparison.Ordinal);
         Assert.Contains("Files touched: 2", result.Output, StringComparison.Ordinal);
+
+        Assert.DoesNotContain(
+            "Revision cloning was handled by normalizing null collections.",
+            result.Output,
+            StringComparison.Ordinal);
     }
 
     [Fact]
@@ -232,7 +242,7 @@ public sealed class IndexCommandHandlerTests
             () => handler.Execute(["index", "--unknown"]));
 
         // Assert
-        Assert.Equal("Usage: devmemory index [--dry-run] [--force] [--limit <number>] [--project <project>] [--area <area>] [--tag <tag>]", exception.Message);
+        Assert.Equal("Usage: devmemory index [--dry-run] [--force] [--limit <number>] [--project <project>] [--area <area>] [--tag <tag>] [--show-text]", exception.Message);
     }
 
     [Fact]
@@ -590,6 +600,64 @@ public sealed class IndexCommandHandlerTests
 
         var indexedDocument = Assert.Single(vectorStore.Documents);
         Assert.Equal(matchingMemoryId, indexedDocument.MemoryId);
+    }
+
+    [Fact]
+    public void Execute_WhenShowTextIsProvidedWithoutDryRun_ThrowsArgumentException()
+    {
+        // Arrange
+        var handler = CreateDryRunHandler([]);
+
+        // Act
+        var exception = Assert.Throws<ArgumentException>(
+            () => handler.Execute(["index", "--show-text"]));
+
+        // Assert
+        Assert.Equal("Option --show-text can only be used together with --dry-run.", exception.Message);
+    }
+
+    [Fact]
+    public void Execute_WhenDryRunShowTextIsProvided_PrintsIndexableText()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("741bf4b6-2b81-48a5-beae-1d0208e521d2");
+
+        var handler = CreateDryRunHandler(
+        [
+            new VectorMemoryDocument
+            {
+                MemoryId = memoryId,
+                DocumentId = memoryId.ToString("D"),
+                ContentHash = "hash-1",
+                Title = "Estimate revision cloning",
+                Project = "LogicalCommon",
+                Area = "Estimate",
+                Tags = ["dotnet"],
+                Text = """
+                Title:
+                Estimate revision cloning
+
+                Solution:
+                Normalize collections before cloning.
+                """
+            }
+        ]);
+
+        // Act
+        var result = ExecuteAndCaptureOutput(
+            handler,
+            ["index", "--dry-run", "--show-text", "--limit", "1"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("Show text: yes", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Text:", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Title:", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Estimate revision cloning", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Solution:", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Normalize collections before cloning.", result.Output, StringComparison.Ordinal);
     }
 
     #region Helpers

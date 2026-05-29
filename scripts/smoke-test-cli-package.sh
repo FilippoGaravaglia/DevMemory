@@ -85,6 +85,9 @@ echo
 "$TOOL_PATH" index --dry-run --limit 1
 echo
 
+"$TOOL_PATH" index --dry-run --show-text --limit 1
+echo
+
 "$TOOL_PATH" index --dry-run --project DevMemory --limit 1
 echo
 

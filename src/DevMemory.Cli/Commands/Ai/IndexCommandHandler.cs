@@ -166,6 +166,7 @@ public sealed class IndexCommandHandler : ICommandHandler
         string? project = null;
         string? area = null;
         string? tag = null;
+        var showText = false;
 
         for (var index = 1; index < args.Length; index++)
         {
@@ -180,6 +181,12 @@ public sealed class IndexCommandHandler : ICommandHandler
             if (value.Equals("--force", StringComparison.OrdinalIgnoreCase))
             {
                 force = true;
+                continue;
+            }
+
+            if (value.Equals("--show-text", StringComparison.OrdinalIgnoreCase))
+            {
+                showText = true;
                 continue;
             }
 
@@ -217,12 +224,17 @@ public sealed class IndexCommandHandler : ICommandHandler
             }
 
             throw new ArgumentException(
-                "Usage: devmemory index [--dry-run] [--force] [--limit <number>] [--project <project>] [--area <area>] [--tag <tag>]");
+                "Usage: devmemory index [--dry-run] [--force] [--limit <number>] [--project <project>] [--area <area>] [--tag <tag>] [--show-text]");
         }
 
         if (isDryRun && force)
         {
             throw new ArgumentException("Options --dry-run and --force cannot be used together.");
+        }
+
+        if (showText && !isDryRun)
+        {
+            throw new ArgumentException("Option --show-text can only be used together with --dry-run.");
         }
 
         return new IndexCommandRequest(
@@ -231,7 +243,8 @@ public sealed class IndexCommandHandler : ICommandHandler
             limit,
             project,
             area,
-            tag);
+            tag,
+            showText);
     }
 
     /// <summary>
@@ -323,6 +336,7 @@ public sealed class IndexCommandHandler : ICommandHandler
         Console.WriteLine($"Project filter: {FormatOptional(request.Project)}");
         Console.WriteLine($"Area filter: {FormatOptional(request.Area)}");
         Console.WriteLine($"Tag filter: {FormatOptional(request.Tag)}");
+        Console.WriteLine($"Show text: {FormatBoolean(request.ShowText)}");
         Console.WriteLine();
         Console.WriteLine($"Total documents: {result.TotalDocuments}");
         Console.WriteLine($"Indexed documents: {result.IndexedDocuments}");
@@ -362,6 +376,7 @@ public sealed class IndexCommandHandler : ICommandHandler
         Console.WriteLine($"Project filter: {FormatOptional(request.Project)}");
         Console.WriteLine($"Area filter: {FormatOptional(request.Area)}");
         Console.WriteLine($"Tag filter: {FormatOptional(request.Tag)}");
+        Console.WriteLine($"Show text: {FormatBoolean(request.ShowText)}");
         Console.WriteLine($"Total documents: {documents.Count}");
 
         if (documents.Count == 0)
@@ -377,7 +392,7 @@ public sealed class IndexCommandHandler : ICommandHandler
 
         foreach (var document in documents.Take(DryRunPreviewLimit))
         {
-            PrintDryRunDocument(document);
+            PrintDryRunDocument(document, request.ShowText);
         }
 
         if (documents.Count > DryRunPreviewLimit)
@@ -390,16 +405,50 @@ public sealed class IndexCommandHandler : ICommandHandler
     /// <summary>
     /// Prints a single vector document preview for dry-run output.
     /// </summary>
-    private static void PrintDryRunDocument(VectorMemoryDocument document)
+    private static void PrintDryRunDocument(
+        VectorMemoryDocument document,
+        bool showText)
     {
         Console.WriteLine($"- {document.Title}");
         Console.WriteLine($"  MemoryId: {document.MemoryId:D}");
+        Console.WriteLine($"  DocumentId: {FormatOptional(document.DocumentId)}");
+        Console.WriteLine($"  Content hash: {FormatOptional(document.ContentHash)}");
         Console.WriteLine($"  Project: {FormatOptional(document.Project)}");
         Console.WriteLine($"  Area: {FormatOptional(document.Area)}");
         Console.WriteLine($"  Branch: {FormatOptional(document.Branch)}");
         Console.WriteLine($"  Tags: {FormatCollection(document.Tags)}");
         Console.WriteLine($"  Files touched: {document.FilesTouched.Count}");
         Console.WriteLine($"  Text length: {document.Text.Length}");
+
+        if (!showText)
+        {
+            return;
+        }
+
+        Console.WriteLine("  Text:");
+        PrintIndentedText(document.Text, indentation: "    ");
+    }
+
+    /// <summary>
+    /// Prints multiline text using the provided indentation.
+    /// </summary>
+    private static void PrintIndentedText(string text, string indentation)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            Console.WriteLine($"{indentation}-");
+
+            return;
+        }
+
+        using var reader = new StringReader(text);
+
+        string? line;
+
+        while ((line = reader.ReadLine()) is not null)
+        {
+            Console.WriteLine($"{indentation}{line}");
+        }
     }
 
     /// <summary>
@@ -543,5 +592,6 @@ public sealed class IndexCommandHandler : ICommandHandler
         int? Limit,
         string? Project,
         string? Area,
-        string? Tag);
+        string? Tag,
+        bool ShowText);
 }
