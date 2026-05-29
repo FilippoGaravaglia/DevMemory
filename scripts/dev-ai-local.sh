@@ -16,6 +16,7 @@ Commands:
   stop         Stop local AI services
   doctor       Run local AI doctor
   pull-models  Pull configured local Ollama models
+  smoke        Run local AI end-to-end smoke test
   help         Show this help message
 
 Examples:
@@ -23,6 +24,7 @@ Examples:
   ./scripts/dev-ai-local.sh doctor
   ./scripts/dev-ai-local.sh start
   ./scripts/dev-ai-local.sh pull-models
+  ./scripts/dev-ai-local.sh smoke
   ./scripts/dev-ai-local.sh stop
 EOF
 }
@@ -73,6 +75,10 @@ case "$COMMAND" in
 
   pull-models)
     run_script "pull-ollama-models-local.sh"
+    ;;
+
+  smoke)
+    run_script "smoke-test-ai-local.sh"
     ;;
 
   help|--help|-h)
