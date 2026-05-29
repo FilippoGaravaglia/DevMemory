@@ -23,14 +23,14 @@ echo "-------------------------------------"
 "$ROOT_DIR/scripts/verify-package-artifact.sh"
 
 echo
-echo "Step 4/5 - Generating package checksum"
-echo "--------------------------------------"
-"$ROOT_DIR/scripts/generate-package-checksum.sh"
-
-echo
-echo "Step 5/5 - Running CLI package smoke test"
+echo "Step 4/5 - Running CLI package smoke test"
 echo "----------------------------------------"
 "$ROOT_DIR/scripts/smoke-test-cli-package.sh"
+
+echo
+echo "Step 5/5 - Generating final package checksum"
+echo "--------------------------------------------"
+"$ROOT_DIR/scripts/generate-package-checksum.sh"
 
 echo
 echo "DevMemory release check completed successfully."
