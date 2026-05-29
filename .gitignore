@@ -2,14 +2,11 @@
 # .NET build output
 # =========================================================
 
-bin/
-obj/
 [Bb]in/
 [Oo]bj/
-**/bin/
-**/obj/
 **/[Bb]in/
 **/[Oo]bj/
+
 [Dd]ebug/
 [Rr]elease/
 x64/
@@ -23,13 +20,14 @@ Publish/
 app.publish/
 
 # =========================================================
-# NuGet / packages / artifacts
+# NuGet / packages / release artifacts
 # =========================================================
 
 artifacts/
 packages/
 *.nupkg
 *.snupkg
+*.nupkg.sha256
 
 # NuGet restore cache / generated files
 project.assets.json
@@ -37,21 +35,6 @@ project.nuget.cache
 *.nuget.g.props
 *.nuget.g.targets
 *.nuget.dgspec.json
-
-# =========================================================
-# .NET generated binaries
-# =========================================================
-
-*.dll
-*.exe
-*.pdb
-*.mdb
-*.deps.json
-*.runtimeconfig.json
-*.staticwebassets.runtime.json
-*.sourcelink.json
-*.AssemblyAttributes.cs
-*.AssemblyInfo.cs
 
 # =========================================================
 # Test results / coverage
@@ -99,6 +82,14 @@ Desktop.ini
 *.cache
 
 # =========================================================
+# Environment / local secrets
+# =========================================================
+
+.env
+.env.local
+.env.*.local
+
+# =========================================================
 # DevMemory local/generated files
 # =========================================================
 
@@ -109,5 +100,14 @@ memory.json
 
 # Local DevMemory generated folders, in case they are created inside the repo
 .devmemory/
+devmemory-work/
 markdown/
 graph/
+
+# =========================================================
+# Local AI/runtime data
+# =========================================================
+
+.qdrant/
+qdrant_storage/
+ollama/

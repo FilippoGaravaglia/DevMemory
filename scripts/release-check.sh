@@ -8,27 +8,32 @@ cd "$ROOT_DIR"
 echo "Running DevMemory release check..."
 
 echo
-echo "Step 1/5 - Running build and test validation"
+echo "Step 1/6 - Running build and test validation"
 echo "-------------------------------------------"
 "$ROOT_DIR/scripts/build-test.sh"
 
 echo
-echo "Step 2/5 - Verifying version consistency"
+echo "Step 2/6 - Verifying repository hygiene"
+echo "--------------------------------------"
+"$ROOT_DIR/scripts/verify-repository-hygiene.sh"
+
+echo
+echo "Step 3/6 - Verifying version consistency"
 echo "----------------------------------------"
 "$ROOT_DIR/scripts/verify-version-consistency.sh"
 
 echo
-echo "Step 3/5 - Verifying package artifact"
+echo "Step 4/6 - Verifying package artifact"
 echo "-------------------------------------"
 "$ROOT_DIR/scripts/verify-package-artifact.sh"
 
 echo
-echo "Step 4/5 - Running CLI package smoke test"
+echo "Step 5/6 - Running CLI package smoke test"
 echo "----------------------------------------"
 "$ROOT_DIR/scripts/smoke-test-cli-package.sh"
 
 echo
-echo "Step 5/5 - Generating final package checksum"
+echo "Step 6/6 - Generating final package checksum"
 echo "--------------------------------------------"
 "$ROOT_DIR/scripts/generate-package-checksum.sh"
 
