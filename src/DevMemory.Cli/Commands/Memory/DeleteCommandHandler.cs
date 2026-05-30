@@ -69,7 +69,7 @@ public sealed class DeleteCommandHandler : ICommandHandler
         Console.WriteLine($"Title: {result.DeletedMemory.Title}");
         Console.WriteLine();
         Console.WriteLine("Note:");
-        Console.WriteLine("  The primary JSON memory has been deleted.");
+        Console.WriteLine("  The primary JSON memory and Markdown export have been deleted.");
         Console.WriteLine("  If this memory was already indexed, run:");
         Console.WriteLine("    devmemory index --force");
         Console.WriteLine("  to rebuild the derived vector index.");

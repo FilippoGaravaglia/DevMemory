@@ -73,4 +73,80 @@ public sealed class MarkdownMemoryExporterTests
             }
         }
     }
+
+    [Fact]
+    public void Delete_WhenMarkdownFileExists_RemovesMarkdownFile()
+    {
+        // Arrange
+        using var tempDirectory = new TemporaryDirectory();
+
+        var options = new DevMemoryStorageOptions
+        {
+            StorageDirectory = tempDirectory.Path
+        };
+
+        var exporter = new MarkdownMemoryExporter(options);
+
+        var memory = new TaskMemory
+        {
+            Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            Title = "Fix legacy revision root",
+            Project = "LogicalCommon",
+            Area = "Estimate Revision",
+            Branch = "TGS-500_fix_revision_options",
+            Tags = ["dotnet", "unit-test"],
+            Problem = "Legacy root was not detected correctly.",
+            Solution = "Updated revision chain handling.",
+            Decisions = ["Preserve response compatibility"],
+            FilesTouched = ["EstimateRevisionService.cs"],
+            Tests = ["GetRevisionOptionsAsync_WhenCurrentEstimateHasNoRevisionMetadata_TreatsItAsLegacyRoot"],
+            LessonsLearned = "Legacy estimates can miss revision metadata."
+        };
+
+        var filePath = exporter.Export(memory);
+
+        Assert.True(File.Exists(filePath));
+
+        // Act
+        exporter.Delete(memory);
+
+        // Assert
+        Assert.False(File.Exists(filePath));
+    }
+
+    [Fact]
+    public void Delete_WhenMarkdownFileDoesNotExist_DoesNotThrow()
+    {
+        // Arrange
+        using var tempDirectory = new TemporaryDirectory();
+
+        var options = new DevMemoryStorageOptions
+        {
+            StorageDirectory = tempDirectory.Path
+        };
+
+        var exporter = new MarkdownMemoryExporter(options);
+
+        var memory = new TaskMemory
+        {
+            Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa"),
+            Title = "Fix legacy revision root",
+            Project = "LogicalCommon",
+            Area = "Estimate Revision",
+            Branch = "TGS-500_fix_revision_options",
+            Tags = ["dotnet", "unit-test"],
+            Problem = "Legacy root was not detected correctly.",
+            Solution = "Updated revision chain handling.",
+            Decisions = ["Preserve response compatibility"],
+            FilesTouched = ["EstimateRevisionService.cs"],
+            Tests = ["GetRevisionOptionsAsync_WhenCurrentEstimateHasNoRevisionMetadata_TreatsItAsLegacyRoot"],
+            LessonsLearned = "Legacy estimates can miss revision metadata."
+        };
+
+        // Act
+        var exception = Record.Exception(() => exporter.Delete(memory));
+
+        // Assert
+        Assert.Null(exception);
+    }
 }

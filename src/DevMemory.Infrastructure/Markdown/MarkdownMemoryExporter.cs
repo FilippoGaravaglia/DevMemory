@@ -1,5 +1,4 @@
 using System.Text;
-using DevMemory.Application.Abstractions;
 using DevMemory.Application.Abstractions.Memory;
 using DevMemory.Core;
 using DevMemory.Infrastructure.Storage;
@@ -33,6 +32,19 @@ public sealed class MarkdownMemoryExporter : IMemoryExporter
         File.WriteAllText(filePath, markdown, Encoding.UTF8);
 
         return filePath;
+    }
+
+    public void Delete(TaskMemory memory)
+    {
+        Directory.CreateDirectory(_options.MarkdownDirectoryPath);
+
+        var fileName = BuildFileName(memory);
+        var filePath = Path.Combine(_options.MarkdownDirectoryPath, fileName);
+
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
     }
 
     private static string BuildMarkdown(TaskMemory memory)

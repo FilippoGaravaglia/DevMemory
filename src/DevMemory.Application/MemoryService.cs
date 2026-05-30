@@ -71,6 +71,8 @@ public sealed class MemoryService
 
         _repository.Save(memories);
 
+        _memoryExporter.Delete(memory);
+
         return DeleteMemoryResult.Ok(memory);
     }
 

@@ -205,6 +205,10 @@ public sealed class DeleteCommandHandlerTests
         {
             return $"/tmp/markdown/{memory.Id:D}.md";
         }
+
+        public void Delete(TaskMemory memory)
+        {
+        }
     }
 
     private sealed record CommandResult(

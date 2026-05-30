@@ -233,6 +233,7 @@ public sealed class MemoryServiceTests
         Assert.Equal(memoryId, result.DeletedMemory.Id);
 
         Assert.Empty(repository.Load());
+        Assert.Contains(memoryId, exporter.DeletedMemoryIds);
     }
 
     [Fact]
@@ -253,6 +254,7 @@ public sealed class MemoryServiceTests
         Assert.False(result.Success);
         Assert.Null(result.DeletedMemory);
         Assert.Equal($"Memory not found: {memoryId}", result.Error);
+        Assert.Empty(exporter.DeletedMemoryIds);
     }
 
     #region Helpers
@@ -288,6 +290,11 @@ public sealed class MemoryServiceTests
     private sealed class InMemoryExporter : IMemoryExporter
     {
         public Guid? ExportedMemoryId { get; private set; }
+
+        public void Delete(TaskMemory memory)
+        {
+            throw new NotImplementedException();
+        }
 
         public string Export(TaskMemory memory)
         {
@@ -329,9 +336,16 @@ public sealed class MemoryServiceTests
 
     private sealed class TestMemoryExporter : IMemoryExporter
     {
+        public List<Guid> DeletedMemoryIds { get; } = [];
+
         public string Export(TaskMemory memory)
         {
             return $"/tmp/markdown/{memory.Id:D}.md";
+        }
+
+        public void Delete(TaskMemory memory)
+        {
+            DeletedMemoryIds.Add(memory.Id);
         }
     }
 
