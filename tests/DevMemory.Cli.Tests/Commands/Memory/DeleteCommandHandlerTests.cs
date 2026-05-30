@@ -1,5 +1,10 @@
 using DevMemory.Application;
+using DevMemory.Application.Abstractions;
 using DevMemory.Application.Abstractions.Memory;
+using DevMemory.Application.Models.Ai.Chat;
+using DevMemory.Application.Models.Ai.Embeddings;
+using DevMemory.Application.Models.Ai.Runtime;
+using DevMemory.Application.Models.Ai.VectorStore;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Cli.Commands.Memory;
 using DevMemory.Core;
@@ -75,6 +80,7 @@ public sealed class DeleteCommandHandlerTests
         Assert.Contains("Memory deleted successfully.", result.Output, StringComparison.Ordinal);
         Assert.Contains(memoryId.ToString("D"), result.Output, StringComparison.Ordinal);
         Assert.Contains("Release v0.1.3 finalized", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Vector index: skipped", result.Output, StringComparison.Ordinal);
 
         Assert.Empty(repository.Load());
     }
@@ -104,6 +110,74 @@ public sealed class DeleteCommandHandlerTests
         Assert.Single(repository.Load());
     }
 
+    [Fact]
+    public void Execute_WhenVectorStoreIsConfigured_DeletesVectorPoint()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("7340ac82-4ed6-41b1-b790-e15edfaf39b4");
+
+        var memory = CreateMemory(memoryId);
+        var repository = new TestMemoryRepository([memory]);
+        var exporter = new TestMemoryExporter();
+        var service = new MemoryService(repository, exporter);
+        var vectorStore = new TestVectorMemoryStore();
+
+        var handler = new DeleteCommandHandler(
+            service,
+            CreateQdrantAiRuntimeOptions,
+            _ => vectorStore);
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["delete", memoryId.ToString("D"), "--yes"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("Memory deleted successfully.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Vector index: deleted", result.Output, StringComparison.Ordinal);
+        Assert.Contains(memoryId, vectorStore.DeletedMemoryIds);
+
+        Assert.Empty(repository.Load());
+    }
+
+    [Fact]
+    public void Execute_WhenVectorCleanupFails_StillReturnsSuccessAndPrintsWarning()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("7340ac82-4ed6-41b1-b790-e15edfaf39b4");
+
+        var memory = CreateMemory(memoryId);
+        var repository = new TestMemoryRepository([memory]);
+        var exporter = new TestMemoryExporter();
+        var service = new MemoryService(repository, exporter);
+        var vectorStore = new TestVectorMemoryStore
+        {
+            DeleteException = new InvalidOperationException("Qdrant is not reachable.")
+        };
+
+        var handler = new DeleteCommandHandler(
+            service,
+            CreateQdrantAiRuntimeOptions,
+            _ => vectorStore);
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["delete", memoryId.ToString("D"), "--yes"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("Memory deleted successfully.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Vector index: cleanup failed", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Qdrant is not reachable.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory index --force", result.Output, StringComparison.Ordinal);
+
+        Assert.Empty(repository.Load());
+    }
+
+    #region Helpers
+
     private static DeleteCommandHandler CreateHandler(IReadOnlyCollection<TaskMemory> memories)
     {
         return CreateHandler(new TestMemoryRepository(memories));
@@ -114,7 +188,52 @@ public sealed class DeleteCommandHandlerTests
         var exporter = new TestMemoryExporter();
         var service = new MemoryService(repository, exporter);
 
-        return new DeleteCommandHandler(service);
+        return new DeleteCommandHandler(
+            service,
+            CreateDisabledAiRuntimeOptions,
+            _ => null);
+    }
+
+    private static AiRuntimeOptions CreateDisabledAiRuntimeOptions()
+    {
+        return new AiRuntimeOptions
+        {
+            Chat = new ChatProviderOptions
+            {
+                Provider = AiProviderNames.None
+            },
+            Embedding = new EmbeddingProviderOptions
+            {
+                Provider = AiProviderNames.None
+            },
+            VectorStore = new VectorStoreOptions
+            {
+                Provider = VectorStoreNames.None
+            }
+        };
+    }
+
+    private static AiRuntimeOptions CreateQdrantAiRuntimeOptions()
+    {
+        return new AiRuntimeOptions
+        {
+            Chat = new ChatProviderOptions
+            {
+                Provider = AiProviderNames.None
+            },
+            Embedding = new EmbeddingProviderOptions
+            {
+                Provider = AiProviderNames.Ollama,
+                OllamaEndpoint = "http://localhost:11434",
+                OllamaEmbeddingModel = "nomic-embed-text"
+            },
+            VectorStore = new VectorStoreOptions
+            {
+                Provider = VectorStoreNames.Qdrant,
+                QdrantEndpoint = "http://localhost:6333",
+                QdrantCollection = "devmemory_memories"
+            }
+        };
     }
 
     private static TaskMemory CreateMemory(Guid memoryId)
@@ -211,8 +330,46 @@ public sealed class DeleteCommandHandlerTests
         }
     }
 
+    private sealed class TestVectorMemoryStore : IVectorMemoryStore
+    {
+        public List<Guid> DeletedMemoryIds { get; } = [];
+
+        public Exception? DeleteException { get; init; }
+
+        public Task UpsertAsync(
+            VectorMemoryDocument document,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task<IReadOnlyCollection<VectorMemorySearchResult>> SearchAsync(
+            IReadOnlyList<float> queryVector,
+            int limit,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult<IReadOnlyCollection<VectorMemorySearchResult>>([]);
+        }
+
+        public Task DeleteAsync(
+            Guid memoryId,
+            CancellationToken cancellationToken)
+        {
+            if (DeleteException is not null)
+            {
+                throw DeleteException;
+            }
+
+            DeletedMemoryIds.Add(memoryId);
+
+            return Task.CompletedTask;
+        }
+    }
+
     private sealed record CommandResult(
         int ExitCode,
         string Output,
         string Error);
+
+    #endregion
 }

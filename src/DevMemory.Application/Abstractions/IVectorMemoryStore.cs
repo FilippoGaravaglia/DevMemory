@@ -16,4 +16,8 @@ public interface IVectorMemoryStore
         IReadOnlyList<float> queryVector,
         int limit,
         CancellationToken cancellationToken);
+
+    Task DeleteAsync(
+        Guid memoryId,
+        CancellationToken cancellationToken);
 }

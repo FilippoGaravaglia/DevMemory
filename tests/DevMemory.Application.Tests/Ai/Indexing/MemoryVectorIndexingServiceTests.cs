@@ -437,6 +437,13 @@ public sealed class MemoryVectorIndexingServiceTests
         {
             throw new NotSupportedException();
         }
+
+        public Task DeleteAsync(
+            Guid memoryId,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FakeIncrementalVectorMemoryStore : IVectorMemoryStore, IVectorMemoryIndexStateStore
@@ -476,6 +483,13 @@ public sealed class MemoryVectorIndexingServiceTests
             CancellationToken cancellationToken)
         {
             throw new NotSupportedException();
+        }
+
+        public Task DeleteAsync(
+            Guid memoryId,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
     }
 

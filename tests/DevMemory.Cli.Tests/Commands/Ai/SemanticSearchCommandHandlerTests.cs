@@ -262,6 +262,13 @@ public sealed class SemanticSearchCommandHandlerTests
 
             return Task.FromResult(results);
         }
+
+        public Task DeleteAsync(
+            Guid memoryId,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class EmptyFakeVectorMemoryStore : IVectorMemoryStore
@@ -281,6 +288,13 @@ public sealed class SemanticSearchCommandHandlerTests
             IReadOnlyCollection<VectorMemorySearchResult> results = [];
 
             return Task.FromResult(results);
+        }
+
+        public Task DeleteAsync(
+            Guid memoryId,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
     }
 

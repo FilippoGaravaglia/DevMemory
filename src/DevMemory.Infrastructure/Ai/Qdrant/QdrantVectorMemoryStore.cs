@@ -475,6 +475,41 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IVectorMemoryI
             : string.Empty;
     }
 
+    public async Task DeleteAsync(
+        Guid memoryId,
+        CancellationToken cancellationToken)
+    {
+        if (memoryId == Guid.Empty)
+        {
+            throw new ArgumentException("Memory id cannot be empty.", nameof(memoryId));
+        }
+
+        var request = new QdrantDeletePointsRequest
+        {
+            Points = [memoryId.ToString("D")]
+        };
+
+        var response = await _httpClient.PostAsJsonAsync(
+            $"{BuildCollectionPath()}/points/delete",
+            request,
+            cancellationToken);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return;
+        }
+
+        if (response.IsSuccessStatusCode)
+        {
+            return;
+        }
+
+        var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        throw new InvalidOperationException(
+            $"Qdrant point delete request failed with status code {(int)response.StatusCode}. Response: {responseContent}");
+    }
+
     private sealed record QdrantCreateCollectionRequest
     {
         [JsonPropertyName("vectors")]
@@ -564,5 +599,10 @@ public sealed class QdrantVectorMemoryStore : IVectorMemoryStore, IVectorMemoryI
 
         [JsonPropertyName("payload")]
         public Dictionary<string, JsonElement>? Payload { get; init; }
+    }
+
+    private sealed record QdrantDeletePointsRequest
+    {
+        public IReadOnlyCollection<string> Points { get; init; } = [];
     }
 }

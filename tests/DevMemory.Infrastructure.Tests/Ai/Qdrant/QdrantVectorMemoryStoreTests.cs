@@ -621,6 +621,64 @@ public sealed class QdrantVectorMemoryStoreTests
         Assert.Null(contentHash);
     }
 
+    [Fact]
+    public async Task DeleteAsync_WhenCalled_SendsDeletePointRequest()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("7340ac82-4ed6-41b1-b790-e15edfaf39b4");
+
+        using var httpClient = new HttpClient(new TestHttpMessageHandler(request =>
+        {
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal(
+                "http://localhost:6333/collections/devmemory_memories/points/delete",
+                request.RequestUri?.ToString());
+
+            var requestContent = request.Content?.ReadAsStringAsync().GetAwaiter().GetResult();
+
+            Assert.NotNull(requestContent);
+            Assert.Contains(memoryId.ToString("D"), requestContent, StringComparison.Ordinal);
+
+            return new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent("""{"result":{"operation_id":1,"status":"completed"},"status":"ok","time":0.001}""")
+            };
+        }))
+        {
+            BaseAddress = new Uri("http://localhost:6333")
+        };
+
+        var store = new QdrantVectorMemoryStore(httpClient, "devmemory_memories");
+
+        // Act
+        await store.DeleteAsync(memoryId, CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_WhenCollectionDoesNotExist_DoesNotThrow()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("7340ac82-4ed6-41b1-b790-e15edfaf39b4");
+
+        using var httpClient = new HttpClient(new TestHttpMessageHandler(_ =>
+            new HttpResponseMessage(HttpStatusCode.NotFound)
+            {
+                Content = new StringContent("""{"status":{"error":"Not found"},"time":0.001}""")
+            }))
+        {
+            BaseAddress = new Uri("http://localhost:6333")
+        };
+
+        var store = new QdrantVectorMemoryStore(httpClient, "devmemory_memories");
+
+        // Act
+        var exception = await Record.ExceptionAsync(
+            () => store.DeleteAsync(memoryId, CancellationToken.None));
+
+        // Assert
+        Assert.Null(exception);
+    }
+
     #region Helpers
 
     /// <summary>
@@ -685,6 +743,23 @@ public sealed class QdrantVectorMemoryStoreTests
             CancellationToken cancellationToken)
         {
             return _responseFactory(request);
+        }
+    }
+
+    private sealed class TestHttpMessageHandler : HttpMessageHandler
+    {
+        private readonly Func<HttpRequestMessage, HttpResponseMessage> _handler;
+
+        public TestHttpMessageHandler(Func<HttpRequestMessage, HttpResponseMessage> handler)
+        {
+            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+        }
+
+        protected override Task<HttpResponseMessage> SendAsync(
+            HttpRequestMessage request,
+            CancellationToken cancellationToken)
+        {
+            return Task.FromResult(_handler(request));
         }
     }
 

@@ -181,6 +181,13 @@ public sealed class MemoryRagAnswerServiceTests
 
             return Task.FromResult(results);
         }
+
+        public Task DeleteAsync(
+            Guid memoryId,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FakeChatCompletionService : IChatCompletionService

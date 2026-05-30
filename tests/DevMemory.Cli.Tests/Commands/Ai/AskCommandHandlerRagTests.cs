@@ -315,6 +315,13 @@ public sealed class AskCommandHandlerRagTests
 
             return Task.FromResult(results);
         }
+
+        public Task DeleteAsync(
+            Guid memoryId,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
     }
 
     private sealed class FakeChatCompletionService : IChatCompletionService
@@ -353,6 +360,13 @@ public sealed class AskCommandHandlerRagTests
             IReadOnlyCollection<VectorMemorySearchResult> results = [];
 
             return Task.FromResult(results);
+        }
+
+        public Task DeleteAsync(
+            Guid memoryId,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
         }
     }
 

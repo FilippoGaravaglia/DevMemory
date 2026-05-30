@@ -145,5 +145,12 @@ public sealed class MemorySemanticSearchServiceTests
 
             return Task.FromResult(results);
         }
+
+        public Task DeleteAsync(
+            Guid memoryId,
+            CancellationToken cancellationToken)
+        {
+            return Task.CompletedTask;
+        }
     }
 }
