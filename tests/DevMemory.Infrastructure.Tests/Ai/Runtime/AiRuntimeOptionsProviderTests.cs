@@ -11,7 +11,7 @@ public sealed class AiRuntimeOptionsProviderTests
         ClearEnvironmentVariables();
 
         // Act
-        var options = AiRuntimeOptionsProvider.GetOptions();
+        var options = AiRuntimeOptionsProvider.GetOptions(new AiRuntimeConfiguration());
 
         // Assert
         Assert.Equal(AiProviderNames.None, options.Chat.Provider);

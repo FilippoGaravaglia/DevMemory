@@ -135,7 +135,7 @@ public sealed class ConfigCommandHandler : ICommandHandler
             Console.Error.WriteLine($"Unknown configuration key: {key}");
             Console.Error.WriteLine();
 
-            PrintSupportedKeys();
+            PrintSupportedKeys(Console.Error);
 
             return CliExitCodes.Failure;
         }
@@ -240,19 +240,19 @@ public sealed class ConfigCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory config reset");
         Console.WriteLine();
 
-        PrintSupportedKeys();
+        PrintSupportedKeys(Console.Out);
     }
 
     /// <summary>
     /// Prints supported configuration keys.
     /// </summary>
-    private static void PrintSupportedKeys()
+    private static void PrintSupportedKeys(TextWriter writer)
     {
-        Console.WriteLine("Supported keys:");
+        writer.WriteLine("Supported keys:");
 
         foreach (var key in Readers.Keys.OrderBy(key => key, StringComparer.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"  {key}");
+            writer.WriteLine($"  {key}");
         }
     }
 
