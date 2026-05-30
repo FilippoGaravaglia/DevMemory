@@ -199,6 +199,64 @@ public sealed class MemoryServiceTests
         Assert.Equal("LogicalCommon", result.Memory.Project);
     }
 
+    [Fact]
+    public void Delete_WhenMemoryExists_RemovesMemoryFromRepository()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("7340ac82-4ed6-41b1-b790-e15edfaf39b4");
+
+        var memory = new TaskMemory
+        {
+            Id = memoryId,
+            Title = "Release v0.1.3 finalized",
+            Project = "DevMemory",
+            Area = "Release",
+            Branch = "main",
+            Tags = ["release"],
+            Problem = "Finalize release.",
+            Solution = "Published GitHub release.",
+            LessonsLearned = "Keep release assets aligned.",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var repository = new InMemoryMemoryRepository([memory]);
+        var exporter = new TestMemoryExporter();
+
+        var service = new MemoryService(repository, exporter);
+
+        // Act
+        var result = service.Delete(memoryId);
+
+        // Assert
+        Assert.True(result.Success);
+        Assert.NotNull(result.DeletedMemory);
+        Assert.Equal(memoryId, result.DeletedMemory.Id);
+
+        Assert.Empty(repository.Load());
+    }
+
+    [Fact]
+    public void Delete_WhenMemoryDoesNotExist_ReturnsFailure()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("7340ac82-4ed6-41b1-b790-e15edfaf39b4");
+
+        var repository = new InMemoryMemoryRepository([]);
+        var exporter = new TestMemoryExporter();
+
+        var service = new MemoryService(repository, exporter);
+
+        // Act
+        var result = service.Delete(memoryId);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Null(result.DeletedMemory);
+        Assert.Equal($"Memory not found: {memoryId}", result.Error);
+    }
+
+    #region Helpers
+
     private sealed class InMemoryRepository : IMemoryRepository
     {
         public List<TaskMemory> Memories { get; set; } = [];
@@ -237,4 +295,45 @@ public sealed class MemoryServiceTests
             return "/fake/path/memory.md";
         }
     }
+
+    private sealed class InMemoryMemoryRepository : IMemoryRepository
+    {
+        private readonly List<TaskMemory> _memories;
+
+        public InMemoryMemoryRepository(IReadOnlyCollection<TaskMemory> memories)
+        {
+            _memories = memories.ToList();
+        }
+
+        public List<TaskMemory> Load()
+        {
+            return _memories.ToList();
+        }
+
+        public void Save(List<TaskMemory> memories)
+        {
+            _memories.Clear();
+            _memories.AddRange(memories);
+        }
+
+        public string GetStorageFilePath()
+        {
+            return "/tmp/devmemory.json";
+        }
+
+        public string GetMarkdownDirectoryPath()
+        {
+            return "/tmp/markdown";
+        }
+    }
+
+    private sealed class TestMemoryExporter : IMemoryExporter
+    {
+        public string Export(TaskMemory memory)
+        {
+            return $"/tmp/markdown/{memory.Id:D}.md";
+        }
+    }
+
+    #endregion
 }

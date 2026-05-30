@@ -17,6 +17,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- list");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- search <query> [--project <project>] [--area <area>] [--tag <tag>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- show <memory-id>");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- delete <memory-id> [--yes]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- storage");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- markdown");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- git-status [--path <repository-path>]");
@@ -41,6 +42,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory list");
         Console.WriteLine("  devmemory search <query> [--project <project>] [--area <area>] [--tag <tag>]");
         Console.WriteLine("  devmemory show <memory-id>");
+        Console.WriteLine("  devmemory delete <memory-id> [--yes]");
         Console.WriteLine("  devmemory storage");
         Console.WriteLine("  devmemory markdown");
         Console.WriteLine("  devmemory git-status [--path <repository-path>]");
@@ -66,6 +68,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  list             List saved memories.");
         Console.WriteLine("  search           Search memories by text and optional filters.");
         Console.WriteLine("  show             Show a memory by id.");
+        Console.WriteLine("  delete           Delete a memory by id from local storage.");
         Console.WriteLine("  storage          Show the current storage file path.");
         Console.WriteLine("  markdown         Show the Markdown export directory.");
         Console.WriteLine("  git-status       Inspect the current or selected Git repository.");
@@ -92,6 +95,8 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory search revision --project LogicalCommon");
         Console.WriteLine("  devmemory search revision --area Estimate");
         Console.WriteLine("  devmemory search revision --tag dotnet");
+        Console.WriteLine("  devmemory delete <memory-id>");
+        Console.WriteLine("  devmemory delete <memory-id> --yes");
         Console.WriteLine("  devmemory git-status");
         Console.WriteLine("  devmemory learn-from-git");
         Console.WriteLine("  devmemory graph-export");

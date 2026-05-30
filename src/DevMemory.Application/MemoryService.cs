@@ -56,6 +56,24 @@ public sealed class MemoryService
             .FirstOrDefault(memory => memory.Id == id);
     }
 
+    public DeleteMemoryResult Delete(Guid id)
+    {
+        var memories = _repository.Load();
+
+        var memory = memories.FirstOrDefault(memory => memory.Id == id);
+
+        if (memory is null)
+        {
+            return DeleteMemoryResult.Fail($"Memory not found: {id}");
+        }
+
+        memories.Remove(memory);
+
+        _repository.Save(memories);
+
+        return DeleteMemoryResult.Ok(memory);
+    }
+
     public IReadOnlyCollection<MemorySearchResult> Search(MemorySearchOptions options)
     {
         var query = options.Query.Trim();
