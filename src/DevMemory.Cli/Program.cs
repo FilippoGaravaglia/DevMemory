@@ -42,6 +42,7 @@ var commandHandlers = new ICommandHandler[]
     new AiDoctorCommandHandler(),
     new AskCommandHandler(),
     new IndexCommandHandler(memoryService),
+    new RelatedCommandHandler(memoryService),
     new SemanticSearchCommandHandler(),
     new ConfigCommandHandler(),
     new VersionCommandHandler(),
