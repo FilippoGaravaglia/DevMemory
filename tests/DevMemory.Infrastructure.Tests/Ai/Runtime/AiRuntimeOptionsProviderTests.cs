@@ -160,4 +160,83 @@ public sealed class AiRuntimeOptionsProviderTests
         Environment.SetEnvironmentVariable(AiEnvironmentVariables.AnthropicApiKey, null);
         Environment.SetEnvironmentVariable(AiEnvironmentVariables.AnthropicChatModel, null);
     }
+
+    [Fact]
+    public void GetOptions_WhenConfigurationIsProvided_UsesPersistedConfiguration()
+    {
+        // Arrange
+        ClearEnvironmentVariables();
+
+        var configuration = new AiRuntimeConfiguration
+        {
+            ChatProvider = "ollama",
+            EmbeddingProvider = "ollama",
+            VectorStore = "qdrant",
+            OllamaEndpoint = "http://localhost:11434/",
+            OllamaChatModel = "llama3.2:latest",
+            OllamaEmbeddingModel = "nomic-embed-text:latest",
+            QdrantEndpoint = "http://localhost:6333/",
+            QdrantCollection = "devmemory_test"
+        };
+
+        // Act
+        var options = AiRuntimeOptionsProvider.GetOptions(configuration);
+
+        // Assert
+        Assert.Equal(AiProviderNames.Ollama, options.Chat.Provider);
+        Assert.Equal("http://localhost:11434", options.Chat.OllamaEndpoint);
+        Assert.Equal("llama3.2:latest", options.Chat.OllamaChatModel);
+        Assert.True(options.Chat.IsEnabled);
+
+        Assert.Equal(AiProviderNames.Ollama, options.Embedding.Provider);
+        Assert.Equal("http://localhost:11434", options.Embedding.OllamaEndpoint);
+        Assert.Equal("nomic-embed-text:latest", options.Embedding.OllamaEmbeddingModel);
+        Assert.True(options.Embedding.IsEnabled);
+
+        Assert.Equal(VectorStoreNames.Qdrant, options.VectorStore.Provider);
+        Assert.Equal("http://localhost:6333", options.VectorStore.QdrantEndpoint);
+        Assert.Equal("devmemory_test", options.VectorStore.QdrantCollection);
+        Assert.True(options.VectorStore.IsEnabled);
+
+        Assert.True(options.IsFullRagEnabled);
+    }
+
+    [Fact]
+    public void GetOptions_WhenEnvironmentAndConfigurationAreProvided_EnvironmentVariablesWin()
+    {
+        // Arrange
+        ClearEnvironmentVariables();
+
+        var configuration = new AiRuntimeConfiguration
+        {
+            ChatProvider = "none",
+            EmbeddingProvider = "none",
+            VectorStore = "none",
+            OllamaChatModel = "configured-chat-model",
+            QdrantCollection = "configured_collection"
+        };
+
+        Environment.SetEnvironmentVariable(AiEnvironmentVariables.ChatProvider, "ollama");
+        Environment.SetEnvironmentVariable(AiEnvironmentVariables.EmbeddingProvider, "ollama");
+        Environment.SetEnvironmentVariable(AiEnvironmentVariables.VectorStore, "qdrant");
+        Environment.SetEnvironmentVariable(AiEnvironmentVariables.OllamaChatModel, "env-chat-model");
+        Environment.SetEnvironmentVariable(AiEnvironmentVariables.QdrantCollection, "env_collection");
+
+        try
+        {
+            // Act
+            var options = AiRuntimeOptionsProvider.GetOptions(configuration);
+
+            // Assert
+            Assert.Equal(AiProviderNames.Ollama, options.Chat.Provider);
+            Assert.Equal(AiProviderNames.Ollama, options.Embedding.Provider);
+            Assert.Equal(VectorStoreNames.Qdrant, options.VectorStore.Provider);
+            Assert.Equal("env-chat-model", options.Chat.OllamaChatModel);
+            Assert.Equal("env_collection", options.VectorStore.QdrantCollection);
+        }
+        finally
+        {
+            ClearEnvironmentVariables();
+        }
+    }
 }

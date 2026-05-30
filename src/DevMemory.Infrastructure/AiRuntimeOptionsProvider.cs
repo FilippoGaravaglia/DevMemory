@@ -6,83 +6,114 @@ using DevMemory.Application.Models.Ai.VectorStore;
 namespace DevMemory.Infrastructure;
 
 /// <summary>
-/// Reads AI and RAG runtime options from environment variables.
+/// Reads AI and RAG runtime options from environment variables, persisted configuration and defaults.
 /// </summary>
 public static class AiRuntimeOptionsProvider
 {
     public static AiRuntimeOptions GetOptions()
     {
-        var ollamaEndpoint = NormalizeEndpoint(ReadEnvironmentValue(
+        return GetOptions(new AiRuntimeConfigurationStore().Load());
+    }
+
+    public static AiRuntimeOptions GetOptions(AiRuntimeConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+
+        var ollamaEndpoint = NormalizeEndpoint(ReadConfiguredValue(
             AiEnvironmentVariables.OllamaEndpoint,
+            configuration.OllamaEndpoint,
             "http://localhost:11434"));
 
         return new AiRuntimeOptions
         {
             Chat = new ChatProviderOptions
             {
-                Provider = NormalizeProvider(ReadEnvironmentValue(
+                Provider = NormalizeProvider(ReadConfiguredValue(
                     AiEnvironmentVariables.ChatProvider,
+                    configuration.ChatProvider,
                     AiProviderNames.None)),
                 OllamaEndpoint = ollamaEndpoint,
-                OllamaChatModel = ReadEnvironmentValue(
+                OllamaChatModel = ReadConfiguredValue(
                     AiEnvironmentVariables.OllamaChatModel,
+                    configuration.OllamaChatModel,
                     "llama3.2"),
                 OpenAiApiKey = ReadOptionalEnvironmentValue(AiEnvironmentVariables.OpenAiApiKey),
-                OpenAiChatModel = ReadEnvironmentValue(
+                OpenAiChatModel = ReadConfiguredValue(
                     AiEnvironmentVariables.OpenAiChatModel,
+                    configuration.OpenAiChatModel,
                     "gpt-4.1-mini"),
                 GeminiApiKey = ReadOptionalEnvironmentValue(AiEnvironmentVariables.GeminiApiKey),
-                GeminiChatModel = ReadEnvironmentValue(
+                GeminiChatModel = ReadConfiguredValue(
                     AiEnvironmentVariables.GeminiChatModel,
+                    configuration.GeminiChatModel,
                     "gemini-1.5-flash"),
                 AnthropicApiKey = ReadOptionalEnvironmentValue(AiEnvironmentVariables.AnthropicApiKey),
-                AnthropicChatModel = ReadEnvironmentValue(
+                AnthropicChatModel = ReadConfiguredValue(
                     AiEnvironmentVariables.AnthropicChatModel,
+                    configuration.AnthropicChatModel,
                     "claude-3-5-sonnet-latest")
             },
             Embedding = new EmbeddingProviderOptions
             {
-                Provider = NormalizeProvider(ReadEnvironmentValue(
+                Provider = NormalizeProvider(ReadConfiguredValue(
                     AiEnvironmentVariables.EmbeddingProvider,
+                    configuration.EmbeddingProvider,
                     AiProviderNames.None)),
                 OllamaEndpoint = ollamaEndpoint,
-                OllamaEmbeddingModel = ReadEnvironmentValue(
+                OllamaEmbeddingModel = ReadConfiguredValue(
                     AiEnvironmentVariables.OllamaEmbeddingModel,
+                    configuration.OllamaEmbeddingModel,
                     "nomic-embed-text"),
                 OpenAiApiKey = ReadOptionalEnvironmentValue(AiEnvironmentVariables.OpenAiApiKey),
-                OpenAiEmbeddingModel = ReadEnvironmentValue(
+                OpenAiEmbeddingModel = ReadConfiguredValue(
                     AiEnvironmentVariables.OpenAiEmbeddingModel,
+                    configuration.OpenAiEmbeddingModel,
                     "text-embedding-3-small"),
                 GeminiApiKey = ReadOptionalEnvironmentValue(AiEnvironmentVariables.GeminiApiKey),
-                GeminiEmbeddingModel = ReadEnvironmentValue(
+                GeminiEmbeddingModel = ReadConfiguredValue(
                     AiEnvironmentVariables.GeminiEmbeddingModel,
+                    configuration.GeminiEmbeddingModel,
                     "text-embedding-004")
             },
             VectorStore = new VectorStoreOptions
             {
-                Provider = NormalizeProvider(ReadEnvironmentValue(
+                Provider = NormalizeProvider(ReadConfiguredValue(
                     AiEnvironmentVariables.VectorStore,
+                    configuration.VectorStore,
                     VectorStoreNames.None)),
-                QdrantEndpoint = NormalizeEndpoint(ReadEnvironmentValue(
+                QdrantEndpoint = NormalizeEndpoint(ReadConfiguredValue(
                     AiEnvironmentVariables.QdrantEndpoint,
+                    configuration.QdrantEndpoint,
                     "http://localhost:6333")),
-                QdrantCollection = ReadEnvironmentValue(
+                QdrantCollection = ReadConfiguredValue(
                     AiEnvironmentVariables.QdrantCollection,
+                    configuration.QdrantCollection,
                     "devmemory_memories")
             }
         };
     }
 
     /// <summary>
-    /// Reads an environment variable value or returns a fallback when it is missing.
+    /// Reads a value using environment variables first, persisted configuration second and a default fallback last.
     /// </summary>
-    private static string ReadEnvironmentValue(string name, string fallback)
+    private static string ReadConfiguredValue(
+        string environmentVariableName,
+        string? configuredValue,
+        string fallback)
     {
-        var value = Environment.GetEnvironmentVariable(name);
+        var environmentValue = Environment.GetEnvironmentVariable(environmentVariableName);
 
-        return string.IsNullOrWhiteSpace(value)
-            ? fallback
-            : value.Trim();
+        if (!string.IsNullOrWhiteSpace(environmentValue))
+        {
+            return environmentValue.Trim();
+        }
+
+        if (!string.IsNullOrWhiteSpace(configuredValue))
+        {
+            return configuredValue.Trim();
+        }
+
+        return fallback;
     }
 
     /// <summary>

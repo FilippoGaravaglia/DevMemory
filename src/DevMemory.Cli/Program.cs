@@ -41,6 +41,7 @@ var commandHandlers = new ICommandHandler[]
     new AskCommandHandler(),
     new IndexCommandHandler(memoryService),
     new SemanticSearchCommandHandler(),
+    new ConfigCommandHandler(),
     new VersionCommandHandler(),
     new HelpCommandHandler()
 };

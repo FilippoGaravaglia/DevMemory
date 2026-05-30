@@ -29,6 +29,9 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask --rag <question> [--show-context] [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- index [--dry-run] [--force] [--limit <number>] [--project <project>] [--area <area>] [--tag <tag>] [--show-text]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- semantic-search <query> [--limit <number>]");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- config show");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- config set <key> <value>");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- config reset");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- version");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- --version");
         Console.WriteLine();
@@ -50,6 +53,9 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory ask --rag <question> [--show-context] [--limit <number>]");
         Console.WriteLine("  devmemory index [--dry-run] [--force] [--limit <number>] [--project <project>] [--area <area>] [--tag <tag>] [--show-text]");
         Console.WriteLine("  devmemory semantic-search <query> [--limit <number>]");
+        Console.WriteLine("  devmemory config show");
+        Console.WriteLine("  devmemory config set <key> <value>");
+        Console.WriteLine("  devmemory config reset");
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
         Console.WriteLine("  devmemory -v");
@@ -71,6 +77,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  ask              Ask a question using the configured AI chat provider.");
         Console.WriteLine("  index            Index local memories into the configured vector store.");
         Console.WriteLine("  semantic-search  Search indexed memories using semantic similarity.");
+        Console.WriteLine("  config           Show, set or reset persistent DevMemory configuration.");
         Console.WriteLine("  version          Show the current DevMemory version.");
         Console.WriteLine("  help             Show this help message.");
         Console.WriteLine();
@@ -91,6 +98,13 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory graph-view");
         Console.WriteLine("  devmemory ai-status");
         Console.WriteLine("  devmemory ai-doctor");
+        Console.WriteLine("  devmemory config show");
+        Console.WriteLine("  devmemory config set chat-provider ollama");
+        Console.WriteLine("  devmemory config set embedding-provider ollama");
+        Console.WriteLine("  devmemory config set vector-store qdrant");
+        Console.WriteLine("  devmemory config set ollama-chat-model llama3.2");
+        Console.WriteLine("  devmemory config set ollama-embedding-model nomic-embed-text");
+        Console.WriteLine("  devmemory config set qdrant-collection devmemory_memories");
         Console.WriteLine("  devmemory ask \"What did I change last time in this area?\"");
         Console.WriteLine("  devmemory ask --rag \"How did we handle estimate revision cloning?\"");
         Console.WriteLine("  devmemory ask --rag --show-context \"How did we handle estimate revision cloning?\"");
@@ -121,6 +135,18 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  DEVMEMORY_OLLAMA_CHAT_MODEL          Ollama chat model");
         Console.WriteLine("  DEVMEMORY_QDRANT_ENDPOINT            Qdrant endpoint");
         Console.WriteLine("  DEVMEMORY_QDRANT_COLLECTION          Qdrant collection name");
+        Console.WriteLine();
+
+        Console.WriteLine("Persistent configuration:");
+        Console.WriteLine("  devmemory config show");
+        Console.WriteLine("  devmemory config set chat-provider ollama");
+        Console.WriteLine("  devmemory config set embedding-provider ollama");
+        Console.WriteLine("  devmemory config set vector-store qdrant");
+        Console.WriteLine("  devmemory config reset");
+        Console.WriteLine();
+
+        Console.WriteLine("Configuration precedence:");
+        Console.WriteLine("  Environment variables > ~/.devmemory/config.json > default values");
         Console.WriteLine();
 
         Console.WriteLine("Environment examples:");
