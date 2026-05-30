@@ -76,6 +76,51 @@ public sealed class MemoryService
         return DeleteMemoryResult.Ok(memory);
     }
 
+    public EditMemoryResult Edit(
+        Guid id,
+        EditMemoryOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (!options.HasChanges)
+        {
+            return EditMemoryResult.Fail("At least one edit option must be provided.");
+        }
+
+        var memories = _repository.Load();
+
+        var memory = memories.FirstOrDefault(memory => memory.Id == id);
+
+        if (memory is null)
+        {
+            return EditMemoryResult.Fail($"Memory not found: {id}");
+        }
+
+        var originalMemory = Clone(memory);
+
+        ApplyScalarChanges(memory, options);
+        ApplyCollectionChanges(memory.Tags, options.TagsToAdd, options.TagsToRemove);
+        ApplyCollectionChanges(memory.Decisions, options.DecisionsToAdd, options.DecisionsToRemove);
+        ApplyCollectionChanges(memory.FilesTouched, options.FilesToAdd, options.FilesToRemove);
+        ApplyCollectionChanges(memory.Tests, options.TestsToAdd, options.TestsToRemove);
+
+        TaskMemoryNormalizer.Normalize(memory);
+
+        var errors = TaskMemoryValidator.Validate(memory);
+
+        if (errors.Count > 0)
+        {
+            return EditMemoryResult.Fail(errors);
+        }
+
+        _repository.Save(memories);
+
+        _memoryExporter.Delete(originalMemory);
+        var markdownFilePath = _memoryExporter.Export(memory);
+
+        return EditMemoryResult.Ok(memory, markdownFilePath);
+    }
+
     public IReadOnlyCollection<MemorySearchResult> Search(MemorySearchOptions options)
     {
         var query = options.Query.Trim();
@@ -148,5 +193,101 @@ public sealed class MemoryService
     private static bool Contains(string value, string query)
     {
         return value.Contains(query, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Applies scalar field changes to a memory.
+    /// </summary>
+    private static void ApplyScalarChanges(
+        TaskMemory memory,
+        EditMemoryOptions options)
+    {
+        if (!string.IsNullOrWhiteSpace(options.Title))
+        {
+            memory.Title = options.Title;
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.Project))
+        {
+            memory.Project = options.Project;
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.Area))
+        {
+            memory.Area = options.Area;
+        }
+
+        if (options.Branch is not null)
+        {
+            memory.Branch = options.Branch;
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.Problem))
+        {
+            memory.Problem = options.Problem;
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.Solution))
+        {
+            memory.Solution = options.Solution;
+        }
+
+        if (!string.IsNullOrWhiteSpace(options.LessonsLearned))
+        {
+            memory.LessonsLearned = options.LessonsLearned;
+        }
+    }
+
+    /// <summary>
+    /// Applies add/remove changes to a memory collection.
+    /// </summary>
+    private static void ApplyCollectionChanges(
+        List<string> values,
+        IReadOnlyCollection<string> valuesToAdd,
+        IReadOnlyCollection<string> valuesToRemove)
+    {
+        foreach (var valueToRemove in valuesToRemove)
+        {
+            values.RemoveAll(value =>
+                value.Equals(valueToRemove, StringComparison.OrdinalIgnoreCase));
+        }
+
+        foreach (var valueToAdd in valuesToAdd)
+        {
+            if (string.IsNullOrWhiteSpace(valueToAdd))
+            {
+                continue;
+            }
+
+            if (values.Any(value => value.Equals(valueToAdd, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+
+            values.Add(valueToAdd);
+        }
+    }
+
+    /// <summary>
+    /// Creates a defensive copy of a memory before editing it.
+    /// </summary>
+    private static TaskMemory Clone(TaskMemory memory)
+    {
+        return new TaskMemory
+        {
+            Id = memory.Id,
+            Title = memory.Title,
+            Project = memory.Project,
+            Area = memory.Area,
+            Branch = memory.Branch,
+            Tags = memory.Tags.ToList(),
+            Problem = memory.Problem,
+            Solution = memory.Solution,
+            Decisions = memory.Decisions.ToList(),
+            FilesTouched = memory.FilesTouched.ToList(),
+            Tests = memory.Tests.ToList(),
+            LessonsLearned = memory.LessonsLearned,
+            CreatedAt = memory.CreatedAt
+        };
     }
 }

@@ -257,6 +257,181 @@ public sealed class MemoryServiceTests
         Assert.Empty(exporter.DeletedMemoryIds);
     }
 
+    [Fact]
+    public void Edit_WhenMemoryExists_UpdatesScalarFieldsAndReexportsMarkdown()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("7340ac82-4ed6-41b1-b790-e15edfaf39b4");
+
+        var memory = new TaskMemory
+        {
+            Id = memoryId,
+            Title = "Old title",
+            Project = "OldProject",
+            Area = "OldArea",
+            Branch = "main",
+            Tags = ["old"],
+            Problem = "Old problem.",
+            Solution = "Old solution.",
+            Decisions = ["Old decision"],
+            FilesTouched = ["OldFile.cs"],
+            Tests = ["Old test"],
+            LessonsLearned = "Old lesson.",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var repository = new InMemoryMemoryRepository([memory]);
+        var exporter = new TestMemoryExporter();
+        var service = new MemoryService(repository, exporter);
+
+        var options = new EditMemoryOptions
+        {
+            Title = "Updated title",
+            Project = "DevMemory",
+            Area = "Edit",
+            Solution = "Updated solution.",
+            LessonsLearned = "Updated lesson."
+        };
+
+        // Act
+        var result = service.Edit(memoryId, options);
+
+        // Assert
+        Assert.True(result.Success);
+        Assert.NotNull(result.Memory);
+        Assert.Equal("Updated title", result.Memory.Title);
+        Assert.Equal("DevMemory", result.Memory.Project);
+        Assert.Equal("Edit", result.Memory.Area);
+        Assert.Equal("Updated solution.", result.Memory.Solution);
+        Assert.Equal("Updated lesson.", result.Memory.LessonsLearned);
+
+        var storedMemory = Assert.Single(repository.Load());
+        Assert.Equal("Updated title", storedMemory.Title);
+
+        Assert.Contains(memoryId, exporter.DeletedMemoryIds);
+        Assert.Contains(memoryId, exporter.ExportedMemoryIds);
+    }
+
+    [Fact]
+    public void Edit_WhenMemoryExists_UpdatesCollectionFields()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("7340ac82-4ed6-41b1-b790-e15edfaf39b4");
+
+        var memory = new TaskMemory
+        {
+            Id = memoryId,
+            Title = "Editable memory",
+            Project = "DevMemory",
+            Area = "Edit",
+            Branch = "main",
+            Tags = ["old", "keep"],
+            Problem = "Problem.",
+            Solution = "Solution.",
+            Decisions = ["Old decision"],
+            FilesTouched = ["OldFile.cs"],
+            Tests = ["Old test"],
+            LessonsLearned = "Lesson.",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var repository = new InMemoryMemoryRepository([memory]);
+        var exporter = new TestMemoryExporter();
+        var service = new MemoryService(repository, exporter);
+
+        var options = new EditMemoryOptions
+        {
+            TagsToAdd = ["new"],
+            TagsToRemove = ["old"],
+            DecisionsToAdd = ["New decision"],
+            DecisionsToRemove = ["Old decision"],
+            FilesToAdd = ["NewFile.cs"],
+            FilesToRemove = ["OldFile.cs"],
+            TestsToAdd = ["New test"],
+            TestsToRemove = ["Old test"]
+        };
+
+        // Act
+        var result = service.Edit(memoryId, options);
+
+        // Assert
+        Assert.True(result.Success);
+        Assert.NotNull(result.Memory);
+
+        Assert.DoesNotContain("old", result.Memory.Tags);
+        Assert.Contains("keep", result.Memory.Tags);
+        Assert.Contains("new", result.Memory.Tags);
+
+        Assert.DoesNotContain("Old decision", result.Memory.Decisions);
+        Assert.Contains("New decision", result.Memory.Decisions);
+
+        Assert.DoesNotContain("OldFile.cs", result.Memory.FilesTouched);
+        Assert.Contains("NewFile.cs", result.Memory.FilesTouched);
+
+        Assert.DoesNotContain("Old test", result.Memory.Tests);
+        Assert.Contains("New test", result.Memory.Tests);
+    }
+
+    [Fact]
+    public void Edit_WhenMemoryDoesNotExist_ReturnsFailure()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("7340ac82-4ed6-41b1-b790-e15edfaf39b4");
+
+        var repository = new InMemoryMemoryRepository([]);
+        var exporter = new TestMemoryExporter();
+        var service = new MemoryService(repository, exporter);
+
+        var options = new EditMemoryOptions
+        {
+            Title = "Updated title"
+        };
+
+        // Act
+        var result = service.Edit(memoryId, options);
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Null(result.Memory);
+        Assert.Contains($"Memory not found: {memoryId}", result.Errors);
+        Assert.Empty(exporter.ExportedMemoryIds);
+        Assert.Empty(exporter.DeletedMemoryIds);
+    }
+
+    [Fact]
+    public void Edit_WhenNoChangesAreProvided_ReturnsFailure()
+    {
+        // Arrange
+        var memoryId = Guid.Parse("7340ac82-4ed6-41b1-b790-e15edfaf39b4");
+
+        var memory = new TaskMemory
+        {
+            Id = memoryId,
+            Title = "Editable memory",
+            Project = "DevMemory",
+            Area = "Edit",
+            Branch = "main",
+            Tags = ["tag"],
+            Problem = "Problem.",
+            Solution = "Solution.",
+            LessonsLearned = "Lesson.",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        var repository = new InMemoryMemoryRepository([memory]);
+        var exporter = new TestMemoryExporter();
+        var service = new MemoryService(repository, exporter);
+
+        // Act
+        var result = service.Edit(memoryId, new EditMemoryOptions());
+
+        // Assert
+        Assert.False(result.Success);
+        Assert.Contains("At least one edit option must be provided.", result.Errors);
+        Assert.Empty(exporter.ExportedMemoryIds);
+        Assert.Empty(exporter.DeletedMemoryIds);
+    }
+
     #region Helpers
 
     private sealed class InMemoryRepository : IMemoryRepository
@@ -336,10 +511,14 @@ public sealed class MemoryServiceTests
 
     private sealed class TestMemoryExporter : IMemoryExporter
     {
+        public List<Guid> ExportedMemoryIds { get; } = [];
+
         public List<Guid> DeletedMemoryIds { get; } = [];
 
         public string Export(TaskMemory memory)
         {
+            ExportedMemoryIds.Add(memory.Id);
+
             return $"/tmp/markdown/{memory.Id:D}.md";
         }
 

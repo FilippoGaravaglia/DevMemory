@@ -30,6 +30,7 @@ var commandHandlers = new ICommandHandler[]
     new ListCommandHandler(memoryService),
     new SearchCommandHandler(memoryService),
     new ShowCommandHandler(memoryService),
+    new EditCommandHandler(memoryService),
     new DeleteCommandHandler(memoryService),
     new StorageCommandHandler(memoryService),
     new MarkdownCommandHandler(memoryService),
