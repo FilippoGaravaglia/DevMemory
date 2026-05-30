@@ -19,6 +19,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- show <memory-id>");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- edit <memory-id> [options]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- delete <memory-id> [--yes]");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- timeline [--project <project>] [--area <area>] [--tag <tag>] [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- storage");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- markdown");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- git-status [--path <repository-path>]");
@@ -46,6 +47,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory show <memory-id>");
         Console.WriteLine("  devmemory edit <memory-id> [options]");
         Console.WriteLine("  devmemory delete <memory-id> [--yes]");
+        Console.WriteLine("  devmemory timeline [--project <project>] [--area <area>] [--tag <tag>] [--limit <number>]");
         Console.WriteLine("  devmemory storage");
         Console.WriteLine("  devmemory markdown");
         Console.WriteLine("  devmemory git-status [--path <repository-path>]");
@@ -74,6 +76,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  show             Show a memory by id.");
         Console.WriteLine("  edit             Edit an existing memory by id.");
         Console.WriteLine("  delete           Delete a memory by id from local storage.");
+        Console.WriteLine("  timeline         Show saved memories as a chronological timeline.");
         Console.WriteLine("  storage          Show the current storage file path.");
         Console.WriteLine("  markdown         Show the Markdown export directory.");
         Console.WriteLine("  git-status       Inspect the current or selected Git repository.");
@@ -107,6 +110,11 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory edit <memory-id> --solution \"Updated implementation notes\"");
         Console.WriteLine("  devmemory delete <memory-id>");
         Console.WriteLine("  devmemory delete <memory-id> --yes");
+        Console.WriteLine("  devmemory timeline");
+        Console.WriteLine("  devmemory timeline --project DevMemory");
+        Console.WriteLine("  devmemory timeline --area AI");
+        Console.WriteLine("  devmemory timeline --tag rag");
+        Console.WriteLine("  devmemory timeline --project DevMemory --limit 10");
         Console.WriteLine("  devmemory git-status");
         Console.WriteLine("  devmemory learn-from-git");
         Console.WriteLine("  devmemory graph-export");
