@@ -1,3 +1,9 @@
+[![CI](https://github.com/filippogaravaglia/DevMemory/actions/workflows/ci.yml/badge.svg)](https://github.com/filippogaravaglia/DevMemory/actions/workflows/ci.yml)
+![.NET](https://img.shields.io/badge/.NET-10.0-512BD4)
+![License](https://img.shields.io/badge/license-MIT-green)
+![Local First](https://img.shields.io/badge/local--first-yes-blue)
+![AI](https://img.shields.io/badge/AI-Ollama%20%2B%20Qdrant-orange)
+
 <div align="center">
   
 # DevMemory
@@ -1340,20 +1346,20 @@ artifacts/packages/
 
 ## Current limitations
 
-DevMemory is under active development.
+DevMemory is a working local-first developer tool, but it is still evolving toward a more polished product experience.
 
 Current limitations:
 
-* CLI parsing is implemented manually.
+* CLI parsing is currently implemented manually.
 * Primary storage is JSON-based.
-* No SQLite storage yet.
-* No hosted/cloud sync.
-* No desktop UI.
+* SQLite storage is not available yet.
+* Hosted/cloud sync is not available.
+* Desktop UI or TUI is not available yet.
 * HTML graph layout is simple and static.
 * Public NuGet publishing is not configured yet.
 * GitHub Releases are not automated yet.
-* Local AI requires Ollama and Docker/Qdrant to be running.
-* The quality of RAG answers depends on the quality of saved memories and the selected LLM.
+* Local AI features require Ollama and Docker/Qdrant to be running.
+* RAG answer quality depends on the quality of saved memories and on the selected LLM.
 
 ---
 
@@ -1425,4 +1431,6 @@ The long-term vision is to provide a local, searchable and AI-queryable engineer
 
 ## License
 
-License not defined yet.
+This project is licensed under the MIT License.
+
+See [LICENSE](LICENSE) for details.
