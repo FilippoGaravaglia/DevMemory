@@ -1,22 +1,48 @@
 <div align="center">
-
+  
 # DevMemory
 
 ### Local-first AI memory for developers
 
-**DevMemory** is a local-first developer memory CLI that helps you capture technical context, index it semantically, and ask questions about your past work using local AI.
+**DevMemory** is a local-first .NET CLI that helps developers capture technical context, index it semantically, and ask questions about past work using local AI.
 
-It is designed for developers who want to preserve decisions, fixes, task context, Git activity, lessons learned, and project knowledge across branches, repositories, code reviews, and AI-assisted development sessions.
+It turns day-to-day engineering notes into a searchable developer memory powered by **.NET**, **Ollama**, **Qdrant**, semantic search and RAG.
 
 </div>
 
 ---
 
+## Table of contents
+
+* [What is DevMemory?](#what-is-devmemory)
+* [Why DevMemory?](#why-devmemory)
+* [Quick start](#quick-start)
+* [Core workflow](#core-workflow)
+* [Architecture overview](#architecture-overview)
+* [RAG flow](#rag-flow)
+* [Key features](#key-features)
+* [Installation](#installation)
+* [Basic usage](#basic-usage)
+* [Git integration](#git-integration)
+* [Local AI setup](#local-ai-setup)
+* [Vector indexing](#vector-indexing)
+* [Semantic search](#semantic-search)
+* [RAG questions](#rag-questions)
+* [Daily usage](#daily-usage)
+* [Backup and restore](#backup-and-restore)
+* [Architecture](#architecture)
+* [Quality and release engineering](#quality-and-release-engineering)
+* [Current limitations](#current-limitations)
+* [Roadmap](#roadmap)
+* [Privacy](#privacy)
+
+---
+
 ## What is DevMemory?
 
-DevMemory is a **.NET CLI tool** that acts as a personal engineering memory.
+DevMemory is a **local-first developer memory CLI**.
 
-It lets you save structured memories about the work you do every day:
+It helps you save structured memories about the work you do every day:
 
 * what problem you solved;
 * what solution you implemented;
@@ -30,7 +56,7 @@ Those memories are stored locally, can be searched with classic text search, exp
 
 The goal is simple:
 
-> Stop losing technical context between tasks, branches, commits and AI chat sessions.
+> Stop losing technical context between tasks, branches, commits, code reviews and AI chat sessions.
 
 ---
 
@@ -38,7 +64,7 @@ The goal is simple:
 
 As developers, we often solve problems and then lose the context a few days later.
 
-Questions like these are common:
+Common questions:
 
 * What did I change last time in this area?
 * Why did I make that technical decision?
@@ -49,6 +75,202 @@ Questions like these are common:
 * Can I ask an AI assistant using my previous technical work as context?
 
 DevMemory is built to answer those questions from your own local engineering memory.
+
+It is not a generic chatbot.
+It is a **personal technical memory layer** for software engineering work.
+
+---
+
+## Quick start
+
+### Install locally as a .NET global tool
+
+From the repository root:
+
+```bash
+./scripts/install-local-tool.sh
+```
+
+Verify the installed command:
+
+```bash
+devmemory --version
+devmemory help
+```
+
+### Save your first memory
+
+```bash
+devmemory add
+```
+
+Then inspect what you saved:
+
+```bash
+devmemory list
+devmemory search "runtime"
+devmemory show <memory-id>
+```
+
+### Enable local AI/RAG
+
+Start local AI dependencies:
+
+```bash
+./scripts/dev-ai-local.sh pull-models
+./scripts/dev-ai-local.sh start
+./scripts/dev-ai-local.sh doctor
+```
+
+Index your memories:
+
+```bash
+DEVMEMORY_CHAT_PROVIDER=ollama \
+DEVMEMORY_EMBEDDING_PROVIDER=ollama \
+DEVMEMORY_VECTOR_STORE=qdrant \
+devmemory index
+```
+
+Ask a RAG question:
+
+```bash
+DEVMEMORY_CHAT_PROVIDER=ollama \
+DEVMEMORY_EMBEDDING_PROVIDER=ollama \
+DEVMEMORY_VECTOR_STORE=qdrant \
+devmemory ask --rag --show-context "What did I decide about Qdrant?"
+```
+
+---
+
+## Core workflow
+
+A typical DevMemory workflow looks like this:
+
+```bash
+devmemory add
+devmemory list
+devmemory search "revision"
+devmemory index
+devmemory semantic-search "estimate revision cloning"
+devmemory ask --rag "How did we validate the local AI runtime?"
+```
+
+At a high level:
+
+```mermaid
+flowchart TD
+    A[Developer task] --> B[devmemory add]
+    B --> C[Local JSON memory]
+    C --> D[Markdown export]
+    C --> E[Classic search]
+    C --> F[Knowledge graph]
+    C --> G[Vector indexing]
+    G --> H[Ollama embeddings]
+    H --> I[Qdrant vector store]
+    I --> J[Semantic search]
+    J --> K[RAG context]
+    K --> L[Ollama chat answer]
+```
+
+---
+
+## Architecture overview
+
+DevMemory follows a layered .NET architecture and keeps the CLI as a thin composition layer.
+
+```mermaid
+flowchart LR
+    CLI[DevMemory.Cli<br/>Command-line interface] --> APP[DevMemory.Application<br/>Use cases and orchestration]
+    APP --> CORE[DevMemory.Core<br/>Domain models]
+    APP --> ABSTRACTIONS[Application abstractions]
+
+    INFRA[DevMemory.Infrastructure<br/>Technical implementations] --> ABSTRACTIONS
+
+    INFRA --> JSON[(Local JSON storage)]
+    INFRA --> MD[Markdown export]
+    INFRA --> GIT[Git inspection]
+    INFRA --> GRAPH[Graph export]
+    INFRA --> OLLAMA[Ollama]
+    INFRA --> QDRANT[Qdrant]
+```
+
+The local JSON file is the **source of truth**.
+Qdrant is a **derived semantic index** that can be rebuilt.
+
+---
+
+## RAG flow
+
+When you ask a RAG question, DevMemory does not simply send your whole storage file to the model.
+
+It retrieves the most relevant memories first.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant CLI as DevMemory CLI
+    participant JSON as Local JSON storage
+    participant OllamaEmb as Ollama embeddings
+    participant Qdrant
+    participant OllamaChat as Ollama chat model
+
+    User->>CLI: devmemory ask --rag "Question"
+    CLI->>OllamaEmb: Generate embedding for question
+    OllamaEmb-->>CLI: Query vector
+    CLI->>Qdrant: Search similar memory vectors
+    Qdrant-->>CLI: Relevant memory payloads
+    CLI->>CLI: Build RAG prompt with context
+    CLI->>OllamaChat: Ask with retrieved context
+    OllamaChat-->>CLI: Generated answer
+    CLI-->>User: Answer + optional context
+```
+
+This means DevMemory can answer using multiple related task memories when needed.
+
+---
+
+## Demo output
+
+Example RAG output from a validated local run:
+
+```text
+DevMemory RAG answer
+--------------------
+
+Provider: ollama
+Model: llama3.2
+Question: How did we validate the local AI runtime in DevMemory?
+Context items: 2
+
+Answer:
+We validated the local AI runtime in DevMemory by following a multi-step process:
+
+1. Setup: We installed and started Ollama for local chat and embeddings,
+   downloaded llama3.2 and nomic-embed-text, and started Qdrant through Docker.
+2. Indexing: We indexed a local DevMemory task using the devmemory index command.
+3. Semantic Search: We executed semantic search on the indexed task.
+4. RAG Question: We asked a RAG question using the retrieved context.
+
+Context:
+
+1. Local AI runtime validation
+   Project: DevMemory
+   Area: AI
+   Score: 0.7493111
+```
+
+This validates the complete local flow:
+
+```text
+JSON memory
+→ indexable document
+→ Ollama embedding
+→ Qdrant upsert
+→ semantic retrieval
+→ RAG context
+→ Ollama chat completion
+→ answer shown in CLI
+```
 
 ---
 
@@ -71,41 +293,6 @@ DevMemory is built to answer those questions from your own local engineering mem
 * Release-ready package validation.
 * Installable as a .NET global tool.
 * CI, formatting checks, tests, release checks and package artifact verification.
-
----
-
-## Core workflow
-
-A typical DevMemory workflow looks like this:
-
-```bash
-devmemory add
-devmemory list
-devmemory search "revision"
-devmemory index
-devmemory semantic-search "estimate revision cloning"
-devmemory ask --rag "How did we validate the local AI runtime?"
-```
-
-At a high level:
-
-```text
-Structured memory
-      ↓
-Local JSON storage
-      ↓
-Indexable text
-      ↓
-Embedding model
-      ↓
-Qdrant vector store
-      ↓
-Semantic retrieval
-      ↓
-RAG prompt
-      ↓
-Local LLM answer
-```
 
 ---
 
@@ -140,81 +327,24 @@ DEVMEMORY_HOME=~/devmemory-work devmemory storage
 The local JSON storage is the source of truth.
 The vector database is a derived index and can be rebuilt.
 
----
+### Data ownership model
 
-## AI and RAG support
+```mermaid
+flowchart TD
+    A[devmemory.json<br/>Primary local memory store] --> B[Indexable text]
+    B --> C[Embedding vectors]
+    C --> D[Qdrant points<br/>Derived semantic index]
 
-DevMemory supports a local AI workflow using:
+    A --> E[Markdown export]
+    A --> F[Knowledge graph export]
+    A --> G[Classic text search]
 
-* **Ollama** for local chat and embeddings;
-* **nomic-embed-text** for embeddings;
-* **llama3.2** for local chat/RAG answers;
-* **Qdrant** as local vector store;
-* **Docker** to run Qdrant locally.
-
-The validated local AI flow is:
-
-```text
-DevMemory memories
-      ↓
-nomic-embed-text embeddings through Ollama
-      ↓
-Qdrant vector index
-      ↓
-semantic search
-      ↓
-retrieved memory context
-      ↓
-llama3.2 answer through Ollama
+    D --> H[Semantic search]
+    D --> I[RAG retrieval]
 ```
 
-Example:
-
-```bash
-DEVMEMORY_CHAT_PROVIDER=ollama \
-DEVMEMORY_EMBEDDING_PROVIDER=ollama \
-DEVMEMORY_VECTOR_STORE=qdrant \
-devmemory ask --rag "How did we validate the local AI runtime in DevMemory?" --limit 3
-```
-
-With `--show-context`, DevMemory also prints the memories used as RAG context:
-
-```bash
-DEVMEMORY_CHAT_PROVIDER=ollama \
-DEVMEMORY_EMBEDDING_PROVIDER=ollama \
-DEVMEMORY_VECTOR_STORE=qdrant \
-devmemory ask --rag --show-context "How did we validate the local AI runtime in DevMemory?" --limit 3
-```
-
----
-
-## Validated local AI runtime
-
-The local AI runtime has been validated end-to-end with:
-
-```text
-Ollama
-llama3.2
-nomic-embed-text
-Docker
-Qdrant
-DevMemory vector indexing
-DevMemory semantic search
-DevMemory RAG answers
-```
-
-Validated flow:
-
-```text
-JSON memory
-→ indexable document
-→ Ollama embedding
-→ Qdrant upsert
-→ semantic retrieval
-→ RAG context
-→ Ollama chat completion
-→ answer shown in CLI
-```
+If Qdrant is lost, memories are not lost.
+You can rebuild the vector index from the JSON storage.
 
 ---
 
@@ -318,6 +448,17 @@ Tests
 Lessons learned
 ```
 
+Good memories produce better search and RAG answers.
+
+A good memory should describe:
+
+* the real problem;
+* the implemented solution;
+* the relevant decisions;
+* the important files;
+* the tests or validations performed;
+* the lesson learned.
+
 ---
 
 ### List memories
@@ -330,6 +471,8 @@ devmemory list
 
 ### Search memories
 
+Classic text search:
+
 ```bash
 devmemory search "revision"
 ```
@@ -341,6 +484,8 @@ devmemory search "revision" --project LogicalCommon
 devmemory search "revision" --area Estimate
 devmemory search "revision" --tag mongodb
 ```
+
+Classic search reads directly from the local JSON storage and does not require Ollama or Qdrant.
 
 ---
 
@@ -492,6 +637,16 @@ The graph currently visualizes:
 
 ## Local AI setup
 
+DevMemory can work without AI for basic memory capture and classic search.
+
+For semantic search and RAG, you need:
+
+* Ollama running locally;
+* Docker Desktop running;
+* Qdrant started through Docker.
+
+---
+
 ### 1. Install Docker Desktop
 
 Docker is used to run Qdrant locally.
@@ -571,6 +726,20 @@ Result: AI environment looks ready.
 
 ## Vector indexing
 
+Indexing turns local memories into vector-searchable documents.
+
+```mermaid
+flowchart TD
+    A[Local memories in JSON] --> B[Build indexable text]
+    B --> C[Compute content hash]
+    C --> D{Already indexed<br/>and unchanged?}
+    D -->|Yes| E[Skip]
+    D -->|No| F[Generate embedding]
+    F --> G[Upsert point into Qdrant]
+```
+
+---
+
 ### Dry-run indexing
 
 Preview what will be indexed without generating embeddings or writing to Qdrant:
@@ -606,6 +775,9 @@ devmemory index --area AI
 devmemory index --tag qdrant
 ```
 
+Normal indexing skips memories that are already indexed and unchanged.
+Use `--force` when you want to rebuild the index.
+
 ---
 
 ## Semantic search
@@ -620,6 +792,18 @@ devmemory semantic-search "local AI runtime validation" --limit 3
 ```
 
 Unlike classic text search, semantic search can retrieve memories based on conceptual similarity.
+
+Example:
+
+```text
+Query: local AI runtime validation
+Results: 1
+
+1. Local AI runtime validation
+   Project: DevMemory
+   Area: AI
+   Score: 0.7493111
+```
 
 ---
 
@@ -642,6 +826,8 @@ DEVMEMORY_EMBEDDING_PROVIDER=ollama \
 DEVMEMORY_VECTOR_STORE=qdrant \
 devmemory ask --rag --show-context "How did we validate the local AI runtime in DevMemory?" --limit 3
 ```
+
+Use `--show-context` when you want to understand which memories were used by the model.
 
 ---
 
@@ -678,6 +864,65 @@ DEVMEMORY_CHAT_PROVIDER=ollama \
 DEVMEMORY_EMBEDDING_PROVIDER=ollama \
 DEVMEMORY_VECTOR_STORE=qdrant \
 devmemory ask --rag "What did I decide about Qdrant?"
+```
+
+---
+
+## Daily usage
+
+### Use DevMemory without AI
+
+You do not need Docker or Ollama for:
+
+```bash
+devmemory add
+devmemory list
+devmemory search "..."
+devmemory show <memory-id>
+devmemory git-status
+devmemory learn-from-git
+devmemory graph-export
+devmemory graph-view
+```
+
+These commands use local JSON storage.
+
+---
+
+### Use DevMemory with local AI/RAG
+
+When you want semantic search or RAG:
+
+```bash
+# 1. Make sure Docker Desktop is running
+# 2. Make sure Ollama is running
+
+./scripts/dev-ai-local.sh start
+./scripts/dev-ai-local.sh doctor
+```
+
+Then:
+
+```bash
+DEVMEMORY_CHAT_PROVIDER=ollama \
+DEVMEMORY_EMBEDDING_PROVIDER=ollama \
+DEVMEMORY_VECTOR_STORE=qdrant \
+devmemory index
+```
+
+And query:
+
+```bash
+DEVMEMORY_CHAT_PROVIDER=ollama \
+DEVMEMORY_EMBEDDING_PROVIDER=ollama \
+DEVMEMORY_VECTOR_STORE=qdrant \
+devmemory ask --rag "What did I change in the estimate workflow?"
+```
+
+When finished:
+
+```bash
+./scripts/dev-ai-local.sh stop
 ```
 
 ---
@@ -1116,7 +1361,7 @@ Current limitations:
 
 Planned improvements:
 
-* Improve README with screenshots and demo GIFs.
+* Add screenshots and demo GIFs.
 * Add a smoother first-run setup wizard.
 * Improve CLI rendering with optional colors/tables.
 * Evaluate `System.CommandLine` or `Spectre.Console`.
