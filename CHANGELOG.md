@@ -6,6 +6,50 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 
 ---
 
+## [0.2.0] - 2026-05-31
+
+### Added
+
+- Added persistent AI/RAG configuration through `devmemory config show`, `devmemory config set <key> <value>`, and `devmemory config reset`.
+- Added `devmemory edit <memory-id> [options]` to update existing memories without manually editing the JSON storage file.
+- Added `devmemory related <memory-id>` to find indexed memories semantically related to another memory.
+- Added `devmemory timeline` to explore saved memories chronologically with optional project, area, tag, and limit filters.
+- Added `devmemory doctor` for general local health checks covering storage, Markdown, configuration, AI runtime, and Git availability.
+- Added `scripts/demo-local.sh` to run an isolated local demo without touching the real `~/.devmemory` directory.
+- Added `docs/demo.md` with a complete guide for the isolated local demo.
+- Added `docs/releases/v0.2.0.md` as a draft release note and publication preparation document.
+
+### Changed
+
+- Improved the memory lifecycle so DevMemory now supports add, list, show, search, edit, and delete workflows.
+- Improved `devmemory delete` so it removes the primary JSON memory, the derived Markdown export, and the Qdrant vector point when a vector store is configured.
+- Improved CLI help output with the new edit, delete, related, timeline, doctor, and configuration commands.
+- Improved AI/RAG usability by allowing persistent local configuration instead of requiring environment variables for every command.
+- Improved demo and onboarding readiness for GitHub visitors, reviewers, and future contributors.
+
+### Fixed
+
+- Fixed the memory delete lifecycle so derived Markdown exports are cleaned up when a memory is removed.
+- Fixed vector index cleanup behavior by deleting the related Qdrant point when possible.
+- Fixed CLI test reliability by serializing CLI tests that capture global console streams.
+
+### Quality
+
+- Expanded test coverage across CLI, application, and infrastructure layers.
+- Added tests for memory editing, memory deletion, Markdown cleanup, Qdrant deletion, related memories, timeline output, general diagnostics, and persistent AI configuration.
+- Kept `dotnet format`, `dotnet format --verify-no-changes`, shell script validation, build, and test checks passing.
+- Maintained local-first behavior with JSON as the primary source of truth and Markdown/Qdrant as derived artifacts.
+
+### Notes
+
+- This release keeps DevMemory local-first.
+- JSON remains the primary storage mechanism.
+- Qdrant remains a derived vector index.
+- Ollama and Qdrant are optional and only required for semantic search, related memories, and RAG features.
+- Public NuGet publishing is still not configured.
+
+---
+
 ## [0.1.3] - 2026-05-29
 
 ### Added
