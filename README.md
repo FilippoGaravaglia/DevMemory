@@ -5,7 +5,7 @@
 ![AI](https://img.shields.io/badge/AI-Ollama%20%2B%20Qdrant-orange)
 
 <div align="center">
-  
+
 # DevMemory
 
 ### Local-first AI memory for developers
@@ -21,26 +21,43 @@ It turns day-to-day engineering notes into a searchable developer memory powered
 ## Table of contents
 
 * [What is DevMemory?](#what-is-devmemory)
+* [Preview](#preview)
 * [Why DevMemory?](#why-devmemory)
 * [Quick start](#quick-start)
+* [Try the isolated local demo](#try-the-isolated-local-demo)
 * [Core workflow](#core-workflow)
 * [Architecture overview](#architecture-overview)
 * [RAG flow](#rag-flow)
+* [Demo output](#demo-output)
 * [Key features](#key-features)
+* [Local-first by default](#local-first-by-default)
 * [Installation](#installation)
 * [Basic usage](#basic-usage)
+* [Memory lifecycle](#memory-lifecycle)
 * [Git integration](#git-integration)
+* [Markdown export](#markdown-export)
+* [Knowledge graph](#knowledge-graph)
 * [Local AI setup](#local-ai-setup)
+* [AI configuration](#ai-configuration)
 * [Vector indexing](#vector-indexing)
 * [Semantic search](#semantic-search)
+* [Related memories](#related-memories)
 * [RAG questions](#rag-questions)
+* [AI commands](#ai-commands)
 * [Daily usage](#daily-usage)
+* [Environment variables](#environment-variables)
 * [Backup and restore](#backup-and-restore)
+* [Local development scripts](#local-development-scripts)
 * [Architecture](#architecture)
 * [Quality and release engineering](#quality-and-release-engineering)
+* [Testing](#testing)
+* [CI](#ci)
+* [Current release status](#current-release-status)
 * [Current limitations](#current-limitations)
 * [Roadmap](#roadmap)
 * [Privacy](#privacy)
+* [Project goal](#project-goal)
+* [License](#license)
 
 ---
 
@@ -156,16 +173,30 @@ Start local AI dependencies:
 ./scripts/dev-ai-local.sh doctor
 ```
 
+Set persistent local AI configuration:
+
+```bash
+devmemory config set chat-provider ollama
+devmemory config set embedding-provider ollama
+devmemory config set vector-store qdrant
+devmemory config set ollama-chat-model llama3.2
+devmemory config set ollama-embedding-model nomic-embed-text
+devmemory config set qdrant-collection devmemory_memories
+```
+
 Index your memories:
 
 ```bash
-DEVMEMORY_CHAT_PROVIDER=ollama \
-DEVMEMORY_EMBEDDING_PROVIDER=ollama \
-DEVMEMORY_VECTOR_STORE=qdrant \
 devmemory index
 ```
 
 Ask a RAG question:
+
+```bash
+devmemory ask --rag --show-context "What did I decide about Qdrant?"
+```
+
+You can also override configuration temporarily through environment variables:
 
 ```bash
 DEVMEMORY_CHAT_PROVIDER=ollama \
@@ -173,6 +204,41 @@ DEVMEMORY_EMBEDDING_PROVIDER=ollama \
 DEVMEMORY_VECTOR_STORE=qdrant \
 devmemory ask --rag --show-context "What did I decide about Qdrant?"
 ```
+
+---
+
+## Try the isolated local demo
+
+DevMemory includes an isolated demo script that lets you try the main CLI features without touching your real `~/.devmemory` data.
+
+From the repository root:
+
+```bash
+./scripts/demo-local.sh
+```
+
+The demo creates a temporary `DEVMEMORY_HOME`, seeds sample memories, and runs commands such as:
+
+```bash
+devmemory doctor
+devmemory list
+devmemory search "qdrant"
+devmemory show <memory-id>
+devmemory timeline --project DevMemory
+devmemory edit <memory-id> --add-tag demo
+devmemory graph-export
+devmemory graph-view
+```
+
+If Ollama and Qdrant are running, the script also demonstrates semantic search, related memories, and RAG.
+
+To keep the generated demo data for inspection:
+
+```bash
+DEVMEMORY_KEEP_DEMO_HOME=true ./scripts/demo-local.sh
+```
+
+See [docs/demo.md](docs/demo.md) for the full demo guide.
 
 ---
 
@@ -184,8 +250,10 @@ A typical DevMemory workflow looks like this:
 devmemory add
 devmemory list
 devmemory search "revision"
+devmemory timeline --project DevMemory
 devmemory index
 devmemory semantic-search "estimate revision cloning"
+devmemory related <memory-id>
 devmemory ask --rag "How did we validate the local AI runtime?"
 ```
 
@@ -311,18 +379,23 @@ JSON memory
 ## Key features
 
 * Local-first structured developer memories.
-* JSON-based local storage.
+* JSON-based local storage as the source of truth.
 * Markdown export for every memory.
-* Ranked text search with filters.
+* Add, list, show, search, edit and delete memory lifecycle.
+* Ranked text search with project, area and tag filters.
 * Git repository inspection.
 * Memory draft creation from Git context.
 * Knowledge graph JSON export.
 * Local HTML knowledge graph view.
-* Generated-file filtering.
+* Timeline view for chronological project exploration.
+* Persistent AI/RAG configuration.
 * Vector indexing with embeddings.
 * Semantic search through Qdrant.
+* Related memories through semantic similarity.
 * Local RAG answers through Ollama.
-* AI runtime diagnostics.
+* General diagnostics with `devmemory doctor`.
+* AI runtime diagnostics with `devmemory ai-doctor`.
+* Isolated local demo script.
 * Backup and restore scripts.
 * Release-ready package validation.
 * Installable as a .NET global tool.
@@ -547,6 +620,73 @@ devmemory markdown
 
 ---
 
+## Memory lifecycle
+
+DevMemory supports a complete local memory lifecycle.
+
+### Edit a memory
+
+```bash
+devmemory edit <memory-id> --title "Updated title"
+devmemory edit <memory-id> --solution "Updated implementation notes"
+devmemory edit <memory-id> --add-tag rag
+devmemory edit <memory-id> --remove-tag test
+devmemory edit <memory-id> --add-file src/Example.cs
+devmemory edit <memory-id> --add-test ExampleTests
+```
+
+When a memory is edited, DevMemory updates the primary JSON storage and regenerates the derived Markdown export.
+
+If the memory was previously indexed into the vector store, rebuild the index to keep semantic search aligned.
+
+### Delete a memory
+
+```bash
+devmemory delete <memory-id>
+devmemory delete <memory-id> --yes
+```
+
+Delete removes the memory from local JSON storage and cleans up derived artifacts when possible:
+
+```text
+JSON memory
+Markdown export
+Qdrant vector point, when vector store cleanup is configured
+```
+
+JSON remains the source of truth. Markdown and Qdrant are treated as derived artifacts.
+
+### Timeline
+
+```bash
+devmemory timeline
+devmemory timeline --project DevMemory
+devmemory timeline --area AI
+devmemory timeline --tag rag
+devmemory timeline --limit 10
+```
+
+The timeline shows saved memories chronologically and helps understand how a project evolved over time.
+
+### General diagnostics
+
+```bash
+devmemory doctor
+```
+
+`devmemory doctor` checks the local DevMemory environment:
+
+```text
+storage readability
+Markdown directory
+persistent configuration
+AI/RAG runtime configuration
+Git availability
+memory count
+```
+
+---
+
 ## Git integration
 
 ### Inspect current repository
@@ -758,6 +898,43 @@ Result: AI environment looks ready.
 
 ---
 
+## AI configuration
+
+DevMemory supports persistent local AI/RAG configuration.
+
+Show current configuration:
+
+```bash
+devmemory config show
+```
+
+Set local AI defaults:
+
+```bash
+devmemory config set chat-provider ollama
+devmemory config set embedding-provider ollama
+devmemory config set vector-store qdrant
+devmemory config set ollama-chat-model llama3.2
+devmemory config set ollama-embedding-model nomic-embed-text
+devmemory config set qdrant-collection devmemory_memories
+```
+
+Reset configuration:
+
+```bash
+devmemory config reset
+```
+
+Configuration precedence:
+
+```text
+Environment variables > ~/.devmemory/config.json > default values
+```
+
+This means you can either use persistent configuration for daily work or override values temporarily with environment variables.
+
+---
+
 ## Vector indexing
 
 Indexing turns local memories into vector-searchable documents.
@@ -793,9 +970,6 @@ devmemory index --dry-run --show-text --limit 1
 ### Real indexing
 
 ```bash
-DEVMEMORY_CHAT_PROVIDER=ollama \
-DEVMEMORY_EMBEDDING_PROVIDER=ollama \
-DEVMEMORY_VECTOR_STORE=qdrant \
 devmemory index
 ```
 
@@ -812,6 +986,15 @@ devmemory index --tag qdrant
 Normal indexing skips memories that are already indexed and unchanged.
 Use `--force` when you want to rebuild the index.
 
+If persistent AI configuration is not set, you can use environment variables:
+
+```bash
+DEVMEMORY_CHAT_PROVIDER=ollama \
+DEVMEMORY_EMBEDDING_PROVIDER=ollama \
+DEVMEMORY_VECTOR_STORE=qdrant \
+devmemory index
+```
+
 ---
 
 ## Semantic search
@@ -819,9 +1002,6 @@ Use `--force` when you want to rebuild the index.
 Semantic search uses embeddings and Qdrant.
 
 ```bash
-DEVMEMORY_CHAT_PROVIDER=ollama \
-DEVMEMORY_EMBEDDING_PROVIDER=ollama \
-DEVMEMORY_VECTOR_STORE=qdrant \
 devmemory semantic-search "local AI runtime validation" --limit 3
 ```
 
@@ -839,6 +1019,37 @@ Results: 1
    Score: 0.7493111
 ```
 
+If persistent AI configuration is not set, you can use environment variables:
+
+```bash
+DEVMEMORY_CHAT_PROVIDER=ollama \
+DEVMEMORY_EMBEDDING_PROVIDER=ollama \
+DEVMEMORY_VECTOR_STORE=qdrant \
+devmemory semantic-search "local AI runtime validation" --limit 3
+```
+
+---
+
+## Related memories
+
+Related memories use semantic search to find memories connected to a specific memory.
+
+```bash
+devmemory related <memory-id>
+devmemory related <memory-id> --limit 3
+devmemory related <memory-id> --show-preview
+```
+
+This is useful when you want to rediscover previous work connected to the same topic, project, architectural decision or technical problem.
+
+Related memories require:
+
+```text
+Ollama embeddings
+Qdrant vector store
+previously indexed memories
+```
+
 ---
 
 ## RAG questions
@@ -846,13 +1057,18 @@ Results: 1
 Ask a question using retrieved memories as context:
 
 ```bash
-DEVMEMORY_CHAT_PROVIDER=ollama \
-DEVMEMORY_EMBEDDING_PROVIDER=ollama \
-DEVMEMORY_VECTOR_STORE=qdrant \
 devmemory ask --rag "How did we validate the local AI runtime in DevMemory?" --limit 3
 ```
 
 Show the retrieved context:
+
+```bash
+devmemory ask --rag --show-context "How did we validate the local AI runtime in DevMemory?" --limit 3
+```
+
+Use `--show-context` when you want to understand which memories were used by the model.
+
+If persistent AI configuration is not set, you can use environment variables:
 
 ```bash
 DEVMEMORY_CHAT_PROVIDER=ollama \
@@ -860,8 +1076,6 @@ DEVMEMORY_EMBEDDING_PROVIDER=ollama \
 DEVMEMORY_VECTOR_STORE=qdrant \
 devmemory ask --rag --show-context "How did we validate the local AI runtime in DevMemory?" --limit 3
 ```
-
-Use `--show-context` when you want to understand which memories were used by the model.
 
 ---
 
@@ -894,9 +1108,6 @@ DEVMEMORY_CHAT_PROVIDER=ollama devmemory ask "Reply with only: hello"
 ### Ask with RAG
 
 ```bash
-DEVMEMORY_CHAT_PROVIDER=ollama \
-DEVMEMORY_EMBEDDING_PROVIDER=ollama \
-DEVMEMORY_VECTOR_STORE=qdrant \
 devmemory ask --rag "What did I decide about Qdrant?"
 ```
 
@@ -913,19 +1124,23 @@ devmemory add
 devmemory list
 devmemory search "..."
 devmemory show <memory-id>
+devmemory edit <memory-id> [options]
+devmemory delete <memory-id> [--yes]
+devmemory timeline
+devmemory doctor
 devmemory git-status
 devmemory learn-from-git
 devmemory graph-export
 devmemory graph-view
 ```
 
-These commands use local JSON storage.
+These commands use local JSON storage and local file exports.
 
 ---
 
 ### Use DevMemory with local AI/RAG
 
-When you want semantic search or RAG:
+When you want semantic search, related memories or RAG:
 
 ```bash
 # 1. Make sure Docker Desktop is running
@@ -935,21 +1150,25 @@ When you want semantic search or RAG:
 ./scripts/dev-ai-local.sh doctor
 ```
 
-Then:
+Then configure local AI once:
 
 ```bash
-DEVMEMORY_CHAT_PROVIDER=ollama \
-DEVMEMORY_EMBEDDING_PROVIDER=ollama \
-DEVMEMORY_VECTOR_STORE=qdrant \
+devmemory config set chat-provider ollama
+devmemory config set embedding-provider ollama
+devmemory config set vector-store qdrant
+```
+
+Index memories:
+
+```bash
 devmemory index
 ```
 
 And query:
 
 ```bash
-DEVMEMORY_CHAT_PROVIDER=ollama \
-DEVMEMORY_EMBEDDING_PROVIDER=ollama \
-DEVMEMORY_VECTOR_STORE=qdrant \
+devmemory semantic-search "estimate revision"
+devmemory related <memory-id>
 devmemory ask --rag "What did I change in the estimate workflow?"
 ```
 
@@ -1122,6 +1341,18 @@ This validates the local AI flow using the configured Ollama and Qdrant runtime.
 
 ---
 
+### Isolated local demo
+
+```bash
+./scripts/demo-local.sh
+```
+
+This runs a complete local demo using a temporary `DEVMEMORY_HOME`.
+
+It is safe to run because it does not modify your real `~/.devmemory` data.
+
+---
+
 ### Clean generated files
 
 ```bash
@@ -1219,6 +1450,7 @@ OllamaChatCompletionService
 OllamaEmbeddingService
 QdrantVectorMemoryStore
 AiRuntimeOptionsProvider
+AiRuntimeConfigurationStore
 ```
 
 This layer handles:
@@ -1230,7 +1462,8 @@ This layer handles:
 * graph HTML export;
 * Ollama integration;
 * Qdrant integration;
-* environment-based runtime configuration.
+* environment-based runtime configuration;
+* persistent local AI/RAG configuration.
 
 ---
 
@@ -1245,6 +1478,9 @@ add
 list
 search
 show
+edit
+delete
+timeline
 storage
 markdown
 git-status
@@ -1253,9 +1489,12 @@ graph-export
 graph-view
 ai-status
 ai-doctor
+doctor
 ask
 index
 semantic-search
+related
+config
 version
 help
 ```
@@ -1284,7 +1523,9 @@ Current quality practices include:
 * package checksum generation;
 * repository hygiene verification;
 * changelog verification;
+* version consistency verification;
 * backup and restore scripts;
+* isolated local demo script;
 * local AI diagnostics and smoke testing.
 
 ---
@@ -1308,6 +1549,9 @@ The test suite covers:
 * memory service behavior;
 * validation and normalization;
 * ranked text search;
+* memory edit behavior;
+* memory delete behavior;
+* Markdown cleanup;
 * JSON storage;
 * Markdown export;
 * Git memory draft creation;
@@ -1317,9 +1561,14 @@ The test suite covers:
 * HTML graph export;
 * vector indexing;
 * semantic search;
+* related memories;
 * RAG answer orchestration;
+* persistent AI configuration;
+* general doctor diagnostics;
 * Ollama integration;
 * Qdrant integration;
+* Qdrant vector deletion;
+* timeline output and filters;
 * CLI command parsing and dispatching;
 * CLI package behavior.
 
@@ -1357,17 +1606,30 @@ as build artifacts.
 Current version:
 
 ```text
-0.1.3
+0.2.0
 ```
 
 DevMemory can currently be packaged and installed locally as a .NET global tool.
 
 The package is not published to NuGet yet.
 
-Release artifacts are generated locally under:
+The latest GitHub Release is:
+
+```text
+DevMemory v0.2.0
+```
+
+Release artifacts are attached to the GitHub Release and can also be generated locally under:
 
 ```text
 artifacts/packages/
+```
+
+Generated artifacts:
+
+```text
+DevMemory.Cli.0.2.0.nupkg
+DevMemory.Cli.0.2.0.nupkg.sha256
 ```
 
 ---
@@ -1382,10 +1644,10 @@ Current limitations:
 * Primary storage is JSON-based.
 * SQLite storage is not available yet.
 * Hosted/cloud sync is not available.
-* Desktop UI or TUI is not available yet.
+* Desktop UI, TUI or editor extension is not available yet.
 * HTML graph layout is simple and static.
 * Public NuGet publishing is not configured yet.
-* GitHub Releases are not automated yet.
+* GitHub Releases are currently created manually.
 * Local AI features require Ollama and Docker/Qdrant to be running.
 * RAG answer quality depends on the quality of saved memories and on the selected LLM.
 
@@ -1395,19 +1657,18 @@ Current limitations:
 
 Planned improvements:
 
-* Add screenshots and demo GIFs.
 * Add a smoother first-run setup wizard.
-* Improve CLI rendering with optional colors/tables.
+* Improve CLI rendering with optional colors, tables and richer terminal output.
 * Evaluate `System.CommandLine` or `Spectre.Console`.
-* Add SQLite storage option.
-* Improve memory editing and deletion flows.
+* Add SQLite as an optional storage provider.
 * Improve Git diff summarization.
-* Improve graph filtering and visualization.
+* Improve graph filtering, layout and interactivity.
 * Add benchmark/evaluation cases for RAG quality.
 * Add optional cloud LLM provider hardening.
 * Add GitHub Release automation.
-* Publish as a public or private NuGet tool package.
+* Publish as a public NuGet tool package.
 * Explore a TUI or local web UI.
+* Explore a VS Code extension or MCP integration.
 
 ---
 
