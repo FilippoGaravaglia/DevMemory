@@ -41,6 +41,7 @@ var commandHandlers = new ICommandHandler[]
     new GraphViewCommandHandler(memoryGraphService),
     new AiStatusCommandHandler(),
     new AiDoctorCommandHandler(),
+    new DoctorCommandHandler(memoryService),
     new AskCommandHandler(),
     new IndexCommandHandler(memoryService),
     new RelatedCommandHandler(memoryService),

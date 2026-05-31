@@ -28,6 +28,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- graph-view [--output <file-path>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ai-status");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ai-doctor");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- doctor");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask <question>");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- ask --rag <question> [--show-context] [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- index [--dry-run] [--force] [--limit <number>] [--project <project>] [--area <area>] [--tag <tag>] [--show-text]");
@@ -56,6 +57,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory graph-view [--output <file-path>]");
         Console.WriteLine("  devmemory ai-status");
         Console.WriteLine("  devmemory ai-doctor");
+        Console.WriteLine("  devmemory doctor");
         Console.WriteLine("  devmemory ask <question>");
         Console.WriteLine("  devmemory ask --rag <question> [--show-context] [--limit <number>]");
         Console.WriteLine("  devmemory index [--dry-run] [--force] [--limit <number>] [--project <project>] [--area <area>] [--tag <tag>] [--show-text]");
@@ -85,6 +87,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  graph-view       Generate the local HTML graph view.");
         Console.WriteLine("  ai-status        Show the current AI/RAG runtime configuration status.");
         Console.WriteLine("  ai-doctor        Diagnose the local AI runtime configuration.");
+        Console.WriteLine("  doctor          Run general DevMemory health checks.");
         Console.WriteLine("  ask              Ask a question using the configured AI chat provider.");
         Console.WriteLine("  index            Index local memories into the configured vector store.");
         Console.WriteLine("  semantic-search  Search indexed memories using semantic similarity.");
@@ -121,6 +124,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory graph-view");
         Console.WriteLine("  devmemory ai-status");
         Console.WriteLine("  devmemory ai-doctor");
+        Console.WriteLine("  devmemory doctor");
         Console.WriteLine("  devmemory config show");
         Console.WriteLine("  devmemory config set chat-provider ollama");
         Console.WriteLine("  devmemory config set embedding-provider ollama");
