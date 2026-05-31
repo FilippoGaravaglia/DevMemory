@@ -66,6 +66,34 @@ The goal is simple:
 
 ---
 
+## Preview
+
+### DevMemory v0.2.0 release
+
+DevMemory v0.2.0 introduces a complete memory lifecycle, persistent AI/RAG configuration, related memories, timeline, diagnostics, and an isolated local demo.
+
+![DevMemory v0.2.0 release](docs/assets/screenshots/devmemory-release.png)
+
+### General diagnostics
+
+`devmemory doctor` checks the local DevMemory environment, including storage, Markdown export, persistent configuration, AI runtime status, and Git availability.
+
+![DevMemory doctor](docs/assets/screenshots/devmemory-doctor.png)
+
+### Project timeline
+
+`devmemory timeline` shows saved memories chronologically, making it easier to understand how a project evolved over time.
+
+![DevMemory timeline](docs/assets/screenshots/devmemory-timeline.png)
+
+### Knowledge graph
+
+`devmemory graph-view` generates a local HTML graph view from saved memories, projects, areas, tags, files, and relationships.
+
+![DevMemory graph view](docs/assets/screenshots/devmemory-graph-view.png)
+
+---
+
 ## Why DevMemory?
 
 As developers, we often solve problems and then lose the context a few days later.
