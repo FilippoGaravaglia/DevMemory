@@ -149,6 +149,18 @@ devmemory --version
 devmemory help
 ```
 
+Run the first-run setup guide:
+
+```bash
+devmemory setup
+```
+
+For local AI/RAG setup instructions:
+
+```bash
+devmemory setup --local-ai
+```
+
 ### Save your first memory
 
 ```bash
@@ -247,6 +259,7 @@ See [docs/demo.md](docs/demo.md) for the full demo guide.
 A typical DevMemory workflow looks like this:
 
 ```bash
+devmemory setup
 devmemory add
 devmemory list
 devmemory search "revision"
@@ -380,6 +393,7 @@ JSON memory
 
 * Local-first structured developer memories.
 * JSON-based local storage as the source of truth.
+* First-run setup guidance with `devmemory setup`.
 * Markdown export for every memory.
 * Add, list, show, search, edit and delete memory lifecycle.
 * Ranked text search with project, area and tag filters.
@@ -617,6 +631,24 @@ devmemory storage
 ```bash
 devmemory markdown
 ```
+
+---
+
+### Show first-run setup guidance
+
+```bash
+devmemory setup
+```
+
+Available setup modes:
+
+```bash
+devmemory setup --local-ai
+devmemory setup --demo
+devmemory setup --check
+```
+
+The setup command does not modify local data. It prints safe onboarding instructions for local usage, local AI/RAG configuration, isolated demo execution and setup validation.
 
 ---
 
@@ -898,6 +930,16 @@ Result: AI environment looks ready.
 
 ---
 
+### 6. Print local AI setup guidance
+
+```bash
+devmemory setup --local-ai
+```
+
+This prints the recommended local Ollama/Qdrant configuration commands and does not modify local data.
+
+---
+
 ## AI configuration
 
 DevMemory supports persistent local AI/RAG configuration.
@@ -1120,6 +1162,7 @@ devmemory ask --rag "What did I decide about Qdrant?"
 You do not need Docker or Ollama for:
 
 ```bash
+devmemory setup
 devmemory add
 devmemory list
 devmemory search "..."
@@ -1481,6 +1524,7 @@ show
 edit
 delete
 timeline
+setup
 storage
 markdown
 git-status
@@ -1565,6 +1609,7 @@ The test suite covers:
 * RAG answer orchestration;
 * persistent AI configuration;
 * general doctor diagnostics;
+* first-run setup command behavior;
 * Ollama integration;
 * Qdrant integration;
 * Qdrant vector deletion;
@@ -1603,29 +1648,29 @@ as build artifacts.
 
 ## Current release status
 
-Current version:
+Latest published release:
 
 ```text
-0.2.0
+DevMemory v0.2.0
+```
+
+Current development branch:
+
+```text
+dev
 ```
 
 DevMemory can currently be packaged and installed locally as a .NET global tool.
 
 The package is not published to NuGet yet.
 
-The latest GitHub Release is:
-
-```text
-DevMemory v0.2.0
-```
-
-Release artifacts are attached to the GitHub Release and can also be generated locally under:
+Release artifacts are attached to the latest GitHub Release and can also be generated locally under:
 
 ```text
 artifacts/packages/
 ```
 
-Generated artifacts:
+Published v0.2.0 artifacts:
 
 ```text
 DevMemory.Cli.0.2.0.nupkg
@@ -1648,6 +1693,7 @@ Current limitations:
 * HTML graph layout is simple and static.
 * Public NuGet publishing is not configured yet.
 * GitHub Releases are currently created manually.
+* First-run setup is currently guidance-based and not fully interactive yet.
 * Local AI features require Ollama and Docker/Qdrant to be running.
 * RAG answer quality depends on the quality of saved memories and on the selected LLM.
 
@@ -1657,7 +1703,7 @@ Current limitations:
 
 Planned improvements:
 
-* Add a smoother first-run setup wizard.
+* Evolve `devmemory setup` into a smoother interactive first-run wizard.
 * Improve CLI rendering with optional colors, tables and richer terminal output.
 * Evaluate `System.CommandLine` or `Spectre.Console`.
 * Add SQLite as an optional storage provider.

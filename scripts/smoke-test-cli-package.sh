@@ -73,6 +73,10 @@ echo
 "$TOOL_PATH" help
 echo
 
+"$TOOL_PATH" setup --check >/dev/null
+echo "Setup command smoke check completed successfully."
+echo
+
 "$TOOL_PATH" storage
 echo
 
