@@ -90,6 +90,8 @@ When the change is ready, open a pull request into `dev`.
 
 `main` is updated from `dev` only when preparing a new stable release.
 
+For the full release workflow, see [docs/release-process.md](docs/release-process.md).
+
 ---
 
 ## Local setup
