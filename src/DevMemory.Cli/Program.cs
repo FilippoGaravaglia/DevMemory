@@ -35,6 +35,7 @@ var commandHandlers = new ICommandHandler[]
     new TimelineCommandHandler(memoryService),
     new StorageCommandHandler(memoryService),
     new MarkdownCommandHandler(memoryService),
+    new SetupCommandHandler(),
     new GitStatusCommandHandler(gitInspector),
     new LearnFromGitCommandHandler(memoryService, gitMemoryDraftService),
     new GraphExportCommandHandler(memoryGraphService),

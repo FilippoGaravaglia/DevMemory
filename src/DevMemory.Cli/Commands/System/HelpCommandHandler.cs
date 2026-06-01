@@ -39,6 +39,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- config reset");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- version");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- --version");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- setup [--local-ai|--demo|--check]");
         Console.WriteLine();
 
         Console.WriteLine("Installed tool usage:");
@@ -69,6 +70,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
         Console.WriteLine("  devmemory -v");
+        Console.WriteLine("  devmemory setup [--local-ai|--demo|--check]");
         Console.WriteLine();
 
         Console.WriteLine("Commands:");
@@ -95,6 +97,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  config           Show, set or reset persistent DevMemory configuration.");
         Console.WriteLine("  version          Show the current DevMemory version.");
         Console.WriteLine("  help             Show this help message.");
+        Console.WriteLine("  setup            Show first-run setup guidance.");
         Console.WriteLine();
 
         Console.WriteLine("Global aliases:");
@@ -153,6 +156,10 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory related <memory-id> --show-preview");
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
+        Console.WriteLine("  devmemory setup");
+        Console.WriteLine("  devmemory setup --local-ai");
+        Console.WriteLine("  devmemory setup --demo");
+        Console.WriteLine("  devmemory setup --check");
         Console.WriteLine();
 
         Console.WriteLine("Environment variables:");
