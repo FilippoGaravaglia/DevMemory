@@ -96,6 +96,7 @@ public sealed class SetupCommandHandlerTests
 
         Assert.Contains("Usage:", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory setup --local-ai", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --checklist", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -131,6 +132,29 @@ public sealed class SetupCommandHandlerTests
         Assert.Contains("Usage:", result.Error, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Execute_WhenChecklistOptionIsProvided_PrintsSetupChecklist()
+    {
+        // Arrange
+        var handler = new SetupCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["setup", "--checklist"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory first-run checklist", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory version", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory storage", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory doctor", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory graph-view", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --local-ai", result.Output, StringComparison.Ordinal);
+    }
+
+    #region Helpers
+
     private static CommandResult ExecuteAndCaptureOutput(
         SetupCommandHandler handler,
         string[] args)
@@ -164,4 +188,6 @@ public sealed class SetupCommandHandlerTests
         int ExitCode,
         string Output,
         string Error);
+
+    #endregion
 }

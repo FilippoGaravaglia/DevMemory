@@ -74,7 +74,8 @@ echo
 echo
 
 "$TOOL_PATH" setup --check >/dev/null
-echo "Setup command smoke check completed successfully."
+"$TOOL_PATH" setup --checklist >/dev/null
+echo "Setup command smoke checks completed successfully."
 echo
 
 "$TOOL_PATH" storage
