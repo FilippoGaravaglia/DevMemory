@@ -1328,6 +1328,18 @@ The release check validates:
 
 ---
 
+### Release process
+
+The release workflow is documented in:
+
+```text
+docs/release-process.md
+```
+
+The process covers feature branches, `dev` integration, release preparation, version updates, changelog updates, tagging, package artifacts, checksums and GitHub Release publishing.
+
+---
+
 ### Verify repository support files
 
 ```bash
