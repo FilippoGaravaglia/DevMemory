@@ -1319,11 +1319,32 @@ The release check validates:
 
 1. build and tests;
 2. repository hygiene;
-3. changelog entry;
-4. version consistency;
-5. package artifact structure;
-6. CLI package smoke test;
-7. final package checksum.
+3. repository support files;
+4. changelog entry;
+5. version consistency;
+6. package artifact structure;
+7. CLI package smoke test;
+8. final package checksum.
+
+---
+
+### Verify repository support files
+
+```bash
+./scripts/verify-repository-support-files.sh
+```
+
+This verifies that repository support and governance files are present and non-empty:
+
+```text
+CONTRIBUTING.md
+SECURITY.md
+.github/dependabot.yml
+.github/workflows/ci.yml
+.github/ISSUE_TEMPLATE/bug_report.md
+.github/ISSUE_TEMPLATE/feature_request.md
+.github/pull_request_template.md
+```
 
 ---
 
@@ -1566,6 +1587,7 @@ Current quality practices include:
 * installed CLI smoke test;
 * package checksum generation;
 * repository hygiene verification;
+* repository support file verification;
 * changelog verification;
 * version consistency verification;
 * backup and restore scripts;
@@ -1629,6 +1651,7 @@ It validates:
 * build;
 * tests;
 * repository hygiene;
+* repository support files;
 * changelog;
 * version consistency;
 * package structure;
