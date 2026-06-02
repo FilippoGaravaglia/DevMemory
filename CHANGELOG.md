@@ -22,6 +22,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Added repository support file verification to the release check pipeline.
 * Added dedicated CLI command reference documentation.
 * Added dedicated architecture documentation.
+* Added safe interactive setup wizard with `devmemory setup --wizard`.
 
 ### Changed
 
@@ -30,6 +31,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Updated GitHub Actions CI to run on `dev` and `feature/*` branches.
 * Updated README documentation for setup guidance, release process and repository support verification.
 * Updated release check from 7 steps to 8 steps.
+* Updated setup documentation and package smoke tests for the interactive setup wizard.
 
 ### Notes
 

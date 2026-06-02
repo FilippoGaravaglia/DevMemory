@@ -98,6 +98,7 @@ public sealed class SetupCommandHandlerTests
         Assert.Contains("devmemory setup --local-ai", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory setup --checklist", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory setup --next", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --wizard", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -175,34 +176,87 @@ public sealed class SetupCommandHandlerTests
         Assert.Contains("devmemory setup --checklist", result.Output, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Execute_WhenWizardOptionIsProvidedAndUserSkipsAi_PrintsWizardWithoutAiSteps()
+    {
+        // Arrange
+        var handler = new SetupCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(
+            handler,
+            ["setup", "--wizard"],
+            input: "n");
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory interactive setup wizard", result.Output, StringComparison.Ordinal);
+        Assert.Contains("No files will be modified.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory doctor", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory add", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Local AI/RAG setup skipped.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Setup wizard completed.", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenWizardOptionIsProvidedAndUserAcceptsAi_PrintsAiSetupSteps()
+    {
+        // Arrange
+        var handler = new SetupCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(
+            handler,
+            ["setup", "--wizard"],
+            input: "y");
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory interactive setup wizard", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Optional local AI/RAG setup", result.Output, StringComparison.Ordinal);
+        Assert.Contains("./scripts/dev-ai-local.sh pull-models", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory config set chat-provider ollama", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory ask --rag --show-context", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Setup wizard completed.", result.Output, StringComparison.Ordinal);
+    }
+
     #region Helpers
 
     private static CommandResult ExecuteAndCaptureOutput(
         SetupCommandHandler handler,
-        string[] args)
+        string[] args,
+        string? input = null)
     {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+        using var inputReader = new StringReader(input ?? string.Empty);
+
         var originalOutput = Console.Out;
         var originalError = Console.Error;
-
-        using var outputWriter = new StringWriter();
-        using var errorWriter = new StringWriter();
+        var originalInput = Console.In;
 
         try
         {
-            Console.SetOut(outputWriter);
-            Console.SetError(errorWriter);
+            Console.SetOut(output);
+            Console.SetError(error);
+            Console.SetIn(inputReader);
 
             var exitCode = handler.Execute(args);
 
             return new CommandResult(
                 exitCode,
-                outputWriter.ToString(),
-                errorWriter.ToString());
+                output.ToString(),
+                error.ToString());
         }
         finally
         {
             Console.SetOut(originalOutput);
             Console.SetError(originalError);
+            Console.SetIn(originalInput);
         }
     }
 

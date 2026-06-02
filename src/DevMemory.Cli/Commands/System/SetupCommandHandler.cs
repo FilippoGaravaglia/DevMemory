@@ -26,6 +26,7 @@ public sealed class SetupCommandHandler : ICommandHandler
 
         return option switch
         {
+            "--wizard" => RunSetupWizard(),
             "--next" => PrintNextSteps(),
             "--checklist" => PrintSetupChecklist(),
             "--local-ai" => PrintLocalAiSetup(),
@@ -66,6 +67,7 @@ public sealed class SetupCommandHandler : ICommandHandler
         Console.WriteLine("   ./scripts/demo-local.sh");
         Console.WriteLine();
         Console.WriteLine("Optional setup modes:");
+        Console.WriteLine("   devmemory setup --wizard");
         Console.WriteLine("   devmemory setup --next");
         Console.WriteLine("   devmemory setup --checklist");
         Console.WriteLine("   devmemory setup --local-ai");
@@ -75,6 +77,118 @@ public sealed class SetupCommandHandler : ICommandHandler
         Console.WriteLine("Documentation:");
         Console.WriteLine("   README.md");
         Console.WriteLine("   docs/demo.md");
+    }
+
+    /// <summary>
+    /// Runs a safe interactive first-run setup wizard.
+    /// </summary>
+    private static int RunSetupWizard()
+    {
+        Console.WriteLine("DevMemory interactive setup wizard");
+        Console.WriteLine("----------------------------------");
+        Console.WriteLine();
+        Console.WriteLine("This wizard helps you understand the recommended first-run setup.");
+        Console.WriteLine();
+        Console.WriteLine("No files will be modified.");
+        Console.WriteLine("No configuration will be written.");
+        Console.WriteLine("No external services will be started.");
+        Console.WriteLine();
+
+        Console.WriteLine("Step 1 - Check the installed CLI");
+        Console.WriteLine("Run:");
+        Console.WriteLine("   devmemory --version");
+        Console.WriteLine("   devmemory help");
+        Console.WriteLine();
+
+        Console.WriteLine("Step 2 - Inspect local storage");
+        Console.WriteLine("Run:");
+        Console.WriteLine("   devmemory storage");
+        Console.WriteLine();
+
+        Console.WriteLine("Step 3 - Run diagnostics");
+        Console.WriteLine("Run:");
+        Console.WriteLine("   devmemory doctor");
+        Console.WriteLine();
+
+        Console.WriteLine("Step 4 - Create and inspect your first memory");
+        Console.WriteLine("Run:");
+        Console.WriteLine("   devmemory add");
+        Console.WriteLine("   devmemory list");
+        Console.WriteLine("   devmemory show <memory-id>");
+        Console.WriteLine();
+
+        Console.WriteLine("Step 5 - Use local memory features without AI");
+        Console.WriteLine("Run:");
+        Console.WriteLine("   devmemory search \"your topic\"");
+        Console.WriteLine("   devmemory timeline");
+        Console.WriteLine("   devmemory graph-export");
+        Console.WriteLine("   devmemory graph-view");
+        Console.WriteLine();
+
+        Console.Write("Do you want to see the optional local AI/RAG setup steps? [y/N]: ");
+        var answer = Console.ReadLine();
+
+        if (IsYes(answer))
+        {
+            Console.WriteLine();
+            Console.WriteLine("Optional local AI/RAG setup");
+            Console.WriteLine("---------------------------");
+            Console.WriteLine();
+            Console.WriteLine("Prerequisites:");
+            Console.WriteLine("   - Docker Desktop running");
+            Console.WriteLine("   - Ollama installed and running");
+            Console.WriteLine();
+            Console.WriteLine("Pull local models:");
+            Console.WriteLine("   ./scripts/dev-ai-local.sh pull-models");
+            Console.WriteLine();
+            Console.WriteLine("Start local AI services:");
+            Console.WriteLine("   ./scripts/dev-ai-local.sh start");
+            Console.WriteLine();
+            Console.WriteLine("Diagnose local AI runtime:");
+            Console.WriteLine("   ./scripts/dev-ai-local.sh doctor");
+            Console.WriteLine("   devmemory ai-doctor");
+            Console.WriteLine();
+            Console.WriteLine("Configure DevMemory:");
+            Console.WriteLine("   devmemory config set chat-provider ollama");
+            Console.WriteLine("   devmemory config set embedding-provider ollama");
+            Console.WriteLine("   devmemory config set vector-store qdrant");
+            Console.WriteLine("   devmemory config set ollama-chat-model llama3.2");
+            Console.WriteLine("   devmemory config set ollama-embedding-model nomic-embed-text");
+            Console.WriteLine("   devmemory config set qdrant-collection devmemory_memories");
+            Console.WriteLine();
+            Console.WriteLine("Index and query:");
+            Console.WriteLine("   devmemory index");
+            Console.WriteLine("   devmemory semantic-search \"your topic\"");
+            Console.WriteLine("   devmemory related <memory-id>");
+            Console.WriteLine("   devmemory ask --rag --show-context \"your question\"");
+        }
+        else
+        {
+            Console.WriteLine();
+            Console.WriteLine("Local AI/RAG setup skipped.");
+            Console.WriteLine("You can review it later with:");
+            Console.WriteLine("   devmemory setup --local-ai");
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("Recommended next command:");
+        Console.WriteLine("   devmemory doctor");
+        Console.WriteLine();
+        Console.WriteLine("For the full checklist:");
+        Console.WriteLine("   devmemory setup --checklist");
+        Console.WriteLine();
+        Console.WriteLine("Setup wizard completed.");
+
+        return CliExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Returns true when a console answer should be interpreted as yes.
+    /// </summary>
+    private static bool IsYes(string? value)
+    {
+        return string.Equals(value?.Trim(), "y", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(value?.Trim(), "yes", StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -302,6 +416,7 @@ public sealed class SetupCommandHandler : ICommandHandler
     {
         Console.WriteLine("Usage:");
         Console.WriteLine("  devmemory setup");
+        Console.WriteLine("  devmemory setup --wizard");
         Console.WriteLine("  devmemory setup --next");
         Console.WriteLine("  devmemory setup --checklist");
         Console.WriteLine("  devmemory setup --local-ai");
@@ -309,6 +424,7 @@ public sealed class SetupCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory setup --check");
         Console.WriteLine();
         Console.WriteLine("Options:");
+        Console.WriteLine("  --wizard    Run a safe interactive first-run setup wizard.");
         Console.WriteLine("  --next       Show recommended next steps.");
         Console.WriteLine("  --checklist  Show a first-run setup checklist.");
         Console.WriteLine("  --local-ai   Show local Ollama/Qdrant setup steps.");
@@ -324,6 +440,7 @@ public sealed class SetupCommandHandler : ICommandHandler
     {
         Console.Error.WriteLine("Usage:");
         Console.Error.WriteLine("  devmemory setup");
+        Console.Error.WriteLine("  devmemory setup --wizard");
         Console.Error.WriteLine("  devmemory setup --next");
         Console.Error.WriteLine("  devmemory setup --checklist");
         Console.Error.WriteLine("  devmemory setup --local-ai");

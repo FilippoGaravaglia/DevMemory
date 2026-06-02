@@ -39,7 +39,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- config reset");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- version");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- --version");
-        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- setup [--next|--checklist|--local-ai|--demo|--check]");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- setup [--wizard|--next|--checklist|--local-ai|--demo|--check]");
         Console.WriteLine();
 
         Console.WriteLine("Installed tool usage:");
@@ -70,7 +70,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
         Console.WriteLine("  devmemory -v");
-        Console.WriteLine("  devmemory setup [--next|--checklist|--local-ai|--demo|--check]");
+        Console.WriteLine("  devmemory setup [--wizard|--next|--checklist|--local-ai|--demo|--check]");
         Console.WriteLine();
 
         Console.WriteLine("Commands:");
@@ -157,6 +157,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory version");
         Console.WriteLine("  devmemory --version");
         Console.WriteLine("  devmemory setup");
+        Console.WriteLine("  devmemory setup --wizard");
         Console.WriteLine("  devmemory setup --next");
         Console.WriteLine("  devmemory setup --checklist");
         Console.WriteLine("  devmemory setup --local-ai");

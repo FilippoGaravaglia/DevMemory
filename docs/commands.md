@@ -58,6 +58,22 @@ This command does not modify local data.
 
 ---
 
+### Interactive setup wizard
+
+```bash
+devmemory setup --wizard
+```
+
+Runs a safe interactive first-run setup wizard.
+
+The wizard does not modify local data, does not write configuration and does not start external services.
+
+It guides the user through the recommended first-run commands and can optionally print the local AI/RAG setup flow.
+
+Use it when installing DevMemory for the first time and you want a guided onboarding experience.
+
+---
+
 ### Recommended next steps
 
 ```bash
@@ -677,11 +693,11 @@ Stop local AI services:
 
 ## Notes
 
-- Core memory commands work without AI.
-- Classic search works without AI.
-- Markdown export works without AI.
-- Git inspection works without AI.
-- Knowledge graph export works without AI.
-- Semantic search, related memories and RAG require local or external AI/RAG configuration.
-- JSON storage is the source of truth.
-- Markdown, graph exports and Qdrant vectors are derived artifacts.
+* Core memory commands work without AI.
+* Classic search works without AI.
+* Markdown export works without AI.
+* Git inspection works without AI.
+* Knowledge graph export works without AI.
+* Semantic search, related memories and RAG require local or external AI/RAG configuration.
+* JSON storage is the source of truth.
+* Markdown, graph exports and Qdrant vectors are derived artifacts.
