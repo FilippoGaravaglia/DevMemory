@@ -1712,6 +1712,12 @@ Current development branch:
 dev
 ```
 
+Current unreleased changes are tracked in:
+
+```text
+CHANGELOG.md
+```
+
 DevMemory can currently be packaged and installed locally as a .NET global tool.
 
 The package is not published to NuGet yet.
