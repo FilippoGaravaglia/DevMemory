@@ -24,11 +24,14 @@ dotnet run --project src/DevMemory.Cli -- <command> [options]
 
 ```bash
 devmemory help
+devmemory help setup
 devmemory --help
 devmemory -h
 ```
 
 Shows the main CLI help output.
+
+`devmemory help setup` shows command-specific help for the first-run setup command.
 
 ---
 
