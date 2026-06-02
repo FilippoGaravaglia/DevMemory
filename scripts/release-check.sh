@@ -23,27 +23,32 @@ echo "------------------------------------------------"
 "$ROOT_DIR/scripts/verify-repository-support-files.sh"
 
 echo
-echo "Step 4/8 - Verifying changelog"
+echo "Step 4/9 - Verifying documentation links"
+echo "----------------------------------------"
+"$ROOT_DIR/scripts/verify-documentation-links.sh"
+
+echo
+echo "Step 5/9 - Verifying changelog"
 echo "------------------------------"
 "$ROOT_DIR/scripts/verify-changelog.sh"
 
 echo
-echo "Step 5/8 - Verifying version consistency"
+echo "Step 6/9 - Verifying version consistency"
 echo "----------------------------------------"
 "$ROOT_DIR/scripts/verify-version-consistency.sh"
 
 echo
-echo "Step 6/8 - Verifying package artifact"
+echo "Step 7/9 - Verifying package artifact"
 echo "-------------------------------------"
 "$ROOT_DIR/scripts/verify-package-artifact.sh"
 
 echo
-echo "Step 7/8 - Running CLI package smoke test"
+echo "Step 8/9 - Running CLI package smoke test"
 echo "----------------------------------------"
 "$ROOT_DIR/scripts/smoke-test-cli-package.sh"
 
 echo
-echo "Step 8/8 - Generating final package checksum"
+echo "Step 9/9 - Generating final package checksum"
 echo "--------------------------------------------"
 "$ROOT_DIR/scripts/generate-package-checksum.sh"
 
