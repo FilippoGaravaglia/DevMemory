@@ -97,6 +97,7 @@ public sealed class SetupCommandHandlerTests
         Assert.Contains("Usage:", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory setup --local-ai", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory setup --checklist", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --next", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -151,6 +152,27 @@ public sealed class SetupCommandHandlerTests
         Assert.Contains("devmemory doctor", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory graph-view", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory setup --local-ai", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenNextOptionIsProvided_PrintsRecommendedNextSteps()
+    {
+        // Arrange
+        var handler = new SetupCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["setup", "--next"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory recommended next steps", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory doctor", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory storage", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory add", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory graph-view", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --checklist", result.Output, StringComparison.Ordinal);
     }
 
     #region Helpers
