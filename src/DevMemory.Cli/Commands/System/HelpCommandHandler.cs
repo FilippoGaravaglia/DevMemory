@@ -6,7 +6,41 @@ public sealed class HelpCommandHandler : ICommandHandler
 {
     public string Name => "help";
 
+    /// <summary>
+    /// Executes the help command.
+    /// </summary>
     public int Execute(string[] args)
+    {
+        if (args.Length <= 1)
+        {
+            PrintHelp();
+            return CliExitCodes.Success;
+        }
+
+        var commandName = args[1];
+
+        return commandName switch
+        {
+            "setup" => PrintSetupHelp(),
+            "--help" or "-h" => PrintHelpAndReturnSuccess(),
+            _ => PrintUnknownHelpTopic(commandName)
+        };
+    }
+
+    /// <summary>
+    /// Prints the general help output and returns a successful exit code.
+    /// </summary>
+    private static int PrintHelpAndReturnSuccess()
+    {
+        PrintHelp();
+
+        return CliExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Prints the main DevMemory help output.
+    /// </summary>
+    private static void PrintHelp()
     {
         Console.WriteLine("DevMemory - Local Developer Memory");
         Console.WriteLine("----------------------------------");
@@ -40,6 +74,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- version");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- --version");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- setup [--wizard|--next|--checklist|--local-ai|--demo|--check]");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- help [command]");
         Console.WriteLine();
 
         Console.WriteLine("Installed tool usage:");
@@ -71,6 +106,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory --version");
         Console.WriteLine("  devmemory -v");
         Console.WriteLine("  devmemory setup [--wizard|--next|--checklist|--local-ai|--demo|--check]");
+        Console.WriteLine("  devmemory help [command]");
         Console.WriteLine();
 
         Console.WriteLine("Commands:");
@@ -89,11 +125,11 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  graph-view       Generate the local HTML graph view.");
         Console.WriteLine("  ai-status        Show the current AI/RAG runtime configuration status.");
         Console.WriteLine("  ai-doctor        Diagnose the local AI runtime configuration.");
-        Console.WriteLine("  doctor          Run general DevMemory health checks.");
+        Console.WriteLine("  doctor           Run general DevMemory health checks.");
         Console.WriteLine("  ask              Ask a question using the configured AI chat provider.");
         Console.WriteLine("  index            Index local memories into the configured vector store.");
         Console.WriteLine("  semantic-search  Search indexed memories using semantic similarity.");
-        Console.WriteLine("  related         Find indexed memories semantically related to a memory.");
+        Console.WriteLine("  related          Find indexed memories semantically related to a memory.");
         Console.WriteLine("  config           Show, set or reset persistent DevMemory configuration.");
         Console.WriteLine("  version          Show the current DevMemory version.");
         Console.WriteLine("  help             Show this help message.");
@@ -163,6 +199,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory setup --local-ai");
         Console.WriteLine("  devmemory setup --demo");
         Console.WriteLine("  devmemory setup --check");
+        Console.WriteLine("  devmemory help setup");
         Console.WriteLine();
 
         Console.WriteLine("Environment variables:");
@@ -196,7 +233,67 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory ask --rag \"How did we handle estimate revisions?\"");
         Console.WriteLine("  DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory index");
         Console.WriteLine("  DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory semantic-search \"estimate revision\"");
+    }
+
+    /// <summary>
+    /// Prints command-specific help for the setup command.
+    /// </summary>
+    private static int PrintSetupHelp()
+    {
+        Console.WriteLine("DevMemory setup");
+        Console.WriteLine("---------------");
+        Console.WriteLine();
+
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  devmemory setup");
+        Console.WriteLine("  devmemory setup --wizard");
+        Console.WriteLine("  devmemory setup --next");
+        Console.WriteLine("  devmemory setup --checklist");
+        Console.WriteLine("  devmemory setup --local-ai");
+        Console.WriteLine("  devmemory setup --demo");
+        Console.WriteLine("  devmemory setup --check");
+        Console.WriteLine("  devmemory setup --help");
+        Console.WriteLine();
+
+        Console.WriteLine("Options:");
+        Console.WriteLine("  --wizard     Run a safe interactive first-run setup wizard.");
+        Console.WriteLine("  --next       Show recommended next steps.");
+        Console.WriteLine("  --checklist  Show a first-run setup checklist.");
+        Console.WriteLine("  --local-ai   Show local Ollama/Qdrant setup steps.");
+        Console.WriteLine("  --demo       Show isolated local demo instructions.");
+        Console.WriteLine("  --check      Show setup validation commands.");
+        Console.WriteLine("  --help, -h   Show setup command help.");
+        Console.WriteLine();
+
+        Console.WriteLine("Notes:");
+        Console.WriteLine("  The setup command is safe by default.");
+        Console.WriteLine("  It does not modify local data unless a future explicit write option is added.");
+        Console.WriteLine("  The setup wizard does not write configuration and does not start external services.");
+        Console.WriteLine();
+
+        Console.WriteLine("Examples:");
+        Console.WriteLine("  devmemory setup");
+        Console.WriteLine("  devmemory setup --wizard");
+        Console.WriteLine("  devmemory setup --next");
+        Console.WriteLine("  devmemory setup --checklist");
+        Console.WriteLine("  devmemory setup --local-ai");
 
         return CliExitCodes.Success;
     }
+
+    /// <summary>
+    /// Prints an error for an unknown command-specific help topic.
+    /// </summary>
+    private static int PrintUnknownHelpTopic(string commandName)
+    {
+        Console.Error.WriteLine($"Unknown help topic: {commandName}");
+        Console.Error.WriteLine();
+
+        Console.Error.WriteLine("Usage:");
+        Console.Error.WriteLine("  devmemory help");
+        Console.Error.WriteLine("  devmemory help setup");
+
+        return CliExitCodes.InvalidCommand;
+    }
+
 }

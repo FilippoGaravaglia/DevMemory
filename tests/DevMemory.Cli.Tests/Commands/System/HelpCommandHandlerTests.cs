@@ -1,0 +1,141 @@
+using DevMemory.Cli.CommandLine;
+using DevMemory.Cli.Commands.System;
+
+namespace DevMemory.Cli.Tests.Commands.System;
+
+public sealed class HelpCommandHandlerTests
+{
+    [Fact]
+    public void Execute_WhenNoHelpTopicIsProvided_PrintsGeneralHelp()
+    {
+        // Arrange
+        var handler = new HelpCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["help"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory - Local Developer Memory", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help [command]", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup [--wizard|--next|--checklist|--local-ai|--demo|--check]", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help setup", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenHelpAliasIsProvided_PrintsGeneralHelp()
+    {
+        // Arrange
+        var handler = new HelpCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["help", "--help"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory - Local Developer Memory", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help [command]", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenShortHelpAliasIsProvided_PrintsGeneralHelp()
+    {
+        // Arrange
+        var handler = new HelpCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["help", "-h"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory - Local Developer Memory", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help [command]", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenSetupHelpTopicIsProvided_PrintsSetupHelp()
+    {
+        // Arrange
+        var handler = new HelpCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["help", "setup"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory setup", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --wizard", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --next", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --checklist", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --local-ai", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --demo", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory setup --check", result.Output, StringComparison.Ordinal);
+        Assert.Contains("The setup command is safe by default.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("The setup wizard does not write configuration and does not start external services.", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenUnknownHelpTopicIsProvided_ReturnsInvalidCommand()
+    {
+        // Arrange
+        var handler = new HelpCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["help", "unknown"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.InvalidCommand, result.ExitCode);
+        Assert.Empty(result.Output);
+
+        Assert.Contains("Unknown help topic: unknown", result.Error, StringComparison.Ordinal);
+        Assert.Contains("devmemory help", result.Error, StringComparison.Ordinal);
+        Assert.Contains("devmemory help setup", result.Error, StringComparison.Ordinal);
+    }
+
+    #region Helpers
+
+    private static CommandExecutionResult ExecuteAndCaptureOutput(
+        HelpCommandHandler handler,
+        string[] args)
+    {
+        using var output = new StringWriter();
+        using var error = new StringWriter();
+
+        var originalOutput = Console.Out;
+        var originalError = Console.Error;
+
+        try
+        {
+            Console.SetOut(output);
+            Console.SetError(error);
+
+            var exitCode = handler.Execute(args);
+
+            return new CommandExecutionResult(
+                exitCode,
+                output.ToString(),
+                error.ToString());
+        }
+        finally
+        {
+            Console.SetOut(originalOutput);
+            Console.SetError(originalError);
+        }
+    }
+
+    private sealed record CommandExecutionResult(
+        int ExitCode,
+        string Output,
+        string Error);
+
+    #endregion
+}
