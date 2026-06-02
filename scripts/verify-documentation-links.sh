@@ -13,6 +13,8 @@ markdown_files=(
   "SECURITY.md"
   "docs/demo.md"
   "docs/release-process.md"
+  "docs/commands.md"
+  "docs/architecture.md"
 )
 
 missing_targets=()

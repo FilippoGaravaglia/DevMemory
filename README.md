@@ -50,6 +50,7 @@ It turns day-to-day engineering notes into a searchable developer memory powered
 * [Backup and restore](#backup-and-restore)
 * [Local development scripts](#local-development-scripts)
 * [Architecture](#architecture)
+* [Architecture documentation](#architecture-documentation)
 * [Quality and release engineering](#quality-and-release-engineering)
 * [Testing](#testing)
 * [CI](#ci)
@@ -1618,6 +1619,18 @@ help
 ```
 
 The CLI entry point delegates command execution to dedicated command handlers.
+
+---
+
+## Architecture documentation
+
+A dedicated architecture document is available in:
+
+```text
+docs/architecture.md
+```
+
+It describes the layered architecture, local-first data model, source-of-truth strategy, derived artifacts, Git integration, graph export, AI/RAG flow, diagnostics, testing strategy and release engineering.
 
 ---
 
