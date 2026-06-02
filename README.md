@@ -1337,11 +1337,12 @@ The release check validates:
 1. build and tests;
 2. repository hygiene;
 3. repository support files;
-4. changelog entry;
-5. version consistency;
-6. package artifact structure;
-7. CLI package smoke test;
-8. final package checksum.
+4. documentation links;
+5. changelog entry;
+6. version consistency;
+7. package artifact structure;
+8. CLI package smoke test;
+9. final package checksum.
 
 ---
 
@@ -1374,6 +1375,16 @@ SECURITY.md
 .github/ISSUE_TEMPLATE/feature_request.md
 .github/pull_request_template.md
 ```
+
+---
+
+### Verify documentation links
+
+```bash
+./scripts/verify-documentation-links.sh
+```
+
+This verifies that local Markdown links and image references point to existing repository files.
 
 ---
 
@@ -1617,6 +1628,7 @@ Current quality practices include:
 * package checksum generation;
 * repository hygiene verification;
 * repository support file verification;
+* documentation link verification;
 * changelog verification;
 * version consistency verification;
 * backup and restore scripts;
@@ -1681,6 +1693,7 @@ It validates:
 * tests;
 * repository hygiene;
 * repository support files;
+* documentation links;
 * changelog;
 * version consistency;
 * package structure;
