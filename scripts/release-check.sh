@@ -8,17 +8,17 @@ cd "$ROOT_DIR"
 echo "Running DevMemory release check..."
 
 echo
-echo "Step 1/8 - Running build and test validation"
+echo "Step 1/9 - Running build and test validation"
 echo "-------------------------------------------"
 "$ROOT_DIR/scripts/build-test.sh"
 
 echo
-echo "Step 2/8 - Verifying repository hygiene"
+echo "Step 2/9 - Verifying repository hygiene"
 echo "--------------------------------------"
 "$ROOT_DIR/scripts/verify-repository-hygiene.sh"
 
 echo
-echo "Step 3/8 - Verifying repository support files"
+echo "Step 3/9 - Verifying repository support files"
 echo "------------------------------------------------"
 "$ROOT_DIR/scripts/verify-repository-support-files.sh"
 

@@ -157,6 +157,12 @@ Run the first-run setup guide:
 devmemory setup
 ```
 
+Run the safe interactive setup wizard:
+
+```bash
+devmemory setup --wizard
+```
+
 Get recommended next steps:
 
 ```bash
@@ -274,6 +280,7 @@ A typical DevMemory workflow looks like this:
 
 ```bash
 devmemory setup
+devmemory setup --wizard
 devmemory setup --next
 devmemory add
 devmemory list
@@ -408,7 +415,7 @@ JSON memory
 
 * Local-first structured developer memories.
 * JSON-based local storage as the source of truth.
-* First-run setup guidance, recommended next steps and checklist with `devmemory setup`.
+* First-run setup guidance, safe interactive wizard, recommended next steps and checklist with `devmemory setup`.
 * Markdown export for every memory.
 * Add, list, show, search, edit and delete memory lifecycle.
 * Ranked text search with project, area and tag filters.
@@ -658,6 +665,7 @@ devmemory setup
 Available setup modes:
 
 ```bash
+devmemory setup --wizard
 devmemory setup --next
 devmemory setup --checklist
 devmemory setup --local-ai
@@ -665,7 +673,7 @@ devmemory setup --demo
 devmemory setup --check
 ```
 
-The setup command does not modify local data. It prints safe onboarding instructions for local usage, recommended next steps, first-run checklist execution, local AI/RAG configuration, isolated demo execution and setup validation.
+The setup command does not modify local data. It prints safe onboarding instructions for local usage, interactive wizard guidance, recommended next steps, first-run checklist execution, local AI/RAG configuration, isolated demo execution and setup validation.
 
 ---
 
@@ -1192,6 +1200,7 @@ You do not need Docker or Ollama for:
 
 ```bash
 devmemory setup
+devmemory setup --wizard
 devmemory setup --next
 devmemory setup --checklist
 devmemory add
@@ -1790,7 +1799,7 @@ Current limitations:
 * HTML graph layout is simple and static.
 * Public NuGet publishing is not configured yet.
 * GitHub Releases are currently created manually.
-* First-run setup is currently guidance-based and not fully interactive yet.
+* First-run setup has a safe guidance-based wizard, but it does not automatically write configuration yet.
 * Local AI features require Ollama and Docker/Qdrant to be running.
 * RAG answer quality depends on the quality of saved memories and on the selected LLM.
 
@@ -1800,7 +1809,7 @@ Current limitations:
 
 Planned improvements:
 
-* Evolve `devmemory setup` into a smoother interactive first-run wizard.
+* Evolve `devmemory setup --wizard` into a configuration-writing first-run experience.
 * Improve CLI rendering with optional colors, tables and richer terminal output.
 * Evaluate `System.CommandLine` or `Spectre.Console`.
 * Add SQLite as an optional storage provider.
