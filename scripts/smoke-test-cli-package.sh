@@ -75,6 +75,7 @@ echo
 
 "$TOOL_PATH" setup --check >/dev/null
 "$TOOL_PATH" setup --checklist >/dev/null
+"$TOOL_PATH" setup --next >/dev/null
 echo "Setup command smoke checks completed successfully."
 echo
 

@@ -26,10 +26,11 @@ public sealed class SetupCommandHandler : ICommandHandler
 
         return option switch
         {
+            "--next" => PrintNextSteps(),
+            "--checklist" => PrintSetupChecklist(),
             "--local-ai" => PrintLocalAiSetup(),
             "--demo" => PrintDemoSetup(),
             "--check" => PrintCheckSetup(),
-            "--checklist" => PrintSetupChecklist(),
             "--help" or "-h" => PrintHelp(),
             _ => PrintInvalidOption(option)
         };
@@ -65,6 +66,7 @@ public sealed class SetupCommandHandler : ICommandHandler
         Console.WriteLine("   ./scripts/demo-local.sh");
         Console.WriteLine();
         Console.WriteLine("Optional setup modes:");
+        Console.WriteLine("   devmemory setup --next");
         Console.WriteLine("   devmemory setup --checklist");
         Console.WriteLine("   devmemory setup --local-ai");
         Console.WriteLine("   devmemory setup --demo");
@@ -125,6 +127,51 @@ public sealed class SetupCommandHandler : ICommandHandler
         Console.WriteLine("   - JSON local storage is the source of truth.");
         Console.WriteLine("   - Markdown, graph and vector data are derived artifacts.");
         Console.WriteLine("   - Local AI/RAG is optional and can be configured later.");
+
+        return CliExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Prints recommended next steps for a new DevMemory user.
+    /// </summary>
+    private static int PrintNextSteps()
+    {
+        Console.WriteLine("DevMemory recommended next steps");
+        Console.WriteLine("--------------------------------");
+        Console.WriteLine();
+        Console.WriteLine("Use this guide when you are not sure what to do next.");
+        Console.WriteLine();
+        Console.WriteLine("1. Check your local environment:");
+        Console.WriteLine("   devmemory doctor");
+        Console.WriteLine();
+        Console.WriteLine("2. Inspect where DevMemory stores local data:");
+        Console.WriteLine("   devmemory storage");
+        Console.WriteLine();
+        Console.WriteLine("3. Create your first structured memory:");
+        Console.WriteLine("   devmemory add");
+        Console.WriteLine();
+        Console.WriteLine("4. List and inspect saved memories:");
+        Console.WriteLine("   devmemory list");
+        Console.WriteLine("   devmemory show <memory-id>");
+        Console.WriteLine();
+        Console.WriteLine("5. Search local memories without AI:");
+        Console.WriteLine("   devmemory search \"your topic\"");
+        Console.WriteLine();
+        Console.WriteLine("6. Explore project evolution:");
+        Console.WriteLine("   devmemory timeline");
+        Console.WriteLine();
+        Console.WriteLine("7. Generate a local graph view:");
+        Console.WriteLine("   devmemory graph-export");
+        Console.WriteLine("   devmemory graph-view");
+        Console.WriteLine();
+        Console.WriteLine("8. Try the isolated demo:");
+        Console.WriteLine("   ./scripts/demo-local.sh");
+        Console.WriteLine();
+        Console.WriteLine("9. Optional: enable local AI/RAG:");
+        Console.WriteLine("   devmemory setup --local-ai");
+        Console.WriteLine();
+        Console.WriteLine("For the full first-run checklist:");
+        Console.WriteLine("   devmemory setup --checklist");
 
         return CliExitCodes.Success;
     }
@@ -255,12 +302,14 @@ public sealed class SetupCommandHandler : ICommandHandler
     {
         Console.WriteLine("Usage:");
         Console.WriteLine("  devmemory setup");
+        Console.WriteLine("  devmemory setup --next");
         Console.WriteLine("  devmemory setup --checklist");
         Console.WriteLine("  devmemory setup --local-ai");
         Console.WriteLine("  devmemory setup --demo");
         Console.WriteLine("  devmemory setup --check");
         Console.WriteLine();
         Console.WriteLine("Options:");
+        Console.WriteLine("  --next       Show recommended next steps.");
         Console.WriteLine("  --checklist  Show a first-run setup checklist.");
         Console.WriteLine("  --local-ai   Show local Ollama/Qdrant setup steps.");
         Console.WriteLine("  --demo       Show isolated local demo instructions.");
@@ -275,6 +324,7 @@ public sealed class SetupCommandHandler : ICommandHandler
     {
         Console.Error.WriteLine("Usage:");
         Console.Error.WriteLine("  devmemory setup");
+        Console.Error.WriteLine("  devmemory setup --next");
         Console.Error.WriteLine("  devmemory setup --checklist");
         Console.Error.WriteLine("  devmemory setup --local-ai");
         Console.Error.WriteLine("  devmemory setup --demo");
