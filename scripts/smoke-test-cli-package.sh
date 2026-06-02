@@ -76,6 +76,9 @@ echo
 "$TOOL_PATH" help setup
 echo
 
+"$TOOL_PATH" help config
+echo
+
 "$TOOL_PATH" setup --check >/dev/null
 "$TOOL_PATH" setup --checklist >/dev/null
 "$TOOL_PATH" setup --next >/dev/null

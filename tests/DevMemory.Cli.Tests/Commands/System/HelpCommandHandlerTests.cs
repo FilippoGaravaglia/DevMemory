@@ -22,6 +22,7 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("devmemory help [command]", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory setup [--wizard|--next|--checklist|--local-ai|--demo|--check]", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help setup", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help config", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -39,6 +40,8 @@ public sealed class HelpCommandHandlerTests
 
         Assert.Contains("DevMemory - Local Developer Memory", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help [command]", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help setup", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help config", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -56,6 +59,8 @@ public sealed class HelpCommandHandlerTests
 
         Assert.Contains("DevMemory - Local Developer Memory", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help [command]", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help setup", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help config", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -84,6 +89,30 @@ public sealed class HelpCommandHandlerTests
     }
 
     [Fact]
+    public void Execute_WhenConfigHelpTopicIsProvided_PrintsConfigHelp()
+    {
+        // Arrange
+        var handler = new HelpCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["help", "config"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory config", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory config show", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory config set <key> <value>", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory config reset", result.Output, StringComparison.Ordinal);
+        Assert.Contains("chat-provider", result.Output, StringComparison.Ordinal);
+        Assert.Contains("embedding-provider", result.Output, StringComparison.Ordinal);
+        Assert.Contains("vector-store", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Environment variables > ~/.devmemory/config.json > default values", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory config set chat-provider ollama", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void Execute_WhenUnknownHelpTopicIsProvided_ReturnsInvalidCommand()
     {
         // Arrange
@@ -99,6 +128,7 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("Unknown help topic: unknown", result.Error, StringComparison.Ordinal);
         Assert.Contains("devmemory help", result.Error, StringComparison.Ordinal);
         Assert.Contains("devmemory help setup", result.Error, StringComparison.Ordinal);
+        Assert.Contains("devmemory help config", result.Error, StringComparison.Ordinal);
     }
 
     #region Helpers
