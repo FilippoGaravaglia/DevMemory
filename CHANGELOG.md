@@ -20,6 +20,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Added release process documentation.
 * Added repository support file verification script.
 * Added repository support file verification to the release check pipeline.
+* Added dedicated CLI command reference documentation.
 
 ### Changed
 

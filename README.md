@@ -33,6 +33,7 @@ It turns day-to-day engineering notes into a searchable developer memory powered
 * [Local-first by default](#local-first-by-default)
 * [Installation](#installation)
 * [Basic usage](#basic-usage)
+* [Command reference](#command-reference)
 * [Memory lifecycle](#memory-lifecycle)
 * [Git integration](#git-integration)
 * [Markdown export](#markdown-export)
@@ -664,6 +665,18 @@ devmemory setup --check
 ```
 
 The setup command does not modify local data. It prints safe onboarding instructions for local usage, recommended next steps, first-run checklist execution, local AI/RAG configuration, isolated demo execution and setup validation.
+
+---
+
+## Command reference
+
+The full CLI command reference is available in:
+
+```text
+docs/commands.md
+```
+
+It documents setup, memory lifecycle, Git integration, graph export, diagnostics, configuration, vector indexing, semantic search, related memories and RAG commands.
 
 ---
 
