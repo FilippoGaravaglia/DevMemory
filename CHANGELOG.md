@@ -23,6 +23,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Added dedicated CLI command reference documentation.
 * Added dedicated architecture documentation.
 * Added safe interactive setup wizard with `devmemory setup --wizard`.
+* Added command-specific help for config with `devmemory help config`.
 
 ### Changed
 
@@ -32,6 +33,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Updated README documentation for setup guidance, release process and repository support verification.
 * Updated release check from 7 steps to 8 steps.
 * Updated setup documentation and package smoke tests for the interactive setup wizard.
+* Updated CLI help documentation and smoke tests for config command-specific help.
 
 ### Notes
 

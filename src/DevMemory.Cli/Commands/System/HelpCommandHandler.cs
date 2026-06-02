@@ -22,6 +22,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         return commandName switch
         {
             "setup" => PrintSetupHelp(),
+            "config" => PrintConfigHelp(),
             "--help" or "-h" => PrintHelpAndReturnSuccess(),
             _ => PrintUnknownHelpTopic(commandName)
         };
@@ -200,6 +201,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory setup --demo");
         Console.WriteLine("  devmemory setup --check");
         Console.WriteLine("  devmemory help setup");
+        Console.WriteLine("  devmemory help config");
         Console.WriteLine();
 
         Console.WriteLine("Environment variables:");
@@ -233,6 +235,67 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory ask --rag \"How did we handle estimate revisions?\"");
         Console.WriteLine("  DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory index");
         Console.WriteLine("  DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory semantic-search \"estimate revision\"");
+    }
+
+    /// <summary>
+    /// Prints command-specific help for the config command.
+    /// </summary>
+    private static int PrintConfigHelp()
+    {
+        Console.WriteLine("DevMemory config");
+        Console.WriteLine("----------------");
+        Console.WriteLine();
+
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  devmemory config show");
+        Console.WriteLine("  devmemory config set <key> <value>");
+        Console.WriteLine("  devmemory config reset");
+        Console.WriteLine();
+
+        Console.WriteLine("Description:");
+        Console.WriteLine("  Manages persistent local DevMemory configuration.");
+        Console.WriteLine("  Configuration is stored locally under the DevMemory home directory.");
+        Console.WriteLine();
+
+        Console.WriteLine("Supported keys:");
+        Console.WriteLine("  chat-provider             Chat provider: none, ollama, openai, gemini, anthropic");
+        Console.WriteLine("  embedding-provider        Embedding provider: none, ollama, openai, gemini");
+        Console.WriteLine("  vector-store              Vector store: none, qdrant");
+        Console.WriteLine("  ollama-endpoint           Ollama endpoint");
+        Console.WriteLine("  ollama-chat-model         Ollama chat model");
+        Console.WriteLine("  ollama-embedding-model    Ollama embedding model");
+        Console.WriteLine("  qdrant-endpoint           Qdrant endpoint");
+        Console.WriteLine("  qdrant-collection         Qdrant collection name");
+        Console.WriteLine();
+
+        Console.WriteLine("Configuration precedence:");
+        Console.WriteLine("  Environment variables > ~/.devmemory/config.json > default values");
+        Console.WriteLine();
+
+        Console.WriteLine("Local Ollama/Qdrant example:");
+        Console.WriteLine("  devmemory config set chat-provider ollama");
+        Console.WriteLine("  devmemory config set embedding-provider ollama");
+        Console.WriteLine("  devmemory config set vector-store qdrant");
+        Console.WriteLine("  devmemory config set ollama-chat-model llama3.2");
+        Console.WriteLine("  devmemory config set ollama-embedding-model nomic-embed-text");
+        Console.WriteLine("  devmemory config set qdrant-collection devmemory_memories");
+        Console.WriteLine();
+
+        Console.WriteLine("Useful related commands:");
+        Console.WriteLine("  devmemory config show");
+        Console.WriteLine("  devmemory ai-status");
+        Console.WriteLine("  devmemory ai-doctor");
+        Console.WriteLine("  devmemory index");
+        Console.WriteLine("  devmemory semantic-search \"your topic\"");
+        Console.WriteLine("  devmemory ask --rag \"your question\"");
+        Console.WriteLine();
+
+        Console.WriteLine("Notes:");
+        Console.WriteLine("  Core memory commands do not require AI configuration.");
+        Console.WriteLine("  Semantic search, related memories and RAG require embedding/vector configuration.");
+        Console.WriteLine("  RAG also requires a configured chat provider.");
+
+        return CliExitCodes.Success;
     }
 
     /// <summary>
@@ -292,6 +355,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.Error.WriteLine("Usage:");
         Console.Error.WriteLine("  devmemory help");
         Console.Error.WriteLine("  devmemory help setup");
+        Console.Error.WriteLine("  devmemory help config");
 
         return CliExitCodes.InvalidCommand;
     }

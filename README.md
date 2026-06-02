@@ -687,6 +687,13 @@ docs/commands.md
 
 It documents setup, memory lifecycle, Git integration, graph export, diagnostics, configuration, vector indexing, semantic search, related memories and RAG commands.
 
+Command-specific help is also available for selected commands:
+
+```bash
+devmemory help setup
+devmemory help config
+```
+
 ---
 
 ## Memory lifecycle
