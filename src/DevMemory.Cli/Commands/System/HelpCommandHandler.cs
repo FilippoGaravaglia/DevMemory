@@ -23,9 +23,137 @@ public sealed class HelpCommandHandler : ICommandHandler
         {
             "setup" => PrintSetupHelp(),
             "config" => PrintConfigHelp(),
+            "ask" => PrintAskHelp(),
+            "index" => PrintIndexHelp(),
             "--help" or "-h" => PrintHelpAndReturnSuccess(),
             _ => PrintUnknownHelpTopic(commandName)
         };
+    }
+
+    /// <summary>
+    /// Prints command-specific help for the ask command.
+    /// </summary>
+    private static int PrintAskHelp()
+    {
+        Console.WriteLine("DevMemory ask");
+        Console.WriteLine("-------------");
+        Console.WriteLine();
+
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  devmemory ask <question>");
+        Console.WriteLine("  devmemory ask --rag <question>");
+        Console.WriteLine("  devmemory ask --rag --show-context <question>");
+        Console.WriteLine("  devmemory ask --rag <question> --limit <number>");
+        Console.WriteLine();
+
+        Console.WriteLine("Description:");
+        Console.WriteLine("  Asks a question using the configured AI chat provider.");
+        Console.WriteLine("  With --rag, DevMemory retrieves relevant indexed memories first and uses them as context.");
+        Console.WriteLine();
+
+        Console.WriteLine("Options:");
+        Console.WriteLine("  --rag           Enable retrieval-augmented generation using indexed memories.");
+        Console.WriteLine("  --show-context  Print the retrieved memories used as context.");
+        Console.WriteLine("  --limit         Maximum number of retrieved memories to use as context.");
+        Console.WriteLine();
+
+        Console.WriteLine("Examples:");
+        Console.WriteLine("  devmemory ask \"Reply with only: hello\"");
+        Console.WriteLine("  devmemory ask --rag \"How did we validate the local AI runtime?\"");
+        Console.WriteLine("  devmemory ask --rag --show-context \"What did I decide about Qdrant?\"");
+        Console.WriteLine("  devmemory ask --rag \"What did I change in MongoDB mapping?\" --limit 3");
+        Console.WriteLine();
+
+        Console.WriteLine("Requirements:");
+        Console.WriteLine("  Basic ask requires a configured chat provider.");
+        Console.WriteLine("  RAG requires a chat provider, an embedding provider, a vector store and indexed memories.");
+        Console.WriteLine();
+
+        Console.WriteLine("Typical local configuration:");
+        Console.WriteLine("  devmemory config set chat-provider ollama");
+        Console.WriteLine("  devmemory config set embedding-provider ollama");
+        Console.WriteLine("  devmemory config set vector-store qdrant");
+        Console.WriteLine();
+
+        Console.WriteLine("Useful related commands:");
+        Console.WriteLine("  devmemory help config");
+        Console.WriteLine("  devmemory help index");
+        Console.WriteLine("  devmemory ai-status");
+        Console.WriteLine("  devmemory ai-doctor");
+        Console.WriteLine("  devmemory index");
+        Console.WriteLine("  devmemory semantic-search \"your topic\"");
+
+        return CliExitCodes.Success;
+    }
+
+    /// <summary>
+    /// Prints command-specific help for the index command.
+    /// </summary>
+    private static int PrintIndexHelp()
+    {
+        Console.WriteLine("DevMemory index");
+        Console.WriteLine("---------------");
+        Console.WriteLine();
+
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  devmemory index");
+        Console.WriteLine("  devmemory index --dry-run");
+        Console.WriteLine("  devmemory index --force");
+        Console.WriteLine("  devmemory index --limit <number>");
+        Console.WriteLine("  devmemory index --project <project>");
+        Console.WriteLine("  devmemory index --area <area>");
+        Console.WriteLine("  devmemory index --tag <tag>");
+        Console.WriteLine("  devmemory index --show-text");
+        Console.WriteLine();
+
+        Console.WriteLine("Description:");
+        Console.WriteLine("  Indexes local memories into the configured vector store.");
+        Console.WriteLine("  The local JSON storage remains the source of truth.");
+        Console.WriteLine("  The vector store is a derived semantic index and can be rebuilt.");
+        Console.WriteLine();
+
+        Console.WriteLine("Options:");
+        Console.WriteLine("  --dry-run    Show what would be indexed without generating embeddings or writing vectors.");
+        Console.WriteLine("  --force      Rebuild index entries even when memories appear unchanged.");
+        Console.WriteLine("  --limit      Limit the number of memories to index.");
+        Console.WriteLine("  --project    Index memories for a specific project.");
+        Console.WriteLine("  --area       Index memories for a specific area.");
+        Console.WriteLine("  --tag        Index memories with a specific tag.");
+        Console.WriteLine("  --show-text  Print the generated indexable text during dry-run.");
+        Console.WriteLine();
+
+        Console.WriteLine("Examples:");
+        Console.WriteLine("  devmemory index --dry-run");
+        Console.WriteLine("  devmemory index --dry-run --show-text --limit 1");
+        Console.WriteLine("  devmemory index");
+        Console.WriteLine("  devmemory index --force");
+        Console.WriteLine("  devmemory index --limit 3");
+        Console.WriteLine("  devmemory index --project DevMemory");
+        Console.WriteLine("  devmemory index --area AI");
+        Console.WriteLine("  devmemory index --tag qdrant");
+        Console.WriteLine("  devmemory index --project DevMemory --area AI --limit 3");
+        Console.WriteLine();
+
+        Console.WriteLine("Requirements:");
+        Console.WriteLine("  Real indexing requires a configured embedding provider and vector store.");
+        Console.WriteLine("  Dry-run indexing does not require Ollama or Qdrant.");
+        Console.WriteLine();
+
+        Console.WriteLine("Typical local configuration:");
+        Console.WriteLine("  devmemory config set embedding-provider ollama");
+        Console.WriteLine("  devmemory config set vector-store qdrant");
+        Console.WriteLine("  devmemory config set ollama-embedding-model nomic-embed-text");
+        Console.WriteLine("  devmemory config set qdrant-collection devmemory_memories");
+        Console.WriteLine();
+
+        Console.WriteLine("Useful related commands:");
+        Console.WriteLine("  devmemory help config");
+        Console.WriteLine("  devmemory ai-status");
+        Console.WriteLine("  devmemory ai-doctor");
+        Console.WriteLine("  devmemory semantic-search \"your topic\"");
+        Console.WriteLine("  devmemory ask --rag \"your question\"");
+
+        return CliExitCodes.Success;
     }
 
     /// <summary>
@@ -202,6 +330,8 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory setup --check");
         Console.WriteLine("  devmemory help setup");
         Console.WriteLine("  devmemory help config");
+        Console.WriteLine("  devmemory help ask");
+        Console.WriteLine("  devmemory help index");
         Console.WriteLine();
 
         Console.WriteLine("Environment variables:");
@@ -356,6 +486,8 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.Error.WriteLine("  devmemory help");
         Console.Error.WriteLine("  devmemory help setup");
         Console.Error.WriteLine("  devmemory help config");
+        Console.Error.WriteLine("  devmemory help ask");
+        Console.Error.WriteLine("  devmemory help index");
 
         return CliExitCodes.InvalidCommand;
     }

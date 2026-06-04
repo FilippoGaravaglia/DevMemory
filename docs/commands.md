@@ -26,6 +26,8 @@ dotnet run --project src/DevMemory.Cli -- <command> [options]
 devmemory help
 devmemory help setup
 devmemory help config
+devmemory help ask
+devmemory help index
 devmemory --help
 devmemory -h
 ```
@@ -35,6 +37,10 @@ Shows the main CLI help output.
 `devmemory help setup` shows command-specific help for the first-run setup command.
 
 `devmemory help config` shows command-specific help for persistent local configuration.
+
+`devmemory help ask` shows command-specific help for AI chat and RAG questions.
+
+`devmemory help index` shows command-specific help for vector indexing.
 
 ---
 
