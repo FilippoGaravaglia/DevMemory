@@ -692,6 +692,8 @@ Command-specific help is also available for selected commands:
 ```bash
 devmemory help setup
 devmemory help config
+devmemory help ask
+devmemory help index
 ```
 
 ---

@@ -23,6 +23,8 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("devmemory setup [--wizard|--next|--checklist|--local-ai|--demo|--check]", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help setup", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help config", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help ask", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help index", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -42,6 +44,8 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("devmemory help [command]", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help setup", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help config", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help ask", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help index", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -61,6 +65,8 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("devmemory help [command]", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help setup", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help config", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help ask", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help index", result.Output, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -129,6 +135,52 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("devmemory help", result.Error, StringComparison.Ordinal);
         Assert.Contains("devmemory help setup", result.Error, StringComparison.Ordinal);
         Assert.Contains("devmemory help config", result.Error, StringComparison.Ordinal);
+        Assert.Contains("devmemory help ask", result.Error, StringComparison.Ordinal);
+        Assert.Contains("devmemory help index", result.Error, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenAskHelpTopicIsProvided_PrintsAskHelp()
+    {
+        // Arrange
+        var handler = new HelpCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["help", "ask"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory ask", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory ask <question>", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory ask --rag <question>", result.Output, StringComparison.Ordinal);
+        Assert.Contains("--show-context", result.Output, StringComparison.Ordinal);
+        Assert.Contains("--limit", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Basic ask requires a configured chat provider.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("RAG requires a chat provider, an embedding provider, a vector store and indexed memories.", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenIndexHelpTopicIsProvided_PrintsIndexHelp()
+    {
+        // Arrange
+        var handler = new HelpCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["help", "index"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory index", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory index --dry-run", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory index --force", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory index --limit <number>", result.Output, StringComparison.Ordinal);
+        Assert.Contains("--show-text", result.Output, StringComparison.Ordinal);
+        Assert.Contains("The local JSON storage remains the source of truth.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Dry-run indexing does not require Ollama or Qdrant.", result.Output, StringComparison.Ordinal);
     }
 
     #region Helpers

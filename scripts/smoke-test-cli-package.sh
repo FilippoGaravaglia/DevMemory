@@ -79,6 +79,12 @@ echo
 "$TOOL_PATH" help config
 echo
 
+"$TOOL_PATH" help ask
+echo
+
+"$TOOL_PATH" help index
+echo
+
 "$TOOL_PATH" setup --check >/dev/null
 "$TOOL_PATH" setup --checklist >/dev/null
 "$TOOL_PATH" setup --next >/dev/null
