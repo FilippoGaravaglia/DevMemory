@@ -26,6 +26,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Added command-specific help for config with `devmemory help config`.
 * Added command-specific help for AI/RAG commands with `devmemory help ask` and `devmemory help index`.
 * Added command-specific help for memory lifecycle commands with `devmemory help memory`.
+* Added `devmemory insights` to show aggregated memory statistics and practical suggestions.
 
 ### Changed
 
@@ -38,6 +39,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Updated CLI help documentation and smoke tests for config command-specific help.
 * Updated CLI help documentation and smoke tests for AI/RAG command-specific help.
 * Updated CLI help documentation and smoke tests for memory lifecycle command-specific help.
+* Updated README, command reference and package smoke tests for the insights command.
 
 ### Notes
 

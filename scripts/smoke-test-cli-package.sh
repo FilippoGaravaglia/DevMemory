@@ -98,6 +98,9 @@ echo
 "$TOOL_PATH" storage
 echo
 
+"$TOOL_PATH" insights
+echo
+
 "$TOOL_PATH" ai-status
 echo
 
