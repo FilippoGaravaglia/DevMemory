@@ -77,7 +77,7 @@ It helps you save structured memories about the work you do every day:
 * what you learned;
 * which project, area, branch and tags the task belongs to.
 
-Those memories are stored locally, can be searched with classic text search, exported to Markdown, visualized as a knowledge graph, inspected through aggregated insights, indexed into a vector database, and queried through a local RAG pipeline powered by Ollama and Qdrant.
+Those memories are stored locally, can be searched with classic text search, exported to Markdown, visualized as a knowledge graph, inspected through aggregated insights, summarized through filtered project reports, indexed into a vector database, and queried through a local RAG pipeline powered by Ollama and Qdrant.
 
 The goal is simple:
 
@@ -126,6 +126,7 @@ Common questions:
 * What tests did I run for that bug fix?
 * What did I learn from that task?
 * Which projects, areas or tags dominate my recent work?
+* Can I generate a report for a project, area, tag or date range?
 * Can I ask an AI assistant using my previous technical work as context?
 
 DevMemory is built to answer those questions from your own local engineering memory.
@@ -195,6 +196,7 @@ devmemory list
 devmemory search "runtime"
 devmemory show <memory-id>
 devmemory insights
+devmemory report --project DevMemory
 ```
 
 ### Enable local AI/RAG
@@ -260,6 +262,9 @@ devmemory search "qdrant"
 devmemory show <memory-id>
 devmemory timeline --project DevMemory
 devmemory insights
+devmemory report --project DevMemory
+devmemory report --project DevMemory --area AI
+devmemory report --project DevMemory --tag rag
 devmemory edit <memory-id> --add-tag demo
 devmemory graph-export
 devmemory graph-view
@@ -290,6 +295,8 @@ devmemory list
 devmemory search "revision"
 devmemory timeline --project DevMemory
 devmemory insights
+devmemory report --project DevMemory
+devmemory report --project DevMemory --area AI
 devmemory index
 devmemory semantic-search "estimate revision cloning"
 devmemory related <memory-id>
@@ -306,6 +313,7 @@ flowchart TD
     C --> E[Classic search]
     C --> F[Knowledge graph]
     C --> M[Memory insights]
+    C --> R[Filtered project reports]
     C --> G[Vector indexing]
     G --> H[Ollama embeddings]
     H --> I[Qdrant vector store]
@@ -330,6 +338,7 @@ flowchart LR
 
     INFRA --> JSON[(Local JSON storage)]
     INFRA --> MD[Markdown export]
+    INFRA --> REPORTS[Filtered project reports]
     INFRA --> GIT[Git inspection]
     INFRA --> GRAPH[Graph export]
     INFRA --> OLLAMA[Ollama]
@@ -424,6 +433,7 @@ JSON memory
 * Markdown export for every memory.
 * Add, list, show, search, edit and delete memory lifecycle.
 * Memory insights with aggregated statistics and practical suggestions.
+* Filtered project Markdown reports for handover, review, sprint summaries and documentation.
 * Ranked text search with project, area and tag filters.
 * Git repository inspection.
 * Memory draft creation from Git context.
@@ -442,7 +452,6 @@ JSON memory
 * Release-ready package validation.
 * Installable as a .NET global tool.
 * CI, formatting checks, tests, release checks and package artifact verification.
-* Project Markdown reports for handover, review and documentation.
 
 ---
 
@@ -468,6 +477,12 @@ Knowledge graph exports:
 ~/.devmemory/graph/
 ```
 
+Project reports:
+
+```text
+~/.devmemory/reports/
+```
+
 You can customize the storage directory with:
 
 ```bash
@@ -489,6 +504,7 @@ flowchart TD
     A --> F[Knowledge graph export]
     A --> G[Classic text search]
     A --> H[Memory insights]
+    A --> R[Filtered project reports]
 
     D --> I[Semantic search]
     D --> J[RAG retrieval]
@@ -599,7 +615,7 @@ Tests
 Lessons learned
 ```
 
-Good memories produce better search, insights and RAG answers.
+Good memories produce better search, insights, reports and RAG answers.
 
 A good memory should describe:
 
@@ -667,6 +683,30 @@ It reads local JSON storage and does not modify data.
 devmemory report --project DevMemory
 ```
 
+To generate a filtered report for a specific area:
+
+```bash
+devmemory report --project DevMemory --area AI
+```
+
+To generate a filtered report for a specific tag:
+
+```bash
+devmemory report --project DevMemory --tag rag
+```
+
+To generate a filtered report for a date range:
+
+```bash
+devmemory report --project DevMemory --from 2026-06-01 --to 2026-06-30
+```
+
+Filters can be combined:
+
+```bash
+devmemory report --project DevMemory --area AI --tag rag --from 2026-06-01 --to 2026-06-30
+```
+
 To choose the output path:
 
 ```bash
@@ -681,7 +721,7 @@ devmemory report --project DevMemory --output ./devmemory-report.md --force
 
 `devmemory report` generates a Markdown report from local memories for a specific project.
 
-The report includes a summary, areas, tags, files touched, timeline, problems, solutions, decisions, tests, lessons learned and suggested next actions.
+The report includes a summary, applied filters, areas, tags, files touched, timeline, problems, solutions, decisions, tests, lessons learned and suggested next actions.
 
 This command does not require AI, Ollama or Qdrant.
 It reads local JSON storage and writes a Markdown report.
@@ -854,6 +894,72 @@ Suggestions:
 
 This command does not require AI, Ollama or Qdrant.
 
+### Project reports
+
+```bash
+devmemory report --project DevMemory
+```
+
+Project reports generate Markdown summaries from local memories.
+
+A basic report includes all memories for the selected project.
+
+Filtered reports can be generated by area:
+
+```bash
+devmemory report --project DevMemory --area AI
+```
+
+by tag:
+
+```bash
+devmemory report --project DevMemory --tag rag
+```
+
+or by date range:
+
+```bash
+devmemory report --project DevMemory --from 2026-06-01 --to 2026-06-30
+```
+
+Filters can be combined:
+
+```bash
+devmemory report --project DevMemory --area AI --tag rag --from 2026-06-01 --to 2026-06-30
+```
+
+Custom output path:
+
+```bash
+devmemory report --project DevMemory --output ./devmemory-report.md
+```
+
+Overwrite existing output:
+
+```bash
+devmemory report --project DevMemory --output ./devmemory-report.md --force
+```
+
+The report includes:
+
+```text
+summary
+applied filters
+areas
+tags
+files touched
+timeline
+problems
+solutions
+decisions
+tests
+lessons learned
+suggested next actions
+```
+
+This command does not require AI, Ollama or Qdrant.
+It reads local JSON storage and writes a derived Markdown report.
+
 ### General diagnostics
 
 ```bash
@@ -940,6 +1046,8 @@ Markdown exports include:
 
 This makes memories easy to reuse in documentation, ChatGPT, GitHub Copilot, Claude, local LLMs or future AI-assisted workflows.
 
+Project reports are separate Markdown artifacts that summarize multiple memories for a project or filtered subset.
+
 ---
 
 ## Knowledge graph
@@ -997,7 +1105,7 @@ The graph currently visualizes:
 
 ## Local AI setup
 
-DevMemory can work without AI for basic memory capture, classic search, timeline, insights, Markdown export and graph generation.
+DevMemory can work without AI for basic memory capture, classic search, timeline, insights, filtered project reports, Markdown export and graph generation.
 
 For semantic search and RAG, you need:
 
@@ -1328,6 +1436,10 @@ devmemory edit <memory-id> [options]
 devmemory delete <memory-id> [--yes]
 devmemory timeline
 devmemory insights
+devmemory report --project <project>
+devmemory report --project <project> --area <area>
+devmemory report --project <project> --tag <tag>
+devmemory report --project <project> --from <yyyy-MM-dd> --to <yyyy-MM-dd>
 devmemory doctor
 devmemory git-status
 devmemory learn-from-git
@@ -1403,6 +1515,18 @@ Ollama chat model:        llama3.2
 Ollama embedding model:   nomic-embed-text
 Qdrant endpoint:          http://localhost:6333
 Qdrant collection:        devmemory_memories
+```
+
+Environment examples:
+
+```bash
+DEVMEMORY_HOME=~/devmemory-work devmemory storage
+DEVMEMORY_HOME=~/devmemory-work devmemory report --project DevMemory
+DEVMEMORY_HOME=~/devmemory-work devmemory report --project DevMemory --area AI
+DEVMEMORY_CHAT_PROVIDER=ollama devmemory ai-status
+DEVMEMORY_CHAT_PROVIDER=ollama devmemory ask "What did I change last time?"
+DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory index
+DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory semantic-search "estimate revision"
 ```
 
 ---
@@ -1656,6 +1780,7 @@ Examples:
 ```text
 MemoryService
 MemoryInsightsService
+MemoryProjectReportService
 GitMemoryDraftService
 MemoryGraphService
 MemoryVectorIndexingService
@@ -1663,6 +1788,15 @@ MemorySemanticSearchService
 MemoryRagAnswerService
 VectorMemoryDocumentBuilder
 MemoryFileFilter
+```
+
+Application models include:
+
+```text
+MemoryInsights
+InsightCountItem
+MemoryProjectReport
+MemoryProjectReportOptions
 ```
 
 Application abstractions include:
@@ -1728,6 +1862,7 @@ edit
 delete
 timeline
 insights
+report
 setup
 storage
 markdown
@@ -1811,6 +1946,9 @@ The test suite covers:
 * memory service behavior;
 * memory insights aggregation;
 * memory insights CLI output;
+* project report generation;
+* filtered project report generation;
+* project report CLI output;
 * validation and normalization;
 * ranked text search;
 * memory edit behavior;
@@ -1924,6 +2062,8 @@ Current limitations:
 * First-run setup has a safe guidance-based wizard, but it does not automatically write configuration yet.
 * Local AI features require Ollama and Docker/Qdrant to be running.
 * RAG answer quality depends on the quality of saved memories and on the selected LLM.
+* Project reports are generated as static Markdown files.
+* Project report filters currently support project, area, tag and date range.
 
 ---
 
@@ -1933,6 +2073,7 @@ Planned improvements:
 
 * Evolve `devmemory setup --wizard` into a configuration-writing first-run experience.
 * Improve memory insights with optional filters and richer recommendations.
+* Improve project reports with richer grouping, trend summaries and optional AI-assisted summaries.
 * Improve CLI rendering with optional colors, tables and richer terminal output.
 * Evaluate `System.CommandLine` or `Spectre.Console`.
 * Add SQLite as an optional storage provider.
@@ -1989,7 +2130,7 @@ It is designed to help developers preserve technical context across:
 * architectural decisions;
 * AI-assisted development sessions.
 
-The long-term vision is to provide a local, searchable and AI-queryable engineering memory that developers can use every day.
+The long-term vision is to provide a local, searchable, reportable and AI-queryable engineering memory that developers can use every day.
 
 ---
 

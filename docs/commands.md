@@ -109,6 +109,8 @@ devmemory search "your topic"
 devmemory timeline
 devmemory insights
 devmemory report --project <project>
+devmemory report --project <project> --area <area>
+devmemory report --project <project> --tag <tag>
 devmemory graph-export
 devmemory graph-view
 ```
@@ -409,10 +411,42 @@ devmemory report --project <project>
 
 Generates a Markdown report from local memories for a specific project.
 
+A basic report includes all memories for the selected project.
+
+Generate a filtered report for a specific area:
+
+```bash
+devmemory report --project DevMemory --area AI
+```
+
+Generate a filtered report for a specific tag:
+
+```bash
+devmemory report --project DevMemory --tag rag
+```
+
+Generate a filtered report for a date range:
+
+```bash
+devmemory report --project DevMemory --from 2026-06-01 --to 2026-06-30
+```
+
+Filters can be combined:
+
+```bash
+devmemory report --project DevMemory --area AI --tag rag --from 2026-06-01 --to 2026-06-30
+```
+
 With custom output:
 
 ```bash
 devmemory report --project DevMemory --output ./devmemory-report.md
+```
+
+With custom output and filters:
+
+```bash
+devmemory report --project DevMemory --area AI --tag rag --output ./devmemory-ai-rag-report.md
 ```
 
 Overwrite an existing output file:
@@ -421,10 +455,17 @@ Overwrite an existing output file:
 devmemory report --project DevMemory --output ./devmemory-report.md --force
 ```
 
+Overwrite an existing filtered report:
+
+```bash
+devmemory report --project DevMemory --area AI --tag rag --from 2026-06-01 --to 2026-06-30 --output ./devmemory-ai-rag-june-report.md --force
+```
+
 The report includes:
 
 ```text
 summary
+applied filters
 areas
 tags
 files touched
@@ -435,6 +476,16 @@ decisions
 tests
 lessons learned
 suggested next actions
+```
+
+Supported filters:
+
+```text
+--project  Required project filter
+--area     Optional area filter
+--tag      Optional tag filter
+--from     Optional start date filter, format yyyy-MM-dd
+--to       Optional end date filter, format yyyy-MM-dd
 ```
 
 This command does not require AI, Ollama or Qdrant.
@@ -780,6 +831,9 @@ Examples:
 ```bash
 DEVMEMORY_HOME=~/devmemory-work devmemory storage
 DEVMEMORY_HOME=~/devmemory-work devmemory report --project DevMemory
+DEVMEMORY_HOME=~/devmemory-work devmemory report --project DevMemory --area AI
+DEVMEMORY_HOME=~/devmemory-work devmemory report --project DevMemory --tag rag
+DEVMEMORY_HOME=~/devmemory-work devmemory report --project DevMemory --from 2026-06-01 --to 2026-06-30
 DEVMEMORY_CHAT_PROVIDER=ollama devmemory ai-status
 DEVMEMORY_CHAT_PROVIDER=ollama devmemory ask "What did I change last time?"
 DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory index
@@ -828,6 +882,7 @@ Stop local AI services:
 * Classic search works without AI.
 * Memory insights work without AI.
 * Project reports work without AI.
+* Project reports can be filtered by area, tag and date range.
 * Markdown export works without AI.
 * Git inspection works without AI.
 * Knowledge graph export works without AI.

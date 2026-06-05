@@ -59,7 +59,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- delete <memory-id> [--yes]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- timeline [--project <project>] [--area <area>] [--tag <tag>] [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- insights");
-        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- report --project <project> [--output <file-path>] [--force]");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- report --project <project> [--area <area>] [--tag <tag>] [--from <yyyy-MM-dd>] [--to <yyyy-MM-dd>] [--output <file-path>] [--force]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- storage");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- markdown");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- git-status [--path <repository-path>]");
@@ -92,7 +92,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory delete <memory-id> [--yes]");
         Console.WriteLine("  devmemory timeline [--project <project>] [--area <area>] [--tag <tag>] [--limit <number>]");
         Console.WriteLine("  devmemory insights");
-        Console.WriteLine("  devmemory report --project <project> [--output <file-path>] [--force]");
+        Console.WriteLine("  devmemory report --project <project> [--area <area>] [--tag <tag>] [--from <yyyy-MM-dd>] [--to <yyyy-MM-dd>] [--output <file-path>] [--force]");
         Console.WriteLine("  devmemory storage");
         Console.WriteLine("  devmemory markdown");
         Console.WriteLine("  devmemory git-status [--path <repository-path>]");
@@ -126,7 +126,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  delete           Delete a memory by id from local storage.");
         Console.WriteLine("  timeline         Show saved memories as a chronological timeline.");
         Console.WriteLine("  insights         Show aggregated memory statistics and suggestions.");
-        Console.WriteLine("  report           Generate a Markdown report for a project.");
+        Console.WriteLine("  report           Generate a filtered Markdown report for a project.");
         Console.WriteLine("  storage          Show the current storage file path.");
         Console.WriteLine("  markdown         Show the Markdown export directory.");
         Console.WriteLine("  git-status       Inspect the current or selected Git repository.");
@@ -169,6 +169,10 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory timeline --project DevMemory --limit 10");
         Console.WriteLine("  devmemory insights");
         Console.WriteLine("  devmemory report --project DevMemory");
+        Console.WriteLine("  devmemory report --project DevMemory --area AI");
+        Console.WriteLine("  devmemory report --project DevMemory --tag rag");
+        Console.WriteLine("  devmemory report --project DevMemory --from 2026-06-01 --to 2026-06-30");
+        Console.WriteLine("  devmemory report --project DevMemory --area AI --tag rag --from 2026-06-01 --to 2026-06-30");
         Console.WriteLine("  devmemory report --project DevMemory --output ./devmemory-report.md");
         Console.WriteLine("  devmemory report --project DevMemory --output ./devmemory-report.md --force");
         Console.WriteLine("  devmemory git-status");
@@ -246,6 +250,7 @@ public sealed class HelpCommandHandler : ICommandHandler
 
         Console.WriteLine("Environment examples:");
         Console.WriteLine("  DEVMEMORY_HOME=~/devmemory-work devmemory storage");
+        Console.WriteLine("  DEVMEMORY_HOME=~/devmemory-work devmemory report --project DevMemory");
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama devmemory ai-status");
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama devmemory ask \"What did I change last time?\"");
         Console.WriteLine("  DEVMEMORY_CHAT_PROVIDER=ollama DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory ask --rag \"How did we handle estimate revisions?\"");
@@ -379,6 +384,9 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory timeline [--project <project>] [--area <area>] [--tag <tag>] [--limit <number>]");
         Console.WriteLine("  devmemory insights");
         Console.WriteLine("  devmemory report --project <project> [--output <file-path>] [--force]");
+        Console.WriteLine("  devmemory report --project <project> --area <area>");
+        Console.WriteLine("  devmemory report --project <project> --tag <tag>");
+        Console.WriteLine("  devmemory report --project <project> --from <yyyy-MM-dd> --to <yyyy-MM-dd>");
         Console.WriteLine("  devmemory storage");
         Console.WriteLine("  devmemory markdown");
         Console.WriteLine();
@@ -386,7 +394,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("Description:");
         Console.WriteLine("  Manages local structured developer memories.");
         Console.WriteLine("  The local JSON storage file is the source of truth.");
-        Console.WriteLine("  Markdown exports and vector entries are derived artifacts.");
+        Console.WriteLine("  Markdown exports, project reports and vector entries are derived artifacts.");
         Console.WriteLine();
 
         Console.WriteLine("Core workflow:");
@@ -403,6 +411,14 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory search \"mongodb mapping\" --project LogicalCommon");
         Console.WriteLine("  devmemory search \"estimate\" --area Estimate");
         Console.WriteLine("  devmemory search \"qdrant\" --tag ai");
+        Console.WriteLine();
+
+        Console.WriteLine("Report examples:");
+        Console.WriteLine("  devmemory report --project DevMemory");
+        Console.WriteLine("  devmemory report --project DevMemory --area AI");
+        Console.WriteLine("  devmemory report --project DevMemory --tag rag");
+        Console.WriteLine("  devmemory report --project DevMemory --from 2026-06-01 --to 2026-06-30");
+        Console.WriteLine("  devmemory report --project DevMemory --area AI --tag rag --from 2026-06-01 --to 2026-06-30");
         Console.WriteLine();
 
         Console.WriteLine("Edit examples:");
@@ -434,6 +450,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  If a memory was indexed into Qdrant, rebuild the vector index after editing.");
         Console.WriteLine("  Insights help identify projects, areas, tags and follow-up actions.");
         Console.WriteLine("  Reports generate Markdown summaries for project handover, review and documentation.");
+        Console.WriteLine("  Reports can be filtered by area, tag and date range.");
         Console.WriteLine();
 
         Console.WriteLine("Useful related commands:");
@@ -589,5 +606,4 @@ public sealed class HelpCommandHandler : ICommandHandler
 
         return CliExitCodes.InvalidCommand;
     }
-
 }
