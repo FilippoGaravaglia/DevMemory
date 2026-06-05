@@ -23,6 +23,7 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("devmemory setup [--wizard|--next|--checklist|--local-ai|--demo|--check]", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help setup", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help config", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help memory", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help ask", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help index", result.Output, StringComparison.Ordinal);
     }
@@ -44,6 +45,7 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("devmemory help [command]", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help setup", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help config", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help memory", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help ask", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help index", result.Output, StringComparison.Ordinal);
     }
@@ -65,6 +67,7 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("devmemory help [command]", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help setup", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help config", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory help memory", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help ask", result.Output, StringComparison.Ordinal);
         Assert.Contains("devmemory help index", result.Output, StringComparison.Ordinal);
     }
@@ -135,6 +138,7 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("devmemory help", result.Error, StringComparison.Ordinal);
         Assert.Contains("devmemory help setup", result.Error, StringComparison.Ordinal);
         Assert.Contains("devmemory help config", result.Error, StringComparison.Ordinal);
+        Assert.Contains("devmemory help memory", result.Error, StringComparison.Ordinal);
         Assert.Contains("devmemory help ask", result.Error, StringComparison.Ordinal);
         Assert.Contains("devmemory help index", result.Error, StringComparison.Ordinal);
     }
@@ -181,6 +185,31 @@ public sealed class HelpCommandHandlerTests
         Assert.Contains("--show-text", result.Output, StringComparison.Ordinal);
         Assert.Contains("The local JSON storage remains the source of truth.", result.Output, StringComparison.Ordinal);
         Assert.Contains("Dry-run indexing does not require Ollama or Qdrant.", result.Output, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenMemoryHelpTopicIsProvided_PrintsMemoryHelp()
+    {
+        // Arrange
+        var handler = new HelpCommandHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(handler, ["help", "memory"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+
+        Assert.Contains("DevMemory memory lifecycle", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory add", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory list", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory show <memory-id>", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory search <query>", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory edit <memory-id> [options]", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory delete <memory-id> [--yes]", result.Output, StringComparison.Ordinal);
+        Assert.Contains("devmemory timeline", result.Output, StringComparison.Ordinal);
+        Assert.Contains("The local JSON storage file is the source of truth.", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Core memory commands do not require AI, Ollama or Qdrant.", result.Output, StringComparison.Ordinal);
     }
 
     #region Helpers

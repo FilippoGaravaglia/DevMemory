@@ -23,11 +23,91 @@ public sealed class HelpCommandHandler : ICommandHandler
         {
             "setup" => PrintSetupHelp(),
             "config" => PrintConfigHelp(),
+            "memory" => PrintMemoryHelp(),
             "ask" => PrintAskHelp(),
             "index" => PrintIndexHelp(),
             "--help" or "-h" => PrintHelpAndReturnSuccess(),
             _ => PrintUnknownHelpTopic(commandName)
         };
+    }
+
+    /// <summary>
+    /// Prints command-specific help for the memory lifecycle commands.
+    /// </summary>
+    private static int PrintMemoryHelp()
+    {
+        Console.WriteLine("DevMemory memory lifecycle");
+        Console.WriteLine("--------------------------");
+        Console.WriteLine();
+
+        Console.WriteLine("Usage:");
+        Console.WriteLine("  devmemory add");
+        Console.WriteLine("  devmemory list");
+        Console.WriteLine("  devmemory show <memory-id>");
+        Console.WriteLine("  devmemory search <query> [--project <project>] [--area <area>] [--tag <tag>]");
+        Console.WriteLine("  devmemory edit <memory-id> [options]");
+        Console.WriteLine("  devmemory delete <memory-id> [--yes]");
+        Console.WriteLine("  devmemory timeline [--project <project>] [--area <area>] [--tag <tag>] [--limit <number>]");
+        Console.WriteLine("  devmemory storage");
+        Console.WriteLine("  devmemory markdown");
+        Console.WriteLine();
+
+        Console.WriteLine("Description:");
+        Console.WriteLine("  Manages local structured developer memories.");
+        Console.WriteLine("  The local JSON storage file is the source of truth.");
+        Console.WriteLine("  Markdown exports and vector entries are derived artifacts.");
+        Console.WriteLine();
+
+        Console.WriteLine("Core workflow:");
+        Console.WriteLine("  devmemory add");
+        Console.WriteLine("  devmemory list");
+        Console.WriteLine("  devmemory search \"your topic\"");
+        Console.WriteLine("  devmemory show <memory-id>");
+        Console.WriteLine();
+
+        Console.WriteLine("Search examples:");
+        Console.WriteLine("  devmemory search \"revision\"");
+        Console.WriteLine("  devmemory search \"mongodb mapping\" --project LogicalCommon");
+        Console.WriteLine("  devmemory search \"estimate\" --area Estimate");
+        Console.WriteLine("  devmemory search \"qdrant\" --tag ai");
+        Console.WriteLine();
+
+        Console.WriteLine("Edit examples:");
+        Console.WriteLine("  devmemory edit <memory-id> --title \"Updated title\"");
+        Console.WriteLine("  devmemory edit <memory-id> --solution \"Updated implementation notes\"");
+        Console.WriteLine("  devmemory edit <memory-id> --add-tag rag");
+        Console.WriteLine("  devmemory edit <memory-id> --remove-tag test");
+        Console.WriteLine("  devmemory edit <memory-id> --add-file src/Example.cs");
+        Console.WriteLine("  devmemory edit <memory-id> --add-test ExampleTests");
+        Console.WriteLine();
+
+        Console.WriteLine("Delete examples:");
+        Console.WriteLine("  devmemory delete <memory-id>");
+        Console.WriteLine("  devmemory delete <memory-id> --yes");
+        Console.WriteLine();
+
+        Console.WriteLine("Timeline examples:");
+        Console.WriteLine("  devmemory timeline");
+        Console.WriteLine("  devmemory timeline --project DevMemory");
+        Console.WriteLine("  devmemory timeline --area AI");
+        Console.WriteLine("  devmemory timeline --tag rag");
+        Console.WriteLine("  devmemory timeline --limit 10");
+        Console.WriteLine();
+
+        Console.WriteLine("Notes:");
+        Console.WriteLine("  Core memory commands do not require AI, Ollama or Qdrant.");
+        Console.WriteLine("  Classic search reads directly from local JSON storage.");
+        Console.WriteLine("  Editing regenerates the derived Markdown export.");
+        Console.WriteLine("  If a memory was indexed into Qdrant, rebuild the vector index after editing.");
+        Console.WriteLine();
+
+        Console.WriteLine("Useful related commands:");
+        Console.WriteLine("  devmemory help index");
+        Console.WriteLine("  devmemory semantic-search \"your topic\"");
+        Console.WriteLine("  devmemory related <memory-id>");
+        Console.WriteLine("  devmemory ask --rag \"your question\"");
+
+        return CliExitCodes.Success;
     }
 
     /// <summary>
@@ -330,6 +410,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory setup --check");
         Console.WriteLine("  devmemory help setup");
         Console.WriteLine("  devmemory help config");
+        Console.WriteLine("  devmemory help memory");
         Console.WriteLine("  devmemory help ask");
         Console.WriteLine("  devmemory help index");
         Console.WriteLine();
@@ -486,6 +567,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.Error.WriteLine("  devmemory help");
         Console.Error.WriteLine("  devmemory help setup");
         Console.Error.WriteLine("  devmemory help config");
+        Console.Error.WriteLine("  devmemory help memory");
         Console.Error.WriteLine("  devmemory help ask");
         Console.Error.WriteLine("  devmemory help index");
 
