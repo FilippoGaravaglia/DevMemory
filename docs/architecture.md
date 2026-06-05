@@ -2,7 +2,7 @@
 
 This document describes the current architecture of DevMemory.
 
-DevMemory is a local-first .NET CLI designed to capture, search, export, visualize and query developer memories.
+DevMemory is a local-first .NET CLI designed to capture, search, export, visualize, report and query developer memories.
 
 The project follows a layered architecture with a thin CLI composition layer and clear separation between domain, application logic and infrastructure concerns.
 
@@ -12,15 +12,15 @@ The project follows a layered architecture with a thin CLI composition layer and
 
 DevMemory is designed around a few core architectural goals:
 
-- keep the primary memory data local;
-- keep JSON storage as the current source of truth;
-- treat Markdown, graph files and vector points as derived artifacts;
-- keep AI/RAG optional;
-- avoid cloud dependencies for core memory features;
-- keep the CLI thin and focused on input/output;
-- keep application orchestration independent from technical implementations;
-- keep infrastructure details replaceable over time;
-- make the project testable at application, infrastructure and CLI level.
+* keep the primary memory data local;
+* keep JSON storage as the current source of truth;
+* treat Markdown, project reports, graph files and vector points as derived artifacts;
+* keep AI/RAG optional;
+* avoid cloud dependencies for core memory features;
+* keep the CLI thin and focused on input/output;
+* keep application orchestration independent from technical implementations;
+* keep infrastructure details replaceable over time;
+* make the project testable at application, infrastructure and CLI level.
 
 ---
 
@@ -56,6 +56,7 @@ flowchart LR
 
     INFRA --> JSON[(Local JSON storage)]
     INFRA --> MD[Markdown export]
+    INFRA --> REPORTS[Project reports]
     INFRA --> GIT[Git inspection]
     INFRA --> GRAPH[Graph export]
     INFRA --> OLLAMA[Ollama]
@@ -91,14 +92,15 @@ This layer should remain simple and independent.
 
 It should not depend on:
 
-- file system APIs;
-- Git command execution;
-- CLI parsing;
-- JSON persistence implementation details;
-- Ollama;
-- Qdrant;
-- environment variables;
-- console input/output.
+* file system APIs;
+* Git command execution;
+* CLI parsing;
+* JSON persistence implementation details;
+* Markdown report output paths;
+* Ollama;
+* Qdrant;
+* environment variables;
+* console input/output.
 
 The goal of this layer is to represent the domain concepts without technical coupling.
 
@@ -112,6 +114,8 @@ Examples of application services:
 
 ```text
 MemoryService
+MemoryInsightsService
+MemoryProjectReportService
 GitMemoryDraftService
 MemoryGraphService
 MemoryVectorIndexingService
@@ -119,6 +123,14 @@ MemorySemanticSearchService
 MemoryRagAnswerService
 VectorMemoryDocumentBuilder
 MemoryFileFilter
+```
+
+Examples of application models:
+
+```text
+MemoryInsights
+InsightCountItem
+MemoryProjectReport
 ```
 
 Examples of application abstractions:
@@ -136,21 +148,25 @@ IVectorMemoryStore
 
 The application layer is responsible for coordinating business behavior, for example:
 
-- adding a memory;
-- editing a memory;
-- deleting a memory;
-- searching memories;
-- generating memory drafts from Git context;
-- exporting graph data;
-- building indexable documents;
-- indexing memories;
-- running semantic search;
-- building RAG context;
-- asking AI providers through abstractions.
+* adding a memory;
+* editing a memory;
+* deleting a memory;
+* searching memories;
+* generating aggregated memory insights;
+* generating Markdown project reports;
+* generating memory drafts from Git context;
+* exporting graph data;
+* building indexable documents;
+* indexing memories;
+* running semantic search;
+* building RAG context;
+* asking AI providers through abstractions.
 
 The application layer should not know whether memories are stored in JSON, SQLite or another storage provider.
 
 It should also not know whether embeddings come from Ollama, OpenAI or another provider.
+
+Project report generation is application logic because it transforms local memory data into a structured Markdown representation. The CLI decides where to write the generated report file.
 
 ---
 
@@ -175,18 +191,20 @@ AiRuntimeConfigurationStore
 
 This layer handles:
 
-- JSON file persistence;
-- Markdown export;
-- Git command execution;
-- graph JSON export;
-- graph HTML export;
-- Ollama integration;
-- Qdrant integration;
-- persistent local AI/RAG configuration;
-- environment-based runtime configuration;
-- derived artifact cleanup.
+* JSON file persistence;
+* Markdown export;
+* Git command execution;
+* graph JSON export;
+* graph HTML export;
+* Ollama integration;
+* Qdrant integration;
+* persistent local AI/RAG configuration;
+* environment-based runtime configuration;
+* derived artifact cleanup.
 
 The infrastructure layer is where external technical details belong.
+
+Project reports are currently written by the CLI command handler because they are command outputs, not primary persistence. They are still derived artifacts generated from local JSON memory data.
 
 ---
 
@@ -196,11 +214,12 @@ The infrastructure layer is where external technical details belong.
 
 Main responsibilities:
 
-- parse command-line arguments;
-- call the appropriate command handler;
-- compose application services and infrastructure implementations;
-- print results to the terminal;
-- return meaningful exit codes.
+* parse command-line arguments;
+* call the appropriate command handler;
+* compose application services and infrastructure implementations;
+* print results to the terminal;
+* write command output files when explicitly requested;
+* return meaningful exit codes.
 
 The CLI should stay thin.
 
@@ -212,6 +231,8 @@ Main command areas:
 memory lifecycle
 search
 timeline
+insights
+project reports
 Git integration
 Markdown export
 knowledge graph
@@ -250,11 +271,11 @@ TaskMemory[]
 
 JSON is currently preferred because it is:
 
-- easy to inspect;
-- easy to back up;
-- easy to restore;
-- portable;
-- simple for an early local-first CLI.
+* easy to inspect;
+* easy to back up;
+* easy to restore;
+* portable;
+* simple for an early local-first CLI.
 
 SQLite may be introduced later as an optional storage provider.
 
@@ -269,9 +290,11 @@ flowchart TD
     A[devmemory.json<br/>Source of truth] --> B[Markdown export]
     A --> C[Knowledge graph JSON]
     A --> D[Knowledge graph HTML]
-    A --> E[Indexable text]
-    E --> F[Embedding vector]
-    F --> G[Qdrant point]
+    A --> E[Memory insights]
+    A --> F[Project Markdown reports]
+    A --> G[Indexable text]
+    G --> H[Embedding vector]
+    H --> I[Qdrant point]
 ```
 
 Primary data:
@@ -285,6 +308,7 @@ Derived artifacts:
 ```text
 ~/.devmemory/markdown/
 ~/.devmemory/graph/
+~/.devmemory/reports/
 Qdrant vector points
 ```
 
@@ -313,6 +337,9 @@ flowchart TD
     H[devmemory delete] --> I[Remove from JSON]
     I --> J[Clean Markdown export]
     I --> K[Delete Qdrant point when configured]
+
+    C --> L[devmemory insights]
+    C --> M[devmemory report]
 ```
 
 Supported lifecycle commands:
@@ -325,7 +352,126 @@ devmemory search <query>
 devmemory edit <memory-id> [options]
 devmemory delete <memory-id> [--yes]
 devmemory timeline
+devmemory insights
+devmemory report --project <project>
 ```
+
+---
+
+## Memory insights
+
+Memory insights provide aggregated statistics and practical suggestions based on local memories.
+
+Command:
+
+```bash
+devmemory insights
+```
+
+The command reads local JSON storage and computes:
+
+```text
+total memories
+project count
+area count
+tag count
+file reference count
+most active projects
+most common areas
+most used tags
+recent activity
+suggestions
+```
+
+The insights feature is implemented in the application layer through:
+
+```text
+MemoryInsightsService
+MemoryInsights
+InsightCountItem
+```
+
+The CLI command handler is responsible only for:
+
+* loading memories through `MemoryService`;
+* calling the insights service;
+* rendering the result to the terminal;
+* returning the appropriate exit code.
+
+Insights do not require AI, Ollama or Qdrant.
+
+They are computed directly from local JSON memory data.
+
+---
+
+## Project reports
+
+Project reports generate Markdown summaries from local memories for a specific project.
+
+Command:
+
+```bash
+devmemory report --project <project>
+```
+
+With custom output:
+
+```bash
+devmemory report --project DevMemory --output ./devmemory-report.md
+```
+
+With overwrite enabled:
+
+```bash
+devmemory report --project DevMemory --output ./devmemory-report.md --force
+```
+
+The report includes:
+
+```text
+summary
+areas
+tags
+files touched
+timeline
+problems
+solutions
+decisions
+tests
+lessons learned
+suggested next actions
+```
+
+The feature is implemented in the application layer through:
+
+```text
+MemoryProjectReportService
+MemoryProjectReport
+```
+
+The application service builds the Markdown content from `TaskMemory` values.
+
+The CLI command handler is responsible for:
+
+* parsing `--project`, `--output` and `--force`;
+* loading local memories through `MemoryService`;
+* invoking `MemoryProjectReportService`;
+* resolving the output path;
+* preventing accidental overwrite unless `--force` is used;
+* writing the Markdown report to disk;
+* printing a concise command summary.
+
+The default report output directory is a derived artifact location under:
+
+```text
+~/.devmemory/reports/
+```
+
+or under the configured `DEVMEMORY_HOME` directory.
+
+Project reports do not require AI, Ollama or Qdrant.
+
+They are generated entirely from local JSON memory data.
 
 ---
 
@@ -375,13 +521,15 @@ Markdown export is a derived artifact.
 
 It exists to make memories easy to reuse in:
 
-- documentation;
-- AI assistant prompts;
-- code review notes;
-- project notes;
-- external tools.
+* documentation;
+* AI assistant prompts;
+* code review notes;
+* project notes;
+* external tools.
 
 Markdown export should not become the primary source of truth.
+
+Project reports are separate Markdown artifacts: they summarize multiple memories for a project, while per-memory Markdown exports represent individual memories.
 
 ---
 
@@ -415,6 +563,22 @@ The graph JSON and HTML files are derived artifacts generated from local memory 
 AI/RAG is optional.
 
 Core memory commands do not require AI providers, Ollama or Qdrant.
+
+This includes:
+
+```text
+devmemory add
+devmemory list
+devmemory search
+devmemory show
+devmemory edit
+devmemory delete
+devmemory timeline
+devmemory insights
+devmemory report
+devmemory graph-export
+devmemory graph-view
+```
 
 The AI/RAG flow uses three main abstractions:
 
@@ -480,9 +644,9 @@ devmemory semantic-search "your topic"
 
 Semantic search requires:
 
-- configured embedding provider;
-- configured vector store;
-- indexed memories.
+* configured embedding provider;
+* configured vector store;
+* indexed memories.
 
 ---
 
@@ -515,10 +679,10 @@ devmemory ask --rag "your question"
 
 RAG requires:
 
-- chat provider;
-- embedding provider;
-- vector store;
-- indexed memories.
+* chat provider;
+* embedding provider;
+* vector store;
+* indexed memories.
 
 ---
 
@@ -534,8 +698,8 @@ Environment variables > ~/.devmemory/config.json > default values
 
 This allows two usage styles:
 
-- temporary overrides through environment variables;
-- persistent local defaults through `devmemory config set`.
+* temporary overrides through environment variables;
+* persistent local defaults through `devmemory config set`.
 
 Examples:
 
@@ -597,26 +761,30 @@ DevMemory.Cli.Tests
 
 The test suite covers:
 
-- memory service behavior;
-- validation and normalization;
-- ranked search;
-- editing;
-- deletion;
-- Markdown cleanup;
-- JSON storage;
-- Markdown export;
-- Git memory draft creation;
-- generated file filtering;
-- graph export;
-- vector indexing;
-- semantic search;
-- related memories;
-- RAG orchestration;
-- persistent AI configuration;
-- doctor diagnostics;
-- setup command behavior;
-- CLI command parsing;
-- package smoke behavior.
+* memory service behavior;
+* memory insights aggregation;
+* project report generation;
+* validation and normalization;
+* ranked search;
+* editing;
+* deletion;
+* Markdown cleanup;
+* JSON storage;
+* Markdown export;
+* Git memory draft creation;
+* generated file filtering;
+* graph export;
+* vector indexing;
+* semantic search;
+* related memories;
+* RAG orchestration;
+* persistent AI configuration;
+* doctor diagnostics;
+* setup command behavior;
+* CLI command parsing;
+* package smoke behavior.
+
+CLI tests that depend on local storage use isolated temporary `DEVMEMORY_HOME` directories to avoid reading or modifying real user data.
 
 ---
 
@@ -646,19 +814,23 @@ final package checksum
 
 This makes local validation and CI validation consistent.
 
+The CLI package smoke test also verifies non-AI commands such as setup, help, storage, insights and report generation using isolated temporary local data.
+
 ---
 
 ## Current architectural limitations
 
 Current limitations are intentional and acceptable for the current stage:
 
-- primary storage is JSON-based;
-- CLI parsing is manual;
-- SQLite storage is not available yet;
-- hosted/cloud sync is not available;
-- graph visualization is simple and static;
-- setup guidance is not fully interactive yet;
-- local AI/RAG requires external local services such as Ollama and Qdrant.
+* primary storage is JSON-based;
+* CLI parsing is manual;
+* SQLite storage is not available yet;
+* hosted/cloud sync is not available;
+* graph visualization is simple and static;
+* setup guidance is not fully interactive yet;
+* local AI/RAG requires external local services such as Ollama and Qdrant;
+* project reports are generated as static Markdown files;
+* report filtering is currently project-based only.
 
 These are candidates for future evolution, not blockers for the current architecture.
 
@@ -668,16 +840,18 @@ These are candidates for future evolution, not blockers for the current architec
 
 Possible future improvements:
 
-- optional SQLite storage provider;
-- interactive setup wizard;
-- richer CLI rendering;
-- stronger command-line parsing with `System.CommandLine` or `Spectre.Console`;
-- improved graph layout and filtering;
-- local web UI or TUI;
-- VS Code extension;
-- MCP integration;
-- optional cloud LLM provider hardening;
-- release automation.
+* optional SQLite storage provider;
+* interactive setup wizard;
+* richer CLI rendering;
+* stronger command-line parsing with `System.CommandLine` or `Spectre.Console`;
+* richer memory insights with filters and trends;
+* richer report generation with date ranges, tag filters and area filters;
+* improved graph layout and filtering;
+* local web UI or TUI;
+* VS Code extension;
+* MCP integration;
+* optional cloud LLM provider hardening;
+* release automation.
 
 ---
 
@@ -687,4 +861,4 @@ The most important architectural principle is:
 
 > Local JSON memory is the source of truth. Everything else is derived, replaceable or optional.
 
-This keeps DevMemory safe, inspectable and portable while still allowing richer features such as Markdown export, graph views, semantic search and RAG.
+This keeps DevMemory safe, inspectable and portable while still allowing richer features such as Markdown export, project reports, graph views, semantic search and RAG.

@@ -47,6 +47,7 @@ var commandHandlers = new ICommandHandler[]
     new IndexCommandHandler(memoryService),
     new RelatedCommandHandler(memoryService),
     new InsightsCommandHandler(memoryService),
+    new ReportCommandHandler(memoryService),
     new SemanticSearchCommandHandler(),
     new ConfigCommandHandler(),
     new VersionCommandHandler(),

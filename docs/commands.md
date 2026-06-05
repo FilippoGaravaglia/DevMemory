@@ -108,6 +108,7 @@ devmemory show <memory-id>
 devmemory search "your topic"
 devmemory timeline
 devmemory insights
+devmemory report --project <project>
 devmemory graph-export
 devmemory graph-view
 ```
@@ -397,6 +398,56 @@ Suggestions:
 This command does not require AI, Ollama or Qdrant.
 
 It reads local JSON storage and does not modify data.
+
+---
+
+### Project report
+
+```bash
+devmemory report --project <project>
+```
+
+Generates a Markdown report from local memories for a specific project.
+
+With custom output:
+
+```bash
+devmemory report --project DevMemory --output ./devmemory-report.md
+```
+
+Overwrite an existing output file:
+
+```bash
+devmemory report --project DevMemory --output ./devmemory-report.md --force
+```
+
+The report includes:
+
+```text
+summary
+areas
+tags
+files touched
+timeline
+problems
+solutions
+decisions
+tests
+lessons learned
+suggested next actions
+```
+
+This command does not require AI, Ollama or Qdrant.
+
+It reads local JSON storage and writes a Markdown report.
+
+Default output is written under the local DevMemory home directory:
+
+```text
+~/.devmemory/reports/
+```
+
+or under the directory configured through `DEVMEMORY_HOME`.
 
 ---
 
@@ -728,6 +779,7 @@ Examples:
 
 ```bash
 DEVMEMORY_HOME=~/devmemory-work devmemory storage
+DEVMEMORY_HOME=~/devmemory-work devmemory report --project DevMemory
 DEVMEMORY_CHAT_PROVIDER=ollama devmemory ai-status
 DEVMEMORY_CHAT_PROVIDER=ollama devmemory ask "What did I change last time?"
 DEVMEMORY_EMBEDDING_PROVIDER=ollama DEVMEMORY_VECTOR_STORE=qdrant devmemory index
@@ -775,9 +827,10 @@ Stop local AI services:
 * Core memory commands work without AI.
 * Classic search works without AI.
 * Memory insights work without AI.
+* Project reports work without AI.
 * Markdown export works without AI.
 * Git inspection works without AI.
 * Knowledge graph export works without AI.
 * Semantic search, related memories and RAG require local or external AI/RAG configuration.
 * JSON storage is the source of truth.
-* Markdown, graph exports and Qdrant vectors are derived artifacts.
+* Markdown, project reports, graph exports and Qdrant vectors are derived artifacts.
