@@ -442,6 +442,7 @@ JSON memory
 * Release-ready package validation.
 * Installable as a .NET global tool.
 * CI, formatting checks, tests, release checks and package artifact verification.
+* Project Markdown reports for handover, review and documentation.
 
 ---
 
@@ -657,6 +658,33 @@ devmemory insights
 
 This command does not require AI, Ollama or Qdrant.
 It reads local JSON storage and does not modify data.
+
+---
+
+### Generate a project report
+
+```bash
+devmemory report --project DevMemory
+```
+
+To choose the output path:
+
+```bash
+devmemory report --project DevMemory --output ./devmemory-report.md
+```
+
+To overwrite an existing report:
+
+```bash
+devmemory report --project DevMemory --output ./devmemory-report.md --force
+```
+
+`devmemory report` generates a Markdown report from local memories for a specific project.
+
+The report includes a summary, areas, tags, files touched, timeline, problems, solutions, decisions, tests, lessons learned and suggested next actions.
+
+This command does not require AI, Ollama or Qdrant.
+It reads local JSON storage and writes a Markdown report.
 
 ---
 

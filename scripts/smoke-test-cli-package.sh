@@ -101,6 +101,12 @@ echo
 "$TOOL_PATH" insights
 echo
 
+"$TOOL_PATH" report --project DevMemory --output "$DEVMEMORY_HOME/devmemory-report.md"
+echo
+
+"$TOOL_PATH" report --project DevMemory --output "$DEVMEMORY_HOME/devmemory-report.md" --force
+echo
+
 "$TOOL_PATH" ai-status
 echo
 

@@ -59,6 +59,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- delete <memory-id> [--yes]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- timeline [--project <project>] [--area <area>] [--tag <tag>] [--limit <number>]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- insights");
+        Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- report --project <project> [--output <file-path>] [--force]");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- storage");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- markdown");
         Console.WriteLine("  dotnet run --project src/DevMemory.Cli -- git-status [--path <repository-path>]");
@@ -91,6 +92,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory delete <memory-id> [--yes]");
         Console.WriteLine("  devmemory timeline [--project <project>] [--area <area>] [--tag <tag>] [--limit <number>]");
         Console.WriteLine("  devmemory insights");
+        Console.WriteLine("  devmemory report --project <project> [--output <file-path>] [--force]");
         Console.WriteLine("  devmemory storage");
         Console.WriteLine("  devmemory markdown");
         Console.WriteLine("  devmemory git-status [--path <repository-path>]");
@@ -124,6 +126,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  delete           Delete a memory by id from local storage.");
         Console.WriteLine("  timeline         Show saved memories as a chronological timeline.");
         Console.WriteLine("  insights         Show aggregated memory statistics and suggestions.");
+        Console.WriteLine("  report           Generate a Markdown report for a project.");
         Console.WriteLine("  storage          Show the current storage file path.");
         Console.WriteLine("  markdown         Show the Markdown export directory.");
         Console.WriteLine("  git-status       Inspect the current or selected Git repository.");
@@ -165,6 +168,9 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory timeline --tag rag");
         Console.WriteLine("  devmemory timeline --project DevMemory --limit 10");
         Console.WriteLine("  devmemory insights");
+        Console.WriteLine("  devmemory report --project DevMemory");
+        Console.WriteLine("  devmemory report --project DevMemory --output ./devmemory-report.md");
+        Console.WriteLine("  devmemory report --project DevMemory --output ./devmemory-report.md --force");
         Console.WriteLine("  devmemory git-status");
         Console.WriteLine("  devmemory learn-from-git");
         Console.WriteLine("  devmemory graph-export");
@@ -372,6 +378,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory delete <memory-id> [--yes]");
         Console.WriteLine("  devmemory timeline [--project <project>] [--area <area>] [--tag <tag>] [--limit <number>]");
         Console.WriteLine("  devmemory insights");
+        Console.WriteLine("  devmemory report --project <project> [--output <file-path>] [--force]");
         Console.WriteLine("  devmemory storage");
         Console.WriteLine("  devmemory markdown");
         Console.WriteLine();
@@ -388,6 +395,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  devmemory search \"your topic\"");
         Console.WriteLine("  devmemory show <memory-id>");
         Console.WriteLine("  devmemory insights");
+        Console.WriteLine("  devmemory report --project <project>");
         Console.WriteLine();
 
         Console.WriteLine("Search examples:");
@@ -425,6 +433,7 @@ public sealed class HelpCommandHandler : ICommandHandler
         Console.WriteLine("  Editing regenerates the derived Markdown export.");
         Console.WriteLine("  If a memory was indexed into Qdrant, rebuild the vector index after editing.");
         Console.WriteLine("  Insights help identify projects, areas, tags and follow-up actions.");
+        Console.WriteLine("  Reports generate Markdown summaries for project handover, review and documentation.");
         Console.WriteLine();
 
         Console.WriteLine("Useful related commands:");
