@@ -28,6 +28,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Added command-specific help for memory lifecycle commands with `devmemory help memory`.
 * Added `devmemory insights` to show aggregated memory statistics and practical suggestions.
 * Added `devmemory report --project <project>` to generate Markdown project reports from local memories.
+* Added optional `--area`, `--tag`, `--from` and `--to` filters to `devmemory report`.
 
 ### Changed
 
@@ -42,6 +43,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Updated CLI help documentation and smoke tests for memory lifecycle command-specific help.
 * Updated README, command reference and package smoke tests for the insights command.
 * Updated README, command reference and package smoke tests for the project report command.
+* Updated report documentation and tests for filtered project reports.
 
 ### Notes
 

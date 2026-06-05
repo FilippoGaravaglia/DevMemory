@@ -112,6 +112,90 @@ public sealed class MemoryProjectReportServiceTests
         Assert.Equal("project", exception.ParamName);
     }
 
+    [Fact]
+    public void BuildReport_WhenAreaFilterIsProvided_IncludesOnlyMatchingArea()
+    {
+        // Arrange
+        var memories = new[]
+        {
+            CreateMemory("DevMemory", "AI memory", "AI", ["rag"], ["src/A.cs"], new DateTime(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc)),
+            CreateMemory("DevMemory", "CLI memory", "CLI", ["cli"], ["src/B.cs"], new DateTime(2026, 6, 2, 10, 0, 0, DateTimeKind.Utc))
+        };
+
+        var options = new MemoryProjectReportOptions(
+            Project: "DevMemory",
+            Area: "AI",
+            Tag: null,
+            From: null,
+            To: null);
+
+        // Act
+        var result = MemoryProjectReportService.BuildReport(memories, options);
+
+        // Assert
+        Assert.Equal(1, result.TotalMemories);
+        Assert.Equal("AI", result.Area);
+        Assert.Contains("AI memory", result.MarkdownContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("CLI memory", result.MarkdownContent, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BuildReport_WhenTagFilterIsProvided_IncludesOnlyMatchingTag()
+    {
+        // Arrange
+        var memories = new[]
+        {
+            CreateMemory("DevMemory", "RAG memory", "AI", ["rag"], ["src/A.cs"], new DateTime(2026, 6, 1, 10, 0, 0, DateTimeKind.Utc)),
+            CreateMemory("DevMemory", "CLI memory", "CLI", ["cli"], ["src/B.cs"], new DateTime(2026, 6, 2, 10, 0, 0, DateTimeKind.Utc))
+        };
+
+        var options = new MemoryProjectReportOptions(
+            Project: "DevMemory",
+            Area: null,
+            Tag: "rag",
+            From: null,
+            To: null);
+
+        // Act
+        var result = MemoryProjectReportService.BuildReport(memories, options);
+
+        // Assert
+        Assert.Equal(1, result.TotalMemories);
+        Assert.Equal("rag", result.Tag);
+        Assert.Contains("RAG memory", result.MarkdownContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("CLI memory", result.MarkdownContent, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BuildReport_WhenDateFiltersAreProvided_IncludesOnlyMemoriesInRange()
+    {
+        // Arrange
+        var memories = new[]
+        {
+            CreateMemory("DevMemory", "Before range", "AI", ["rag"], ["src/A.cs"], new DateTime(2026, 5, 31, 10, 0, 0, DateTimeKind.Utc)),
+            CreateMemory("DevMemory", "Inside range", "AI", ["rag"], ["src/B.cs"], new DateTime(2026, 6, 15, 10, 0, 0, DateTimeKind.Utc)),
+            CreateMemory("DevMemory", "After range", "AI", ["rag"], ["src/C.cs"], new DateTime(2026, 7, 1, 10, 0, 0, DateTimeKind.Utc))
+        };
+
+        var options = new MemoryProjectReportOptions(
+            Project: "DevMemory",
+            Area: null,
+            Tag: null,
+            From: new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc),
+            To: new DateTime(2026, 6, 30, 0, 0, 0, DateTimeKind.Utc));
+
+        // Act
+        var result = MemoryProjectReportService.BuildReport(memories, options);
+
+        // Assert
+        Assert.Equal(1, result.TotalMemories);
+        Assert.Contains("Inside range", result.MarkdownContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("Before range", result.MarkdownContent, StringComparison.Ordinal);
+        Assert.DoesNotContain("After range", result.MarkdownContent, StringComparison.Ordinal);
+    }
+
+    #region Helpers
+
     /// <summary>
     /// Creates a test memory.
     /// </summary>
@@ -140,4 +224,6 @@ public sealed class MemoryProjectReportServiceTests
             CreatedAt = createdAt
         };
     }
+
+    #endregion
 }

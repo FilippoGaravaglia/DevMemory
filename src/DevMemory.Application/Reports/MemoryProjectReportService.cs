@@ -6,6 +6,7 @@ namespace DevMemory.Application.Reports;
 
 public static class MemoryProjectReportService
 {
+
     /// <summary>
     /// Builds a Markdown project report from local memories.
     /// </summary>
@@ -13,17 +14,53 @@ public static class MemoryProjectReportService
         IEnumerable<TaskMemory> memories,
         string project)
     {
-        ArgumentNullException.ThrowIfNull(memories);
-
         if (string.IsNullOrWhiteSpace(project))
         {
             throw new ArgumentException("Project is required.", nameof(project));
         }
 
-        var normalizedProject = project.Trim();
+        return BuildReport(
+            memories,
+            new MemoryProjectReportOptions(
+                Project: project,
+                Area: null,
+                Tag: null,
+                From: null,
+                To: null));
+    }
+
+    /// <summary>
+    /// Builds a Markdown project report from local memories using optional filters.
+    /// </summary>
+    public static MemoryProjectReport BuildReport(
+        IEnumerable<TaskMemory> memories,
+        MemoryProjectReportOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(memories);
+        ArgumentNullException.ThrowIfNull(options);
+
+        if (string.IsNullOrWhiteSpace(options.Project))
+        {
+            throw new ArgumentException("Project is required.", nameof(options));
+        }
+
+        if (options.From is not null
+            && options.To is not null
+            && options.From.Value.Date > options.To.Value.Date)
+        {
+            throw new ArgumentException("From date cannot be greater than To date.", nameof(options));
+        }
+
+        var normalizedProject = options.Project.Trim();
+        var normalizedArea = NormalizeOptional(options.Area);
+        var normalizedTag = NormalizeOptional(options.Tag);
 
         var projectMemories = memories
             .Where(memory => memory.Project.Equals(normalizedProject, StringComparison.OrdinalIgnoreCase))
+            .Where(memory => MatchesArea(memory, normalizedArea))
+            .Where(memory => MatchesTag(memory, normalizedTag))
+            .Where(memory => MatchesFrom(memory, options.From))
+            .Where(memory => MatchesTo(memory, options.To))
             .OrderBy(memory => memory.CreatedAt)
             .ThenBy(memory => memory.Title, StringComparer.OrdinalIgnoreCase)
             .ToList();
@@ -42,6 +79,10 @@ public static class MemoryProjectReportService
 
         var markdown = BuildMarkdown(
             normalizedProject,
+            normalizedArea,
+            normalizedTag,
+            options.From,
+            options.To,
             projectMemories,
             areas,
             tags,
@@ -51,6 +92,10 @@ public static class MemoryProjectReportService
 
         return new MemoryProjectReport(
             Project: normalizedProject,
+            Area: normalizedArea,
+            Tag: normalizedTag,
+            From: options.From,
+            To: options.To,
             TotalMemories: projectMemories.Count,
             Areas: areas,
             Tags: tags,
@@ -67,6 +112,10 @@ public static class MemoryProjectReportService
     /// </summary>
     private static string BuildMarkdown(
         string project,
+        string? area,
+        string? tag,
+        DateTime? from,
+        DateTime? to,
         List<TaskMemory> memories,
         List<string> areas,
         List<string> tags,
@@ -85,6 +134,10 @@ public static class MemoryProjectReportService
         builder.AppendLine("## Summary");
         builder.AppendLine();
         AppendInvariantLine(builder, $"- Project: `{project}`");
+        AppendInvariantLine(builder, $"- Area filter: {FormatOptionalInlineCode(area)}");
+        AppendInvariantLine(builder, $"- Tag filter: {FormatOptionalInlineCode(tag)}");
+        AppendInvariantLine(builder, $"- From: {FormatDate(from)}");
+        AppendInvariantLine(builder, $"- To: {FormatDate(to)}");
         AppendInvariantLine(builder, $"- Total memories: {memories.Count}");
         AppendInvariantLine(builder, $"- Areas: {areas.Count}");
         AppendInvariantLine(builder, $"- Tags: {tags.Count}");
@@ -98,6 +151,8 @@ public static class MemoryProjectReportService
             builder.AppendLine("## No memories found");
             builder.AppendLine();
             builder.AppendLine("No memories were found for this project.");
+            builder.AppendLine();
+            builder.AppendLine("If filters are applied, try changing area, tag or date range.");
             builder.AppendLine();
             builder.AppendLine("Create one with:");
             builder.AppendLine();
@@ -306,6 +361,52 @@ public static class MemoryProjectReportService
     }
 
     /// <summary>
+    /// Normalizes an optional text filter.
+    /// </summary>
+    private static string? NormalizeOptional(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? null
+            : value.Trim();
+    }
+
+    /// <summary>
+    /// Returns true when the memory matches the optional area filter.
+    /// </summary>
+    private static bool MatchesArea(TaskMemory memory, string? area)
+    {
+        return area is null
+            || memory.Area.Equals(area, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Returns true when the memory matches the optional tag filter.
+    /// </summary>
+    private static bool MatchesTag(TaskMemory memory, string? tag)
+    {
+        return tag is null
+            || memory.Tags.Any(memoryTag => memoryTag.Equals(tag, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Returns true when the memory is on or after the optional from date.
+    /// </summary>
+    private static bool MatchesFrom(TaskMemory memory, DateTime? from)
+    {
+        return from is null
+            || memory.CreatedAt.Date >= from.Value.Date;
+    }
+
+    /// <summary>
+    /// Returns true when the memory is on or before the optional to date.
+    /// </summary>
+    private static bool MatchesTo(TaskMemory memory, DateTime? to)
+    {
+        return to is null
+            || memory.CreatedAt.Date <= to.Value.Date;
+    }
+
+    /// <summary>
     /// Formats a nullable date for Markdown output.
     /// </summary>
     private static string FormatDate(DateTime? value)
@@ -321,6 +422,16 @@ public static class MemoryProjectReportService
         return string.IsNullOrWhiteSpace(value)
             ? "-"
             : value.Trim();
+    }
+
+    /// <summary>
+    /// Formats an optional text filter as Markdown inline code.
+    /// </summary>
+    private static string FormatOptionalInlineCode(string? value)
+    {
+        return string.IsNullOrWhiteSpace(value)
+            ? "-"
+            : FormattableString.Invariant($"`{value.Trim()}`");
     }
 
     /// <summary>

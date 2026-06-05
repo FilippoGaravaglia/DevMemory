@@ -129,6 +129,54 @@ public sealed class ReportCommandHandlerTests
         Assert.DoesNotContain("existing", markdown, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void Execute_WhenAreaFilterIsProvided_WritesFilteredMarkdownReport()
+    {
+        // Arrange
+        using var environment = TemporaryDevMemoryHome.Create();
+        var handler = CreateHandler(out var memoryService);
+
+        memoryService.Add(CreateMemory("DevMemory", "AI report memory", area: "AI", tags: ["rag"]));
+        memoryService.Add(CreateMemory("DevMemory", "CLI report memory", area: "CLI", tags: ["cli"]));
+
+        var outputPath = Path.Combine(environment.Path, "report.md");
+
+        // Act
+        var result = ExecuteAndCaptureOutput(
+            handler,
+            ["report", "--project", "DevMemory", "--area", "AI", "--output", outputPath]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.Success, result.ExitCode);
+        Assert.Empty(result.Error);
+        Assert.Contains("Area filter: AI", result.Output, StringComparison.Ordinal);
+        Assert.Contains("Memories: 1", result.Output, StringComparison.Ordinal);
+
+        var markdown = File.ReadAllText(outputPath);
+        Assert.Contains("AI report memory", markdown, StringComparison.Ordinal);
+        Assert.DoesNotContain("CLI report memory", markdown, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WhenDateIsInvalid_ReturnsInvalidCommand()
+    {
+        // Arrange
+        using var environment = TemporaryDevMemoryHome.Create();
+        var handler = CreateHandler();
+
+        // Act
+        var result = ExecuteAndCaptureOutput(
+            handler,
+            ["report", "--project", "DevMemory", "--from", "2026/06/01"]);
+
+        // Assert
+        Assert.Equal(CliExitCodes.InvalidCommand, result.ExitCode);
+        Assert.Empty(result.Output);
+        Assert.Contains("Invalid value for option --from: expected yyyy-MM-dd.", result.Error, StringComparison.Ordinal);
+    }
+
+    #region Helpers
+
     /// <summary>
     /// Creates a report command handler.
     /// </summary>
@@ -152,16 +200,20 @@ public sealed class ReportCommandHandlerTests
     /// <summary>
     /// Creates a test memory.
     /// </summary>
-    private static TaskMemory CreateMemory(string project, string title)
+    private static TaskMemory CreateMemory(
+        string project,
+        string title,
+        string area = "Reports",
+        IReadOnlyList<string>? tags = null)
     {
         return new TaskMemory
         {
             Id = Guid.NewGuid(),
             Title = title,
             Project = project,
-            Area = "Reports",
+            Area = area,
             Branch = "main",
-            Tags = ["dotnet", "report"],
+            Tags = tags?.ToList() ?? ["dotnet", "report"],
             Problem = "Need a project report.",
             Solution = "Generate a Markdown report from local memories.",
             Decisions = ["Keep JSON as the source of truth."],
@@ -252,4 +304,6 @@ public sealed class ReportCommandHandlerTests
             }
         }
     }
+
+    #endregion
 }
