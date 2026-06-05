@@ -77,7 +77,7 @@ It helps you save structured memories about the work you do every day:
 * what you learned;
 * which project, area, branch and tags the task belongs to.
 
-Those memories are stored locally, can be searched with classic text search, exported to Markdown, visualized as a knowledge graph, indexed into a vector database, and queried through a local RAG pipeline powered by Ollama and Qdrant.
+Those memories are stored locally, can be searched with classic text search, exported to Markdown, visualized as a knowledge graph, inspected through aggregated insights, indexed into a vector database, and queried through a local RAG pipeline powered by Ollama and Qdrant.
 
 The goal is simple:
 
@@ -125,6 +125,7 @@ Common questions:
 * How did I solve a similar MongoDB mapping issue?
 * What tests did I run for that bug fix?
 * What did I learn from that task?
+* Which projects, areas or tags dominate my recent work?
 * Can I ask an AI assistant using my previous technical work as context?
 
 DevMemory is built to answer those questions from your own local engineering memory.
@@ -193,6 +194,7 @@ Then inspect what you saved:
 devmemory list
 devmemory search "runtime"
 devmemory show <memory-id>
+devmemory insights
 ```
 
 ### Enable local AI/RAG
@@ -257,6 +259,7 @@ devmemory list
 devmemory search "qdrant"
 devmemory show <memory-id>
 devmemory timeline --project DevMemory
+devmemory insights
 devmemory edit <memory-id> --add-tag demo
 devmemory graph-export
 devmemory graph-view
@@ -286,6 +289,7 @@ devmemory add
 devmemory list
 devmemory search "revision"
 devmemory timeline --project DevMemory
+devmemory insights
 devmemory index
 devmemory semantic-search "estimate revision cloning"
 devmemory related <memory-id>
@@ -301,6 +305,7 @@ flowchart TD
     C --> D[Markdown export]
     C --> E[Classic search]
     C --> F[Knowledge graph]
+    C --> M[Memory insights]
     C --> G[Vector indexing]
     G --> H[Ollama embeddings]
     H --> I[Qdrant vector store]
@@ -418,6 +423,7 @@ JSON memory
 * First-run setup guidance, safe interactive wizard, recommended next steps and checklist with `devmemory setup`.
 * Markdown export for every memory.
 * Add, list, show, search, edit and delete memory lifecycle.
+* Memory insights with aggregated statistics and practical suggestions.
 * Ranked text search with project, area and tag filters.
 * Git repository inspection.
 * Memory draft creation from Git context.
@@ -481,9 +487,10 @@ flowchart TD
     A --> E[Markdown export]
     A --> F[Knowledge graph export]
     A --> G[Classic text search]
+    A --> H[Memory insights]
 
-    D --> H[Semantic search]
-    D --> I[RAG retrieval]
+    D --> I[Semantic search]
+    D --> J[RAG retrieval]
 ```
 
 If Qdrant is lost, memories are not lost.
@@ -591,7 +598,7 @@ Tests
 Lessons learned
 ```
 
-Good memories produce better search and RAG answers.
+Good memories produce better search, insights and RAG answers.
 
 A good memory should describe:
 
@@ -637,6 +644,19 @@ Classic search reads directly from the local JSON storage and does not require O
 ```bash
 devmemory show <memory-id>
 ```
+
+---
+
+### Show memory insights
+
+```bash
+devmemory insights
+```
+
+`devmemory insights` shows aggregated statistics about local memories, including projects, areas, tags, file references, recent activity and practical suggestions.
+
+This command does not require AI, Ollama or Qdrant.
+It reads local JSON storage and does not modify data.
 
 ---
 
@@ -746,6 +766,65 @@ devmemory timeline --limit 10
 ```
 
 The timeline shows saved memories chronologically and helps understand how a project evolved over time.
+
+### Insights
+
+```bash
+devmemory insights
+```
+
+The insights command shows aggregated statistics and practical suggestions based on local memories.
+
+It includes:
+
+```text
+total memories
+project count
+area count
+tag count
+file reference count
+most active projects
+most common areas
+most used tags
+recent activity
+suggestions
+```
+
+Example output:
+
+```text
+DevMemory insights
+------------------
+
+Total memories: 12
+Projects: 3
+Areas: 5
+Tags: 14
+Files referenced: 27
+
+Most active projects:
+1. DevMemory - 8 memories
+2. LogicalCommon - 3 memories
+
+Most common areas:
+1. AI - 5 memories
+2. CLI - 4 memories
+
+Most used tags:
+1. rag - 4 uses
+2. qdrant - 3 uses
+
+Recent activity:
+Last memory: 2026-06-04
+Most active month: 2026-06
+
+Suggestions:
+- You have enough memories to explore the timeline with `devmemory timeline`.
+- You have memories referencing files: try `devmemory graph-view` to explore relationships.
+- You have AI/RAG-related memories: consider running `devmemory index` for semantic search.
+```
+
+This command does not require AI, Ollama or Qdrant.
 
 ### General diagnostics
 
@@ -890,7 +969,7 @@ The graph currently visualizes:
 
 ## Local AI setup
 
-DevMemory can work without AI for basic memory capture and classic search.
+DevMemory can work without AI for basic memory capture, classic search, timeline, insights, Markdown export and graph generation.
 
 For semantic search and RAG, you need:
 
@@ -1220,6 +1299,7 @@ devmemory show <memory-id>
 devmemory edit <memory-id> [options]
 devmemory delete <memory-id> [--yes]
 devmemory timeline
+devmemory insights
 devmemory doctor
 devmemory git-status
 devmemory learn-from-git
@@ -1547,6 +1627,7 @@ Examples:
 
 ```text
 MemoryService
+MemoryInsightsService
 GitMemoryDraftService
 MemoryGraphService
 MemoryVectorIndexingService
@@ -1618,6 +1699,7 @@ show
 edit
 delete
 timeline
+insights
 setup
 storage
 markdown
@@ -1699,6 +1781,8 @@ Recommended full local validation:
 The test suite covers:
 
 * memory service behavior;
+* memory insights aggregation;
+* memory insights CLI output;
 * validation and normalization;
 * ranked text search;
 * memory edit behavior;
@@ -1820,6 +1904,7 @@ Current limitations:
 Planned improvements:
 
 * Evolve `devmemory setup --wizard` into a configuration-writing first-run experience.
+* Improve memory insights with optional filters and richer recommendations.
 * Improve CLI rendering with optional colors, tables and richer terminal output.
 * Evaluate `System.CommandLine` or `Spectre.Console`.
 * Add SQLite as an optional storage provider.

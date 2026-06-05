@@ -1,4 +1,5 @@
 using DevMemory.Application;
+using DevMemory.Application.Insights;
 using DevMemory.Cli.CommandLine;
 using DevMemory.Cli.Commands;
 using DevMemory.Cli.Commands.Ai;
@@ -6,7 +7,6 @@ using DevMemory.Cli.Commands.Git;
 using DevMemory.Cli.Commands.Graph;
 using DevMemory.Cli.Commands.Memory;
 using DevMemory.Cli.Commands.System;
-using DevMemory.Infrastructure;
 using DevMemory.Infrastructure.Git;
 using DevMemory.Infrastructure.Graph;
 using DevMemory.Infrastructure.Markdown;
@@ -46,6 +46,7 @@ var commandHandlers = new ICommandHandler[]
     new AskCommandHandler(),
     new IndexCommandHandler(memoryService),
     new RelatedCommandHandler(memoryService),
+    new InsightsCommandHandler(memoryService),
     new SemanticSearchCommandHandler(),
     new ConfigCommandHandler(),
     new VersionCommandHandler(),

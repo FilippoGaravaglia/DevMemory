@@ -107,6 +107,7 @@ devmemory list
 devmemory show <memory-id>
 devmemory search "your topic"
 devmemory timeline
+devmemory insights
 devmemory graph-export
 devmemory graph-view
 ```
@@ -333,6 +334,69 @@ devmemory timeline --tag rag
 devmemory timeline --limit 10
 devmemory timeline --project DevMemory --limit 10
 ```
+
+---
+
+### Insights
+
+```bash
+devmemory insights
+```
+
+Shows aggregated statistics and practical suggestions based on local memories.
+
+It includes:
+
+```text
+total memories
+project count
+area count
+tag count
+file reference count
+most active projects
+most common areas
+most used tags
+recent activity
+suggestions
+```
+
+Example output:
+
+```text
+DevMemory insights
+------------------
+
+Total memories: 12
+Projects: 3
+Areas: 5
+Tags: 14
+Files referenced: 27
+
+Most active projects:
+1. DevMemory - 8 memories
+2. LogicalCommon - 3 memories
+
+Most common areas:
+1. AI - 5 memories
+2. CLI - 4 memories
+
+Most used tags:
+1. rag - 4 uses
+2. qdrant - 3 uses
+
+Recent activity:
+Last memory: 2026-06-04
+Most active month: 2026-06
+
+Suggestions:
+- You have enough memories to explore the timeline with `devmemory timeline`.
+- You have memories referencing files: try `devmemory graph-view` to explore relationships.
+- You have AI/RAG-related memories: consider running `devmemory index` for semantic search.
+```
+
+This command does not require AI, Ollama or Qdrant.
+
+It reads local JSON storage and does not modify data.
 
 ---
 
@@ -710,6 +774,7 @@ Stop local AI services:
 
 * Core memory commands work without AI.
 * Classic search works without AI.
+* Memory insights work without AI.
 * Markdown export works without AI.
 * Git inspection works without AI.
 * Knowledge graph export works without AI.
