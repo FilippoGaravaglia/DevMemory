@@ -25,6 +25,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Added safe interactive setup wizard with `devmemory setup --wizard`.
 * Added command-specific help for config with `devmemory help config`.
 * Added command-specific help for AI/RAG commands with `devmemory help ask` and `devmemory help index`.
+* Added command-specific help for memory lifecycle commands with `devmemory help memory`.
 
 ### Changed
 
@@ -36,6 +37,7 @@ The format is inspired by Keep a Changelog, and the project follows Semantic Ver
 * Updated setup documentation and package smoke tests for the interactive setup wizard.
 * Updated CLI help documentation and smoke tests for config command-specific help.
 * Updated CLI help documentation and smoke tests for AI/RAG command-specific help.
+* Updated CLI help documentation and smoke tests for memory lifecycle command-specific help.
 
 ### Notes
 

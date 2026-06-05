@@ -79,6 +79,9 @@ echo
 "$TOOL_PATH" help config
 echo
 
+"$TOOL_PATH" help memory
+echo
+
 "$TOOL_PATH" help ask
 echo
 
